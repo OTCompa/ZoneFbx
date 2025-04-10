@@ -350,7 +350,7 @@ namespace ZoneFbx
 
                     Fbx.FbxNode_SetStuff(obj_node, obj.Transform.Translation.X, obj.Transform.Translation.Y, obj.Transform.Translation.Z, 0);
                     Fbx.FbxNode_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X), Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
-                    Fbx.FbxNode_SetStuff(obj_node, obj.Transform.Scale.X, obj.Transform.Scale.Y, obj.Transform.Scale.Z, 0);
+                    Fbx.FbxNode_SetStuff(obj_node, obj.Transform.Scale.X, obj.Transform.Scale.Y, obj.Transform.Scale.Z, 2);
 
                     if (obj.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.BG)
                     {
