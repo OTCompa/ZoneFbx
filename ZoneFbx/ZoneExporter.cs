@@ -112,6 +112,7 @@ namespace ZoneFbx
                 string model_path = Path.Combine(terrain_path, model_filename);
                 var plate_model_file = data.GetFile<MdlFile>(model_path);
                 var plate_model = new Lumina.Models.Models.Model(plate_model_file!);
+                plate_model.Update(data);
 
                 process_model(plate_model, plate_node);
 
@@ -128,7 +129,6 @@ namespace ZoneFbx
         {
             var path = model!.File!.FilePath.Path;
             path = path.Substring(path.LastIndexOf('/') + 1);
-
             for (int i = 0; i < model.Meshes.Length; i++)
             {
                 string mesh_name = path + "_" + i.ToString();
@@ -141,7 +141,6 @@ namespace ZoneFbx
                     mesh = cached_mesh;
                 } else
                 {
-                    // TODO: finish this function
                     mesh = create_mesh(model.Meshes[i], mesh_name);
                     IntPtr material;
                     material = create_material(model.Meshes[i].Material);
@@ -279,7 +278,6 @@ namespace ZoneFbx
 
                 var texture = Fbx.FbxFileTexture_Create(scene, usage_name);
                 var rel = Util.get_texture_path(output_path, zone_code, mat.Textures[i].TexturePath);
-                Console.WriteLine(rel);
                 Fbx.FbxFileTexture_SetStuff(texture, rel);
 
                 switch (mat.Textures[i].TextureUsageRaw)
@@ -308,24 +306,31 @@ namespace ZoneFbx
             for (int i = 0; i < mat.Textures.Length; i++)
             {
                 var tex_path = Util.get_texture_path(output_path, zone_code, mat.Textures[i].TexturePath);
-                if (File.Exists(tex_path))
-                {
-                    continue;
-                }
+                if (File.Exists(tex_path)) continue;
 
                 Lumina.Data.Files.TexFile texfile;
                 try {
                     texfile = mat.Textures[i].GetTextureNc(data);
-                } catch(Exception e)
+                } catch(Exception)
                 {
                     continue;
                 }
 
                 Image texture;
-                using (var ms = new MemoryStream(texfile.ImageData))
+                try
                 {
-                    texture = new Bitmap(ms);
-                    //texture = new Bitmap(texfile.Header.Width, texfile.Header.Height, texfile.Header.Width + 4, PixelFormat.Format32bppArgb, texfile.ImageData);
+                    unsafe
+                    {
+                        byte[] buffer = new byte[texfile.ImageData.Length];
+                        fixed (byte* p = texfile.ImageData)
+                        {
+                            IntPtr imageData = (IntPtr)p;
+                            texture = new Bitmap(texfile.Header.Width, texfile.Header.Height, texfile.Header.Width * 4, PixelFormat.Format32bppArgb, imageData);
+                        }
+                    }
+                } catch (NotSupportedException)
+                {
+                    continue;
                 }
                 Directory.CreateDirectory(Path.GetDirectoryName(tex_path));
                 texture.Save(tex_path, ImageFormat.Png);
@@ -358,6 +363,7 @@ namespace ZoneFbx
                         var object_path = instance_object.AssetPath;
                         var object_file = data.GetFile<MdlFile>(object_path);
                         var model = new Lumina.Models.Models.Model(object_file);
+                        model.Update(data);
 
                         var model_node = Fbx.FbxNode_Create(scene, object_path.Substring(object_path.LastIndexOf("/") + 1));
 
