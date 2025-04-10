@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
 using JeremyAnsel.BcnSharp;
+using Lumina.Models.Models;
 
 namespace ZoneFbx
 {
@@ -113,7 +114,15 @@ namespace ZoneFbx
                 string model_path = Path.Combine(terrain_path, model_filename);
                 var plate_model_file = data.GetFile<MdlFile>(model_path);
                 var plate_model = new Lumina.Models.Models.Model(plate_model_file!);
-                plate_model.Update(data);
+                try
+                {
+                    plate_model.Update(data);
+                } catch (ArgumentOutOfRangeException e)
+                {
+                    Console.WriteLine("Object " + model_path + " could not be resolved from game data.");
+                    Console.WriteLine(e.Message);
+                    plate_model = new Lumina.Models.Models.Model(plate_model_file);
+                }
 
                 process_model(plate_model, plate_node);
 
@@ -377,9 +386,10 @@ namespace ZoneFbx
                         try
                         {
                             model.Update(data);
-                        } catch (ArgumentOutOfRangeException)
+                        } catch (ArgumentOutOfRangeException e)
                         {
                             Console.WriteLine("Object " + object_path + " could not be resolved from game data.");
+                            Console.WriteLine(e.Message);
                             model = new Lumina.Models.Models.Model(object_file);
                         }
 
