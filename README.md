@@ -22,3 +22,16 @@ https://streamable.com/tjg45n
 - import into blender!
 
 note: the program is really bad with slashes and spaces in file paths, type it exactly like the video
+
+# Issues
+If you encounter the issue: `Object bg/ffxiv/wil_w1/evt/w1eb/bgplate/0015.mdl could not be resolved from game data.`
+followed by specifically:
+```
+Specified argument was out of the range of valid values. (Parameter 'usage')
+Actual value was 3845360663.
+```
+This is because of what I think is a bug in a [Lumina](https://github.com/NotAdam/Lumina) which this program uses.
+I have a [fork](https://github.com/OTCompa/Lumina) of it that "fixes" the issue, but it'll probably get fixed in the main branch soon.
+You should only be seeing the above error if you built it by yourself, as I have included the modified Lumina DLL in the release.  
+
+For any other errors, please open an issue.
