@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
+using JeremyAnsel.BcnSharp;
 
 namespace ZoneFbx
 {
@@ -319,19 +320,28 @@ namespace ZoneFbx
                 Image texture;
                 try
                 {
-                    unsafe
-                    {
-                        byte[] buffer = new byte[texfile.ImageData.Length];
-                        fixed (byte* p = texfile.ImageData)
-                        {
-                            IntPtr imageData = (IntPtr)p;
-                            texture = new Bitmap(texfile.Header.Width, texfile.Header.Height, texfile.Header.Width * 4, PixelFormat.Format32bppArgb, imageData);
-                        }
-                    }
+                    texture = Util.toBitmap(texfile.ImageData, texfile.Header.Width, texfile.Header.Height);
                 } catch (NotSupportedException)
                 {
-                    Console.WriteLine("Not supported: " + tex_path);
-                    continue;
+                    if (texfile.Header.Format == TexFile.TextureFormat.BC7)
+                    {
+                        Console.WriteLine("Processing BC7 texture: " + tex_path);
+                        var decodedBc7 = new byte[texfile.Header.Width * texfile.Header.Height * 4];
+                        Bc7Sharp.Decode(texfile.Data, decodedBc7, texfile.Header.Width, texfile.Header.Height);
+
+                        texture = Util.toBitmap(decodedBc7, texfile.Header.Width, texfile.Header.Height);
+                    } else if (texfile.Header.Format == TexFile.TextureFormat.BC5)
+                    {
+                        Console.WriteLine("Processing BC5 texture: " + tex_path);
+                        var decodedBc5 = new byte[texfile.Header.Width * texfile.Header.Height * 4];
+                        Bc5Sharp.Decode(texfile.Data, decodedBc5, texfile.Header.Width, texfile.Header.Height);
+
+                        texture = Util.toBitmap(decodedBc5, texfile.Header.Width, texfile.Header.Height);
+                    } else
+                    {
+                        Console.WriteLine("Not supported: " + tex_path);
+                        continue;
+                    }
                 }
                 Directory.CreateDirectory(Path.GetDirectoryName(tex_path));
                 texture.Save(tex_path, ImageFormat.Png);
@@ -364,7 +374,14 @@ namespace ZoneFbx
                         var object_path = instance_object.AssetPath;
                         var object_file = data.GetFile<MdlFile>(object_path);
                         var model = new Lumina.Models.Models.Model(object_file);
-                        model.Update(data);
+                        try
+                        {
+                            model.Update(data);
+                        } catch (ArgumentOutOfRangeException)
+                        {
+                            Console.WriteLine("Object " + object_path + " could not be resolved from game data.");
+                            model = new Lumina.Models.Models.Model(object_file);
+                        }
 
                         var model_node = Fbx.FbxNode_Create(scene, object_path.Substring(object_path.LastIndexOf("/") + 1));
 

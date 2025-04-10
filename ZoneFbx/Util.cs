@@ -1,5 +1,9 @@
-﻿using System;
+﻿using Lumina.Data.Files;
+using Lumina.Models.Materials;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,6 +39,19 @@ namespace ZoneFbx
         public static double degrees(double radians)
         {
             return 180 / Math.PI * radians;
+        }
+
+        public static Bitmap toBitmap(byte[] data, int width, int height)
+        {
+            unsafe
+            {
+                byte[] buffer = new byte[data.Length];
+                fixed (byte* p = data)
+                {
+                    IntPtr imageData = (IntPtr)p;
+                    return new Bitmap(width, height, width * 4, PixelFormat.Format32bppArgb, imageData);
+                }
+            }
         }
     }
 }
