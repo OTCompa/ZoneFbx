@@ -330,6 +330,7 @@ namespace ZoneFbx
                     }
                 } catch (NotSupportedException)
                 {
+                    Console.WriteLine("Not supported: " + tex_path);
                     continue;
                 }
                 Directory.CreateDirectory(Path.GetDirectoryName(tex_path));
