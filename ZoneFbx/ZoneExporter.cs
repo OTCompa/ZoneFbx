@@ -425,12 +425,15 @@ namespace ZoneFbx
         {
             string bg_path = "bg/" + zone_path.Substring(0, zone_path.Length - 5) + "/bg.lgb";
             var bg = data.GetFile<Lumina.Data.Files.LgbFile>(bg_path);
-            //var bgText = Newtonsoft.Json.JsonConvert.SerializeObject(bg.Layers, Newtonsoft.Json.Formatting.Indented);
-            //File.WriteAllText($"{output_path}/bg.json", bgText);
+
+            string planmap_path = "bg/" + zone_path.Substring(0, zone_path.Length - 5) + "/planmap.lgb";
+            var planmap = data.GetFile<Lumina.Data.Files.LgbFile>(planmap_path);
 
             if (bg == null) return false;
             var root_node = Fbx.FbxScene_GetRootNode(scene);
             process_layers(bg.Layers, root_node);
+
+            if (planmap != null) process_layers(planmap.Layers, root_node);
 
             return true;
         }
