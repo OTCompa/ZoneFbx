@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,9 +30,19 @@ namespace ZoneFbx
             return out_path + "textures" + Path.DirectorySeparatorChar;
         }
 
-        public static string get_texture_path(string out_path, string zone_code, string texture_path)
+        public static string get_texture_path(string out_path, string zone_code, string texture_path, string material_path, Vector3? v = null)
         {
-            var tex_abs_path = texture_path.Substring(texture_path.LastIndexOf('/') + 1).Replace(".tex", ".png");
+            string tex_abs_path;
+
+            if (v == null)
+            {
+                tex_abs_path = texture_path.Substring(texture_path.LastIndexOf('/') + 1).Replace(".tex", ".png");
+            } else
+            {
+                var type = texture_path.Substring(texture_path.LastIndexOf(".tex") - 2, 2);
+                tex_abs_path = material_path.Substring(material_path.LastIndexOf('/') + 1).Replace(".mtrl", $"{type}.png");
+            }
+
             tex_abs_path = get_texture_folder(out_path, zone_code) + tex_abs_path;
             return tex_abs_path;
         }
@@ -41,8 +52,18 @@ namespace ZoneFbx
             return 180 / Math.PI * radians;
         }
 
-        public static Bitmap toBitmap(byte[] data, int width, int height)
+        public static Bitmap toBitmap(byte[] data, int width, int height, Vector3? multiplier = null)
         {
+            if (multiplier != null)
+            {
+                for (int i = 0; i < data.Length; i += 4)
+                {
+                    data[i] = Convert.ToByte(Math.Clamp(data[i] * multiplier.Value.Z, 0, 255));         // b
+                    data[i + 1] = Convert.ToByte(Math.Clamp(data[i + 1] * multiplier.Value.Y, 0, 255)); // g
+                    data[i + 2] = Convert.ToByte(Math.Clamp(data[i + 2] * multiplier.Value.X, 0, 255)); // r
+                }
+            }
+
             unsafe
             {
                 byte[] buffer = new byte[data.Length];

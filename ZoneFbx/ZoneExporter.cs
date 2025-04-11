@@ -5,6 +5,10 @@ using JeremyAnsel.BcnSharp;
 using Lumina.Data.Parsing.Layer;
 using Newtonsoft.Json;
 using static Lumina.Data.Parsing.Layer.LayerCommon;
+using Lumina.Models.Materials;
+using Lumina.Extensions;
+using System.Numerics;
+using System;
 
 namespace ZoneFbx
 {
@@ -278,7 +282,9 @@ namespace ZoneFbx
             {
                 return res;
             }
-            extract_textures(mat);
+
+            var materialInfo = get_shader(mat);
+            //extract_textures(mat, materialInfo);
             outsurface = Fbx.FbxSurfacePhong_Create(scene, material_name);
 
             Fbx.FbxSurfacePhong_SetFactor(outsurface);
@@ -287,77 +293,178 @@ namespace ZoneFbx
             {
                 if (mat.Textures[i].TexturePath.Contains("dummy")) continue;
 
-                string usage_name = mat.Textures[i].TextureUsageSimple.ToString();
+                Vector3? v = null;
 
-                var texture = Fbx.FbxFileTexture_Create(scene, usage_name);
-                var rel = Util.get_texture_path(output_path, zone_code, mat.Textures[i].TexturePath);
+                switch (mat.Textures[i].TextureUsageSimple)
+                {
+                    case Texture.Usage.Diffuse:
+                        v = materialInfo?.DiffuseColor ?? v; break;
+                    case Texture.Usage.Specular:
+                        v = materialInfo?.SpecularColor ?? v; break;
+                        // emissives would be here if i knew what the texture usage for it is called lmfao
+                }
+
+                var rel = Util.get_texture_path(output_path, zone_code, mat.Textures[i].TexturePath, mat.MaterialPath, v);
+
+                extract_texture(mat.Textures[i], v, rel);
+
+                string tex_name = Path.GetFileNameWithoutExtension(mat.Textures[i].TexturePath);
+
+                var texture = Fbx.FbxFileTexture_Create(scene, tex_name);
                 Fbx.FbxFileTexture_SetStuff(texture, rel);
 
-                switch (mat.Textures[i].TextureUsageRaw)
+                switch (mat.Textures[i].TextureUsageSimple)
                 {
-                    case Lumina.Data.Parsing.TextureUsage.SamplerColorMap0:
+                    case Texture.Usage.Diffuse:
                         Fbx.FbxSurfacePhong_ConnectSrcObject(outsurface, texture, 0);
                         break;
-                    case Lumina.Data.Parsing.TextureUsage.SamplerSpecularMap0:
+                    case Texture.Usage.Specular:
                         Fbx.FbxSurfacePhong_ConnectSrcObject(outsurface, texture, 1);
                         break;
-                    case Lumina.Data.Parsing.TextureUsage.SamplerNormalMap0:
+                    case Texture.Usage.Normal:
                         Fbx.FbxSurfacePhong_ConnectSrcObject(outsurface, texture, 2);
                         break;
                 }
-                
             }
 
             material_cache[hash] = outsurface;
 
-
             return outsurface;
         }
 
-        private void extract_textures(Lumina.Models.Materials.Material mat)
+        private void extract_texture(Texture tex, Vector3? v, string tex_path)
         {
-            for (int i = 0; i < mat.Textures.Length; i++)
+            if (File.Exists(tex_path)) return;
+            TexFile texfile;
+            try
             {
-                var tex_path = Util.get_texture_path(output_path, zone_code, mat.Textures[i].TexturePath);
-                if (File.Exists(tex_path)) continue;
-
-                Lumina.Data.Files.TexFile texfile;
-                try {
-                    texfile = mat.Textures[i].GetTextureNc(data);
-                } catch(Exception)
-                {
-                    continue;
-                }
-
-                Image texture;
-                try
-                {
-                    texture = Util.toBitmap(texfile.ImageData, texfile.Header.Width, texfile.Header.Height);
-                } catch (NotSupportedException)
-                {
-                    if (texfile.Header.Format == TexFile.TextureFormat.BC7)
-                    {
-                        Console.WriteLine("Processing BC7 texture: " + tex_path);
-                        var decodedBc7 = new byte[texfile.Header.Width * texfile.Header.Height * 4];
-                        Bc7Sharp.Decode(texfile.Data, decodedBc7, texfile.Header.Width, texfile.Header.Height);
-
-                        texture = Util.toBitmap(decodedBc7, texfile.Header.Width, texfile.Header.Height);
-                    } else if (texfile.Header.Format == TexFile.TextureFormat.BC5)
-                    {
-                        Console.WriteLine("Processing BC5 texture: " + tex_path);
-                        var decodedBc5 = new byte[texfile.Header.Width * texfile.Header.Height * 4];
-                        Bc5Sharp.Decode(texfile.Data, decodedBc5, texfile.Header.Width, texfile.Header.Height);
-
-                        texture = Util.toBitmap(decodedBc5, texfile.Header.Width, texfile.Header.Height);
-                    } else
-                    {
-                        Console.WriteLine("Not supported: " + tex_path);
-                        continue;
-                    }
-                }
-                Directory.CreateDirectory(Path.GetDirectoryName(tex_path));
-                texture.Save(tex_path, ImageFormat.Png);
+                texfile = tex.GetTextureNc(data);
+            } catch (Exception)
+            {
+                Console.WriteLine("Failed to get texture: " + tex.TexturePath);
+                return;
             }
+
+            Image texture;
+
+            try
+            {
+                texture = Util.toBitmap(texfile.ImageData, texfile.Header.Width, texfile.Header.Height, v);
+            } catch (NotSupportedException)
+            {
+                if (texfile.Header.Format == TexFile.TextureFormat.BC7)
+                {
+                    Console.WriteLine("Processing BC7 texture: " + tex_path);
+                    var decodedBc7 = new byte[texfile.Header.Width * texfile.Header.Height * 4];
+                    Bc7Sharp.Decode(texfile.Data, decodedBc7, texfile.Header.Width, texfile.Header.Height);
+
+                    texture = Util.toBitmap(decodedBc7, texfile.Header.Width, texfile.Header.Height, v);
+
+                } else if (texfile.Header.Format == TexFile.TextureFormat.BC5)
+                {
+                    Console.WriteLine("Processing BC5 texture: " + tex_path);
+                    var decodedBc5 = new byte[texfile.Header.Width * texfile.Header.Height * 4];
+                    Bc5Sharp.Decode(texfile.Data, decodedBc5, texfile.Header.Width, texfile.Header.Height);
+
+                    texture = Util.toBitmap(decodedBc5, texfile.Header.Width, texfile.Header.Height, v);
+                } else
+                {
+                    Console.WriteLine("Not supported: " + tex_path);
+                    return;
+                }
+            }
+            Directory.CreateDirectory(Path.GetDirectoryName(tex_path));
+            texture.Save(tex_path, ImageFormat.Png);
+        }
+
+        private MaterialInfo? get_shader(Material mat)
+        {
+            var diffuseOffset = -1;
+            var specularOffset = -1;
+            //var emissiveOffset = -1;
+
+            for (int i = 0; i < mat.File.Constants.Length; i++)
+            {
+                var constant = mat.File.Constants[i];
+                if (constant.ConstantId == 0x2C2A34DD) // g_DiffuseColor 
+                {
+                    if (constant.ValueSize != 12)
+                    {
+                        Console.WriteLine("Unexpected size for diffuse color. May cause unexpected results.");
+                    }
+                    diffuseOffset = constant.ValueOffset;
+                } else if (constant.ConstantId == 0x141722D5)
+                {
+                    if (constant.ValueSize != 12)
+                    {
+                        Console.WriteLine("Unexpected size for specular color. May cause unexpected results.");
+                    }
+                    specularOffset = constant.ValueOffset;
+                }
+                //else if (constant.ConstantId == 0x38A64362)
+                //{
+                //    if (constant.ValueSize != 12)
+                //    {
+                //        Console.WriteLine("uh oh 3");
+                //    }
+                //    emissiveOffset = constant.ValueOffset;
+                //}
+            }
+
+            if (diffuseOffset == -1 && specularOffset == -1) return null;
+
+            long cursor = 16; // mtrl header size
+            var br = mat.File.Reader;
+
+            int colorsetBlockSize;
+            int stringBlockSize;
+            int additionalDataSize;
+
+            // get string block size
+            br.Seek(6);
+            colorsetBlockSize = br.ReadUInt16();
+            stringBlockSize = br.ReadUInt16();
+
+            // get tex/map/colorset numbers to figure out where string block is
+            br.Seek(12);
+            var numStrings = 0;
+
+            for (int i = 0; i < 3; i++)
+            {
+                numStrings += br.ReadByte();
+            }
+
+            additionalDataSize = br.ReadByte();
+
+            // put cursor at beginning of shader area
+            cursor += numStrings * 4 + additionalDataSize + stringBlockSize + colorsetBlockSize + 2;  // skip shader constants data size
+            br.Seek(cursor);
+
+            var numShaderKeys = br.ReadUInt16();
+            var numShaderConstants = br.ReadUInt16();
+            var numTextureSampler = br.ReadUInt16();
+            br.Seek(br.Position + 4 + numShaderKeys * 8);  // position at the start of shader constants ids/offsets/sizes
+            cursor = br.Position + numShaderConstants * 8 + numTextureSampler * 12;
+
+            // get all the relevant information
+            var ret = new MaterialInfo();
+            if (diffuseOffset >= -1)
+            {
+                br.Seek(cursor + diffuseOffset);
+                ret.DiffuseColor = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+            }
+            if (specularOffset >= -1)
+            {
+                br.Seek(cursor + specularOffset);
+                ret.SpecularColor = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+            }
+            //if (emissiveOffset >= -1)
+            //{
+            //    br.Seek(cursor + emissiveOffset);
+            //    ret.EmissiveColor = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+            //}
+
+            return ret;
         }
 
         private IntPtr init_child_node(LayerCommon.InstanceObject obj)
@@ -382,7 +489,7 @@ namespace ZoneFbx
                     if (obj.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.BG)
                     {
                         var obj_node = init_child_node(obj);
-                        var instance_object = (Lumina.Data.Parsing.Layer.LayerCommon.BGInstanceObject)obj.Object;
+                        var instance_object = (LayerCommon.BGInstanceObject)obj.Object;
                         var object_path = instance_object.AssetPath;
                         var object_file = data.GetFile<MdlFile>(object_path);
                         var model = new Lumina.Models.Models.Model(object_file);
