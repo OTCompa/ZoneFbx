@@ -26,7 +26,7 @@ namespace ZoneFbx
 
         public static string get_texture_folder(string out_path, string zone_code)
         {
-            return out_path + zone_code + "_textures\\";
+            return out_path + "textures" + Path.DirectorySeparatorChar;
         }
 
         public static string get_texture_path(string out_path, string zone_code, string texture_path)

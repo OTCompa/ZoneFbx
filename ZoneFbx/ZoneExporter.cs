@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using JeremyAnsel.BcnSharp;
 using Lumina.Data.Parsing.Layer;
+using Newtonsoft.Json;
+using static Lumina.Data.Parsing.Layer.LayerCommon;
 
 namespace ZoneFbx
 {
@@ -13,6 +15,11 @@ namespace ZoneFbx
         private string output_path;
         private string zone_code;
         private Lumina.GameData data;
+
+#if DEBUG
+        private int ctr;
+#endif
+
         IntPtr manager = IntPtr.Zero;
         IntPtr scene = IntPtr.Zero;
         Dictionary<ulong, IntPtr> material_cache = new Dictionary<ulong, IntPtr>();
@@ -22,9 +29,12 @@ namespace ZoneFbx
         {
             this.game_path = game_path;
             this.zone_path = zone_path;
-            this.output_path = output_path;
 
             zone_code = zone_path.Substring(zone_path.LastIndexOf("/level") - 4, 4);
+
+            this.output_path = Path.Combine(output_path, zone_code) + Path.DirectorySeparatorChar;
+            Console.WriteLine(this.output_path);
+            Directory.CreateDirectory(this.output_path);
 
             Console.WriteLine("Initializing...");
             if (!init())
@@ -417,6 +427,10 @@ namespace ZoneFbx
                 process_layers(layer_group.Layers, layer_group_node);
 
                 Fbx.FbxNode_AddChild(parentNode, layer_group_node);
+
+#if DEBUG
+                save_json($"{Path.GetFileNameWithoutExtension(sgb_path)}_{i}", layer_group.Layers);
+#endif
             }
             return true;
         }
@@ -435,8 +449,24 @@ namespace ZoneFbx
 
             if (planmap != null) process_layers(planmap.Layers, root_node);
 
+#if DEBUG
+            save_json(Path.GetFileNameWithoutExtension(bg_path), bg.Layers);
+            if (planmap != null) save_json(Path.GetFileNameWithoutExtension(planmap_path), planmap.Layers);
+#endif
+
             return true;
         }
+
+#if DEBUG
+        private void save_json(string filename, Layer[] layers)
+        {
+            var layerJson = JsonConvert.SerializeObject(layers, Formatting.Indented);
+            var jsonFolder = Path.Combine(output_path, "json");
+            Directory.CreateDirectory(jsonFolder);
+            File.WriteAllText(Path.Combine(jsonFolder, $"{ctr}_{filename}.json"), layerJson);
+            ctr++;
+        }
+#endif
 
         private bool save_scene()
         {
