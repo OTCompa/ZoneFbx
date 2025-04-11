@@ -1,15 +1,8 @@
 ﻿using Lumina.Data.Files;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
 using JeremyAnsel.BcnSharp;
-using Lumina.Models.Models;
+using Lumina.Data.Parsing.Layer;
 
 namespace ZoneFbx
 {
@@ -357,28 +350,28 @@ namespace ZoneFbx
             }
         }
 
-        private bool process_bg()
+        private IntPtr init_child_node(LayerCommon.InstanceObject obj)
         {
-            string bg_path = "bg/" + zone_path.Substring(0, zone_path.Length - 5) + "/bg.lgb";
-            var bg = data.GetFile<Lumina.Data.Files.LgbFile>(bg_path);
+            var obj_node = Fbx.FbxNode_Create(scene, obj.Name);
+            Fbx.FbxNode_SetStuff(obj_node, obj.Transform.Translation.X, obj.Transform.Translation.Y, obj.Transform.Translation.Z, 0);
+            Fbx.FbxNode_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X), Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
+            Fbx.FbxNode_SetStuff(obj_node, obj.Transform.Scale.X, obj.Transform.Scale.Y, obj.Transform.Scale.Z, 2);
+            return obj_node;
+        }
 
-            if (bg == null) return false;
-            for (int i = 0; i < bg.Layers.Length; i++)
+        private void process_layers(LayerCommon.Layer[] layers, IntPtr parentNode)
+        {
+            for (int i = 0; i < layers.Length; i++)
             {
-                var layer = bg.Layers[i];
+                var layer = layers[i];
                 var layer_node = Fbx.FbxNode_Create(scene, layer.Name);
 
                 for (int j = 0; j < layer.InstanceObjects.Length; j++)
                 {
                     var obj = layer.InstanceObjects[j];
-                    var obj_node = Fbx.FbxNode_Create(scene, obj.Name);
-
-                    Fbx.FbxNode_SetStuff(obj_node, obj.Transform.Translation.X, obj.Transform.Translation.Y, obj.Transform.Translation.Z, 0);
-                    Fbx.FbxNode_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X), Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
-                    Fbx.FbxNode_SetStuff(obj_node, obj.Transform.Scale.X, obj.Transform.Scale.Y, obj.Transform.Scale.Z, 2);
-
                     if (obj.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.BG)
                     {
+                        var obj_node = init_child_node(obj);
                         var instance_object = (Lumina.Data.Parsing.Layer.LayerCommon.BGInstanceObject)obj.Object;
                         var object_path = instance_object.AssetPath;
                         var object_file = data.GetFile<MdlFile>(object_path);
@@ -399,11 +392,45 @@ namespace ZoneFbx
 
                         Fbx.FbxNode_AddChild(obj_node, model_node);
                         Fbx.FbxNode_AddChild(layer_node, obj_node);
+                    } else if (obj.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.SharedGroup)
+                    {
+                        var obj_node = init_child_node(obj);
+                        var sharedGroupObj = (Lumina.Data.Parsing.Layer.LayerCommon.SharedGroupInstanceObject)obj.Object;
+                        process_sgb(sharedGroupObj.AssetPath, obj_node);
+                        Fbx.FbxNode_AddChild(layer_node, obj_node);
                     }
                 }
-                var root_node = Fbx.FbxScene_GetRootNode(scene);
-                Fbx.FbxNode_AddChild(root_node, layer_node);
+                Fbx.FbxNode_AddChild(parentNode, layer_node);
             }
+        }
+
+        private bool process_sgb(string sgb_path, IntPtr parentNode)
+        {
+            var sgb = data.GetFile<SgbFile>(sgb_path);
+            if (sgb == null) return false;
+
+            for (int i = 0; i < sgb.LayerGroups.Length; i++)
+            {
+                var layer_group = sgb.LayerGroups[i];
+                var layer_group_node = Fbx.FbxNode_Create(scene, layer_group.Name);
+
+                process_layers(layer_group.Layers, layer_group_node);
+
+                Fbx.FbxNode_AddChild(parentNode, layer_group_node);
+            }
+            return true;
+        }
+
+        private bool process_bg()
+        {
+            string bg_path = "bg/" + zone_path.Substring(0, zone_path.Length - 5) + "/bg.lgb";
+            var bg = data.GetFile<Lumina.Data.Files.LgbFile>(bg_path);
+            //var bgText = Newtonsoft.Json.JsonConvert.SerializeObject(bg.Layers, Newtonsoft.Json.Formatting.Indented);
+            //File.WriteAllText($"{output_path}/bg.json", bgText);
+
+            if (bg == null) return false;
+            var root_node = Fbx.FbxScene_GetRootNode(scene);
+            process_layers(bg.Layers, root_node);
 
             return true;
         }
