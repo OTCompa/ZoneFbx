@@ -30,7 +30,7 @@ namespace ZoneFbx
             return out_path + "textures" + Path.DirectorySeparatorChar;
         }
 
-        public static string get_texture_path(string out_path, string zone_code, string texture_path, string material_path, Vector3? v = null)
+        public static string get_texture_path(string out_path, string zone_code, string texture_path, string material_path, Vector3? v = null, string type = "")
         {
             string tex_abs_path;
 
@@ -39,7 +39,7 @@ namespace ZoneFbx
                 tex_abs_path = texture_path.Substring(texture_path.LastIndexOf('/') + 1).Replace(".tex", ".png");
             } else
             {
-                var type = texture_path.Substring(texture_path.LastIndexOf(".tex") - 2, 2);
+                if (type.Length == 0) type = texture_path.Substring(texture_path.LastIndexOf(".tex") - 2, 2);
                 tex_abs_path = material_path.Substring(material_path.LastIndexOf('/') + 1).Replace(".mtrl", $"{type}.png");
             }
 

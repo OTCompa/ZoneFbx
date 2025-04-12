@@ -140,6 +140,7 @@ extern "C" {
         surfacePhong->AmbientFactor.Set(1.);
         surfacePhong->DiffuseFactor.Set(1.);
         surfacePhong->SpecularFactor.Set(0.3);
+        //surfacePhong->EmissiveFactor.Set(0.3);  // doesn't seem to do anything?
         surfacePhong->BumpFactor.Set(0.2);  // global normal strength, unsure if mtrl files contain this info
         surfacePhong->ShadingModel.Set("Phong");
     }
@@ -167,6 +168,8 @@ extern "C" {
             outsurface->Specular.ConnectSrcObject(texture); break;
         case 2:
             outsurface->NormalMap.ConnectSrcObject(texture); break;
+        case 3:
+            outsurface->Emissive.ConnectSrcObject(texture); break;
         }
     }
 

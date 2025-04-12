@@ -317,22 +317,34 @@ namespace ZoneFbx
                         v = materialInfo?.DiffuseColor ?? v; break;
                     case Texture.Usage.Specular:
                         v = materialInfo?.SpecularColor ?? v; break;
-                        // emissives would be here if i knew what the texture usage for it is called lmfao
                 }
 
-                var rel = Util.get_texture_path(output_path, zone_code, tex.TexturePath, mat.MaterialPath, v);
-
-                extract_texture(tex, v, rel);
+                var tex_path = Util.get_texture_path(output_path, zone_code, tex.TexturePath, mat.MaterialPath, v);
+                var emissive_path = "";
+                extract_texture(tex, v, tex_path);
+                
+                if (tex.TextureUsageSimple == Texture.Usage.Diffuse && materialInfo != null && materialInfo.EmissiveColor.HasValue)
+                {
+                    emissive_path = Util.get_texture_path(output_path, zone_code, tex.TexturePath, mat.MaterialPath, materialInfo.EmissiveColor, type: "_e");
+                    extract_texture(tex, materialInfo.EmissiveColor, emissive_path);
+                }
 
                 string tex_name = Path.GetFileNameWithoutExtension(tex.TexturePath);
 
                 var texture = Fbx.FbxFileTexture_Create(scene, tex_name);
-                Fbx.FbxFileTexture_SetStuff(texture, rel);
+                Fbx.FbxFileTexture_SetStuff(texture, tex_path);
 
                 switch (tex.TextureUsageSimple)
                 {
                     case Texture.Usage.Diffuse:
                         Fbx.FbxSurfacePhong_ConnectSrcObject(outsurface, texture, 0);
+                        if (emissive_path.Length > 0)
+                        {
+                            string emissive_name = Path.GetFileNameWithoutExtension(tex.TexturePath) + "_e";
+                            var emissive = Fbx.FbxFileTexture_Create(scene, emissive_name);
+                            Fbx.FbxFileTexture_SetStuff(emissive, emissive_path);
+                            Fbx.FbxSurfacePhong_ConnectSrcObject(outsurface, emissive, 3);
+                        }
                         break;
                     case Texture.Usage.Specular:
                         Fbx.FbxSurfacePhong_ConnectSrcObject(outsurface, texture, 1);
@@ -398,7 +410,7 @@ namespace ZoneFbx
         {
             var diffuseOffset = -1;
             var specularOffset = -1;
-            //var emissiveOffset = -1;
+            var emissiveOffset = -1;
 
             if (mat.File == null) { return null; }
 
@@ -421,16 +433,14 @@ namespace ZoneFbx
                         }
                         specularOffset = constant.ValueOffset;
                         break;
+                    case 0x38A64362:
+                        if (constant.ValueSize != 12)
+                        {
+                            Console.WriteLine("Unexpected size for emmisive color. May cause unexpected results.");
+                        }
+                        emissiveOffset = constant.ValueOffset;
+                        break;
                 }
-                // emissive
-                //else if (constant.ConstantId == 0x38A64362)
-                //{
-                //    if (constant.ValueSize != 12)
-                //    {
-                //        Console.WriteLine("uh oh 3");
-                //    }
-                //    emissiveOffset = constant.ValueOffset;
-                //}
             }
 
             if (diffuseOffset == -1 && specularOffset == -1) return null;
@@ -484,11 +494,13 @@ namespace ZoneFbx
                 if (v != Vector3.One)
                     ret.SpecularColor = v;
             }
-            //if (emissiveOffset >= -1)
-            //{
-            //    br.Seek(cursor + emissiveOffset);
-            //    ret.EmissiveColor = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
-            //}
+            if (emissiveOffset >= -1)
+            {
+                br.Seek(cursor + emissiveOffset);  // multiply by 0.2 to simulate emissiveFactor = 0.2
+                var v = new Vector3(br.ReadSingle() * .2f, br.ReadSingle() * .2f, br.ReadSingle() * .2f);
+                if (v != Vector3.Zero)
+                    ret.EmissiveColor = v;
+            }
 
             return ret;
         }
