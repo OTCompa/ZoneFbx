@@ -140,6 +140,7 @@ extern "C" {
         surfacePhong->AmbientFactor.Set(1.);
         surfacePhong->DiffuseFactor.Set(1.);
         surfacePhong->SpecularFactor.Set(0.3);
+        surfacePhong->BumpFactor = 0.2;  // global normal strength, unsure if mtrl files contain this info
         surfacePhong->ShadingModel.Set("Phong");
     }
 
