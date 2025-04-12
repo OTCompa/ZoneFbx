@@ -79,4 +79,4 @@ if (args.Length >= 4)
     }
 }
 
-var test = new ZoneExporter(args[0], args[1], args[2], flags);
+var zoneExporter = new ZoneExporter(args[0], args[1], args[2], flags);

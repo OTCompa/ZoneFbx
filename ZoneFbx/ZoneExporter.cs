@@ -89,7 +89,7 @@ namespace ZoneFbx
                 return;
             }
 
-            Console.WriteLine("Saved scene...");
+            Console.WriteLine($"Done! Map exported to {Path.Combine(output_path, zone_code, $"{Path.GetFileName(zone_code)}.fbx")}");
 
         }
 
@@ -100,7 +100,7 @@ namespace ZoneFbx
             manager = Fbx.FbxManager_Create();
             if (manager == IntPtr.Zero)
             {
-                Console.WriteLine(":(");
+                Console.WriteLine("Failed to create FbxManager");
                 return false;
             }
             Fbx.FbxManager_Initialize(manager);

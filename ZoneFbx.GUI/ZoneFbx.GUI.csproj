@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.8.2" />
+    <PackageReference Include="Lumina" Version="5.6.1" />
+    <PackageReference Include="Lumina.Excel" Version="7.2.1" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="mkdir $(TargetDir)\bin&#xD;&#xA;xcopy /y /i &quot;$(SolutionDir)\ZoneFbx\bin\$(Platform)\$(ConfigurationName)\net9.0\*&quot; &quot;$(TargetDir)\bin&quot;&#xA;" />
+  </Target>
+
+</Project>

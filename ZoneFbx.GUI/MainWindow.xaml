@@ -1,0 +1,32 @@
+﻿<Window x:Class="ZoneFbx.GUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ZoneFbx.GUI"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="800">
+    <Grid>
+        <TextBlock HorizontalAlignment="Center">
+            <LineBreak/>
+            <TextBox Name="ConsoleTextBox" Text="{Binding ConsoleString}" Width="700" Height="320" IsReadOnly="True"/>
+            <LineBreak/>
+            <LineBreak/>
+            <TextBox Text="{Binding GamePath}" TextChanged="GamePathChanged" Width="500" Height="20"/>
+            <Button Content="Select game folder" Click="SelectGamePath" Width="120" Height="20"/>
+            <LineBreak/>
+            
+            <TextBox Text="{Binding OutputPath}" TextChanged="OutputPathChanged" Width="500" Height="20"/>
+            <Button Content="Select output folder" Click="SelectOutputPath" Width="120" Height="20"/>
+            <LineBreak/>
+            <ComboBox Width="500" IsEditable="True" ItemsSource="{Binding Levels}" Text="{Binding Level}"></ComboBox>
+            <LineBreak/>
+            <CheckBox Width="200" IsChecked="{Binding EnableLightshaft, Mode=TwoWay}">Enable lightshaft models</CheckBox>
+            <CheckBox Width="200" IsChecked="{Binding EnableFestival, Mode=TwoWay}">Enable festival models</CheckBox>
+            <CheckBox IsChecked="{Binding DisableBaking, Mode=TwoWay}">Disable baking textures</CheckBox>
+            <LineBreak/>
+            <LineBreak/>
+            <Button Content="Extract map" Click="Button_Click" Width="120" Height="30"/>
+        </TextBlock>
+    </Grid>
+</Window>
