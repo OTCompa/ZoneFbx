@@ -74,7 +74,7 @@
                       IsEditable="True"
                       ItemsSource="{Binding FilteredLevels}"
                       DisplayMemberPath="DisplayValue"
-                      Text="{Binding Level, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      Text="{Binding Level, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Delay=200}"
                       IsTextSearchEnabled="False"
                 >
                     <ComboBox.ItemContainerStyle>
@@ -83,6 +83,14 @@
                             <Setter Property="VerticalContentAlignment" Value="Center"/>
                         </Style>
                     </ComboBox.ItemContainerStyle>
+                    <ComboBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel
+                                VirtualizingPanel.IsVirtualizing="True"
+                                VirtualizingPanel.VirtualizationMode="Standard"
+                                />
+                        </ItemsPanelTemplate>
+                    </ComboBox.ItemsPanel>
                 </ComboBox>
             <LineBreak/>
             <CheckBox Width="200" IsChecked="{Binding EnableLightshaft, Mode=TwoWay}">Enable lightshaft models</CheckBox>
