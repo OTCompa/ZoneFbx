@@ -5,10 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ZoneFbx.GUI"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="800">
-    <Grid>
-        <TextBlock HorizontalAlignment="Center">
-            <LineBreak/>
+        MinHeight="550"
+        MinWidth="750"
+        Title="ZoneFbx.GUI" Height="550" Width="750">
+    <Grid Margin="0,25,0,72">
+        <TextBlock HorizontalAlignment="Center" Margin="0,0,0,-51" Grid.RowSpan="2">
             <TextBox Name="ConsoleTextBox" Text="{Binding ConsoleString}" Width="700" Height="320" IsReadOnly="True"/>
             <LineBreak/>
             <LineBreak/>
