@@ -98,7 +98,18 @@
             <CheckBox IsChecked="{Binding DisableBaking, Mode=TwoWay}">Disable baking textures</CheckBox>
             <LineBreak/>
             <LineBreak/>
-            <Button Content="Extract map" Click="ExportMap" Width="120" Height="36"/>
+            <Button Content="Extract map" Click="ExportMap" Width="120" Height="36">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="IsEnabled" Value="True" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Level}" Value="">
+                                <Setter Property="IsEnabled" Value="False" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
         </TextBlock>
     </Grid>
 </Window>
