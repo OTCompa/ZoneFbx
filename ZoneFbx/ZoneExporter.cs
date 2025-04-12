@@ -45,6 +45,16 @@ namespace ZoneFbx
             Directory.CreateDirectory(this.output_path);
 
             Console.WriteLine("Initializing...");
+
+            try
+            {
+                data = new Lumina.GameData(game_path);
+            } catch (DirectoryNotFoundException)
+            {
+                Console.WriteLine("Error: Game path directory is not valid!\n");
+                throw new Exception();
+            }
+
             if (!init())
             {
                 Console.WriteLine("Error occurred during ZoneExporter initialization.");
@@ -79,15 +89,6 @@ namespace ZoneFbx
 
         private bool init()
         {
-            try
-            {
-                data = new Lumina.GameData(game_path);
-            } catch (DirectoryNotFoundException)
-            {
-                Console.WriteLine("Error: Game path directory is not valid!\n");
-                return false;
-            }
-
             string name = zone_path.Substring(zone_path.LastIndexOf("/level") - 4, 4);
 
             manager = Fbx.FbxManager_Create();
@@ -98,7 +99,6 @@ namespace ZoneFbx
             }
             Fbx.FbxManager_Initialize(manager);
             scene = Fbx.FbxScene_Create(manager, name);
-            // Fbx.FbxManager_Destroy(manager);
             return true;
         }
 
@@ -124,6 +124,8 @@ namespace ZoneFbx
                 string model_filename = string.Format("{0:D4}.mdl", i);
                 string model_path = Path.Combine(terrain_path, model_filename);
                 var plate_model_file = data.GetFile<MdlFile>(model_path);
+                if (plate_model_file == null) { continue; }
+
                 var plate_model = new Lumina.Models.Models.Model(plate_model_file!);
                 try
                 {
@@ -132,7 +134,7 @@ namespace ZoneFbx
                 {
                     Console.WriteLine("Object " + model_path + " could not be resolved from game data.");
                     Console.WriteLine(e.Message);
-                    plate_model = new Lumina.Models.Models.Model(plate_model_file);
+                    plate_model = new Lumina.Models.Models.Model(plate_model_file!);
                 }
 
                 process_model(plate_model, plate_node);
@@ -202,44 +204,45 @@ namespace ZoneFbx
             {
                 IntPtr pos = IntPtr.Zero, norm = IntPtr.Zero, uv = IntPtr.Zero, tangent1 = IntPtr.Zero, tangent2 = IntPtr.Zero, color = IntPtr.Zero;
 
+
                 if (game_mesh.Vertices[i].Position.HasValue)
                 {
-                    pos = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Position.Value.X,
-                             game_mesh.Vertices[i].Position.Value.Y,
-                             game_mesh.Vertices[i].Position.Value.Z,
-                             game_mesh.Vertices[i].Position.Value.W);
+                    pos = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Position!.Value.X,
+                             game_mesh.Vertices[i].Position!.Value.Y,
+                             game_mesh.Vertices[i].Position!.Value.Z,
+                             game_mesh.Vertices[i].Position!.Value.W);
                 }
 
                 if (game_mesh.Vertices[i].Normal.HasValue)
                 {
-                    norm = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Normal.Value.X,
-                              game_mesh.Vertices[i].Normal.Value.Y,
-                              game_mesh.Vertices[i].Normal.Value.Z,
+                    norm = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Normal!.Value.X,
+                              game_mesh.Vertices[i].Normal!.Value.Y,
+                              game_mesh.Vertices[i].Normal!.Value.Z,
                               0);
                 }
 
                 if (game_mesh.Vertices[i].Color.HasValue)
                 {
-                    color = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Color.Value.X,
-                             game_mesh.Vertices[i].Color.Value.Y,
-                             game_mesh.Vertices[i].Color.Value.Z,
-                             game_mesh.Vertices[i].Color.Value.W);
+                    color = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Color!.Value.X,
+                             game_mesh.Vertices[i].Color!.Value.Y,
+                             game_mesh.Vertices[i].Color!.Value.Z,
+                             game_mesh.Vertices[i].Color!.Value.W);
                 }
 
                 if (game_mesh.Vertices[i].Tangent1.HasValue)
                 {
-                    tangent1 = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Tangent1.Value.X,
-                              game_mesh.Vertices[i].Tangent1.Value.Y,
-                              game_mesh.Vertices[i].Tangent1.Value.Z,
+                    tangent1 = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Tangent1!.Value.X,
+                              game_mesh.Vertices[i].Tangent1!.Value.Y,
+                              game_mesh.Vertices[i].Tangent1!.Value.Z,
                               0);
                 }
 
                 if (game_mesh.Vertices[i].Tangent2.HasValue)
                 {
-                    tangent2 = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Tangent2.Value.X,
-                             game_mesh.Vertices[i].Tangent2.Value.Y,
-                             game_mesh.Vertices[i].Tangent2.Value.Z,
-                             game_mesh.Vertices[i].Tangent2.Value.W);
+                    tangent2 = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Tangent2!.Value.X,
+                             game_mesh.Vertices[i].Tangent2!.Value.Y,
+                             game_mesh.Vertices[i].Tangent2!.Value.Z,
+                             game_mesh.Vertices[i].Tangent2!.Value.W);
                 }
 
                 if (pos != IntPtr.Zero && norm != IntPtr.Zero)
@@ -250,9 +253,9 @@ namespace ZoneFbx
                 if (game_mesh.Vertices[i].UV.HasValue)
                 {
                     var uv1Array = Fbx.FbxGeometryElementUV_GetDirectArray(uvElement1);
-                    Fbx.FbxLayerUV_Add(uv1Array, Fbx.FbxVector2_Create(game_mesh.Vertices[i].UV.Value.X, game_mesh.Vertices[i].UV.Value.Y * -1));
+                    Fbx.FbxLayerUV_Add(uv1Array, Fbx.FbxVector2_Create(game_mesh.Vertices[i].UV!.Value.X, game_mesh.Vertices[i].UV!.Value.Y * -1));
                     var uv2Array = Fbx.FbxGeometryElementUV_GetDirectArray(uvElement2);
-                    Fbx.FbxLayerUV_Add(uv2Array, Fbx.FbxVector2_Create(game_mesh.Vertices[i].UV.Value.Z, game_mesh.Vertices[i].UV.Value.W * -1));
+                    Fbx.FbxLayerUV_Add(uv2Array, Fbx.FbxVector2_Create(game_mesh.Vertices[i].UV!.Value.Z, game_mesh.Vertices[i].UV!.Value.W * -1));
                 }
 
                 var colorArray = Fbx.FbxGeometryElementVertexColor_GetDirectArray(colorElement);
@@ -348,10 +351,11 @@ namespace ZoneFbx
         private void extract_texture(Texture tex, Vector3? v, string tex_path)
         {
             if (File.Exists(tex_path)) return;
-            TexFile texfile;
+            TexFile? texfile;
             try
             {
                 texfile = tex.GetTextureNc(data);
+                if (texfile == null) throw new Exception();
             } catch (Exception)
             {
                 Console.WriteLine("Failed to get texture: " + tex.TexturePath);
@@ -386,7 +390,7 @@ namespace ZoneFbx
                     return;
                 }
             }
-            Directory.CreateDirectory(Path.GetDirectoryName(tex_path));
+            Directory.CreateDirectory(Path.GetDirectoryName(tex_path)!);
             texture.Save(tex_path, ImageFormat.Png);
         }
 
@@ -396,24 +400,29 @@ namespace ZoneFbx
             var specularOffset = -1;
             //var emissiveOffset = -1;
 
+            if (mat.File == null) { return null; }
+
             for (int i = 0; i < mat.File.Constants.Length; i++)
             {
                 var constant = mat.File.Constants[i];
-                if (constant.ConstantId == 0x2C2A34DD) // g_DiffuseColor 
+                switch(constant.ConstantId)
                 {
-                    if (constant.ValueSize != 12)
-                    {
-                        Console.WriteLine("Unexpected size for diffuse color. May cause unexpected results.");
-                    }
-                    diffuseOffset = constant.ValueOffset;
-                } else if (constant.ConstantId == 0x141722D5)
-                {
-                    if (constant.ValueSize != 12)
-                    {
-                        Console.WriteLine("Unexpected size for specular color. May cause unexpected results.");
-                    }
-                    specularOffset = constant.ValueOffset;
+                    case 0x2C2A34DD:
+                        if (constant.ValueSize != 12)
+                        {
+                            Console.WriteLine("Unexpected size for diffuse color. May cause unexpected results.");
+                        }
+                        diffuseOffset = constant.ValueOffset;
+                        break;
+                    case 0x141722D5:
+                        if (constant.ValueSize != 12)
+                        {
+                            Console.WriteLine("Unexpected size for specular color. May cause unexpected results.");
+                        }
+                        specularOffset = constant.ValueOffset;
+                        break;
                 }
+                // emissive
                 //else if (constant.ConstantId == 0x38A64362)
                 //{
                 //    if (constant.ValueSize != 12)
