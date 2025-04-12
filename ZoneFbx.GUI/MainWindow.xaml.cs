@@ -25,6 +25,8 @@ namespace ZoneFbx.GUI
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         private Lumina.GameData? data;
+
+        // bindings for window
         private string _consoleString = "";
         public string ConsoleString
         {
@@ -58,18 +60,39 @@ namespace ZoneFbx.GUI
             }
         }
 
-        public ObservableCollection<string> Levels { get; set; } = new();
+        // levels
+        public class ComboBoxItem
+        {
+            public string Value { get; set; }
+            public string DisplayValue { get; set; }
+            public ComboBoxItem(string value, string displayValue)
+            {
+                Value = value;
+                DisplayValue = displayValue;
+            }
+        }
+        // dropdown elements
+        public ObservableCollection<ComboBoxItem> Levels { get; set; } = new();
+        public ObservableCollection<string> FilteredLevels { get; set; } = new();
+
         private string _level = "";
         public string Level
         {
             get => _level;
             set
             {
-                _level = value;
+                var match = Levels.FirstOrDefault(i => i.DisplayValue == value);
+                if (match != null)
+                    _level = match.Value;
+                else
+                    _level = value;
+
                 OnPropertyChanged(nameof(Level));
+                FilterLevels();
             }
         }
 
+        // flags
         private bool _enableLightshaft = false;
         public bool EnableLightshaft
         {
@@ -128,8 +151,9 @@ namespace ZoneFbx.GUI
             var territoryType = data.GetExcelSheet<TerritoryType>();
             foreach (var row in territoryType.Where(territory => !String.IsNullOrEmpty(territory.PlaceName.ValueNullable?.Name.ExtractText())))
             {
-                Levels.Add($"{row.Bg} {row.PlaceNameZone.Value.Name} {row.PlaceName.Value.Name}");
+                Levels.Add(new ComboBoxItem(row.Bg.ToString(), $"{row.PlaceNameZone.Value.Name} {row.PlaceName.Value.Name} ({row.Bg})"));
             }
+            Level = "";
 
         }
 
@@ -172,10 +196,21 @@ namespace ZoneFbx.GUI
             Dispatcher.BeginInvoke(ConsoleTextBox.ScrollToEnd);
         }
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        private void FilterLevels()
         {
-            var argLevel = Level.Split(' ')[0];
-            Debug.WriteLine(argLevel);
+            FilteredLevels.Clear();
+            foreach (var level in Levels)
+            {
+                if (string.IsNullOrWhiteSpace(Level) || level.DisplayValue.Contains(Level, StringComparison.OrdinalIgnoreCase))
+                {
+                    FilteredLevels.Add(level.DisplayValue);
+                }
+            }
+        }
+
+        private async void ExportMap(object sender, RoutedEventArgs e)
+        {
+            var argLevel = Level;
             var argOutput = OutputPath.EndsWith(System.IO.Path.DirectorySeparatorChar) ? OutputPath : OutputPath + System.IO.Path.DirectorySeparatorChar;
             var argFlags = "";
             if (EnableLightshaft) argFlags += "l";

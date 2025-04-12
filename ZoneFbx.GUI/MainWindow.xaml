@@ -4,30 +4,92 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ZoneFbx.GUI"
+        Background="#606060"
         mc:Ignorable="d"
         MinHeight="550"
         MinWidth="750"
         Title="ZoneFbx.GUI" Height="550" Width="750">
+    <Window.Resources>
+        <Style TargetType="{x:Type ComboBoxItem}">
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Top" />
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#444444"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#333333"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#555555"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </Window.Resources>
     <Grid Margin="0,25,0,72">
         <TextBlock HorizontalAlignment="Center" Margin="0,0,0,-51" Grid.RowSpan="2">
-            <TextBox Name="ConsoleTextBox" Text="{Binding ConsoleString}" Width="700" Height="320" IsReadOnly="True"/>
+            <TextBox Name="ConsoleTextBox"
+                     Text="{Binding ConsoleString}"
+                     Width="700" Height="320"
+                     IsReadOnly="True"
+                     VerticalScrollBarVisibility="Visible"
+                     HorizontalScrollBarVisibility="Auto"
+                     />
             <LineBreak/>
             <LineBreak/>
-            <TextBox Text="{Binding GamePath}" TextChanged="GamePathChanged" Width="500" Height="20"/>
+            <TextBox
+                Text="{Binding GamePath}"
+                TextChanged="GamePathChanged"
+                Width="550"
+                Height="20"
+                />
             <Button Content="Select game folder" Click="SelectGamePath" Width="120" Height="20"/>
             <LineBreak/>
             
-            <TextBox Text="{Binding OutputPath}" TextChanged="OutputPathChanged" Width="500" Height="20"/>
+            <TextBox Text="{Binding OutputPath}"
+                     TextChanged="OutputPathChanged"
+                     Width="550" Height="20"
+                     />
             <Button Content="Select output folder" Click="SelectOutputPath" Width="120" Height="20"/>
             <LineBreak/>
-            <ComboBox Width="500" IsEditable="True" ItemsSource="{Binding Levels}" Text="{Binding Level}"></ComboBox>
+            <ComboBox Name="LevelComboBox"
+                      Width="550"
+                      IsEditable="True"
+                      ItemsSource="{Binding FilteredLevels}"
+                      Text="{Binding Level}"
+                      IsTextSearchEnabled="False"
+                >
+                    <ComboBox.ItemContainerStyle>
+                        <Style TargetType="ComboBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
+                </ComboBox>
             <LineBreak/>
             <CheckBox Width="200" IsChecked="{Binding EnableLightshaft, Mode=TwoWay}">Enable lightshaft models</CheckBox>
             <CheckBox Width="200" IsChecked="{Binding EnableFestival, Mode=TwoWay}">Enable festival models</CheckBox>
             <CheckBox IsChecked="{Binding DisableBaking, Mode=TwoWay}">Disable baking textures</CheckBox>
             <LineBreak/>
             <LineBreak/>
-            <Button Content="Extract map" Click="Button_Click" Width="120" Height="30"/>
+            <Button Content="Extract map" Click="ExportMap" Width="120" Height="36"/>
         </TextBlock>
     </Grid>
 </Window>
