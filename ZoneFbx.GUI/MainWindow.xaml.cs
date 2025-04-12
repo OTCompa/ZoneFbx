@@ -138,25 +138,34 @@ namespace ZoneFbx.GUI
             DataContext = this;
         }
 
-        private void TryResolvingLumina()
+        private async void TryResolvingLumina()
         {
-            try
+            await Task.Run(() =>
             {
-                data = new Lumina.GameData(GamePath);
-            } catch (Exception ex)
-            {
-                ConsoleString = $"Unable to resolve game data: {ex.Message}\nYou might want to check if you correctly set the path to the sqpack folder.";
-                return;
-            }
+                try
+                {
+                    data = new Lumina.GameData(GamePath);
+                } catch (Exception ex)
+                {
+                    ConsoleString = $"Unable to resolve game data: {ex.Message}\nYou might want to check if you correctly set the path to the sqpack folder.";
+                    return;
+                }
 
-            ConsoleString = "";
-            Levels.Clear();
-            var territoryType = data.GetExcelSheet<TerritoryType>();
-            foreach (var row in territoryType.Where(territory => !String.IsNullOrEmpty(territory.PlaceName.ValueNullable?.Name.ExtractText())))
-            {
-                Levels.Add(new ComboBoxItem(row.Bg.ToString(), $"{row.PlaceNameZone.Value.Name} {row.PlaceName.Value.Name} ({row.Bg})"));
-            }
-            Level = "";
+                ConsoleString = "";
+                Dispatcher.BeginInvoke(Levels.Clear);
+                var territoryType = data.GetExcelSheet<TerritoryType>();
+                foreach (var row in territoryType.Where(territory => !String.IsNullOrEmpty(territory.PlaceName.ValueNullable?.Name.ExtractText())))
+                {
+                    Dispatcher.BeginInvoke(() =>
+                    {
+                        Levels.Add(new ComboBoxItem(row.Bg.ToString(), $"{row.PlaceNameZone.Value.Name} {row.PlaceName.Value.Name} ({row.Bg})"));
+                    });
+                }
+                Dispatcher.BeginInvoke(() =>
+                {
+                    Level = "";
+                });
+            });
 
         }
 
