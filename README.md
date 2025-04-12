@@ -35,7 +35,8 @@ From top to bottom:
 ### Flags
 - `-l`    Allows lightshafts to be included in the final export
 - `-f`    Allows festival models to be included in the final export
-- `-b`    Disables texture baking 
+- `-b`    Disables texture baking
+
 https://streamable.com/tjg45n
 
 - download the file
