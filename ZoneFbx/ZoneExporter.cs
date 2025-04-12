@@ -14,16 +14,20 @@ namespace ZoneFbx
 {
     internal class ZoneExporter
     {
+        public class Flags
+        {
+            public bool enableLightshafts = false;
+            public bool enableFestivals = false;
+
+            public bool disableBaking = false;
+        }
         private string game_path;
         private string zone_path;
         private string output_path;
         private string zone_code;
-
-        private bool disableLightshafts = true;
-        private bool disableFestivals = true;
-        private bool disableBaking = false;
-
         private Lumina.GameData data;
+
+        private Flags flags;
 
 #if DEBUG
         private int ctr;
@@ -34,7 +38,7 @@ namespace ZoneFbx
         Dictionary<ulong, IntPtr> material_cache = new Dictionary<ulong, IntPtr>();
         Dictionary<string, IntPtr> mesh_cache = new Dictionary<string, IntPtr>();
 
-        public ZoneExporter(string game_path, string zone_path, string output_path)
+        public ZoneExporter(string game_path, string zone_path, string output_path, Flags flags)
         {
             this.game_path = game_path;
             this.zone_path = zone_path;
@@ -43,6 +47,8 @@ namespace ZoneFbx
 
             this.output_path = Path.Combine(output_path, zone_code) + Path.DirectorySeparatorChar;
             Directory.CreateDirectory(this.output_path);
+
+            this.flags = flags;
 
             Console.WriteLine("Initializing...");
 
@@ -281,7 +287,7 @@ namespace ZoneFbx
 
         private IntPtr create_material(Lumina.Models.Materials.Material mat)
         {
-            if (disableLightshafts && mat.ShaderPack == "lightshaft.shpk") return IntPtr.Zero;
+            if (!flags.enableLightshafts && mat.ShaderPack == "lightshaft.shpk") return IntPtr.Zero;
             IntPtr outsurface;
             var mat_path = mat.MaterialPath;
             var material_name = mat_path.Substring(mat_path.LastIndexOf('/') + 1);
@@ -296,7 +302,7 @@ namespace ZoneFbx
                 return res;
             }
 
-            var materialInfo = disableBaking ? null : get_shader(mat);
+            var materialInfo = flags.disableBaking ? null : get_shader(mat);
             outsurface = Fbx.FbxSurfacePhong_Create(scene, material_name);
 
             Fbx.FbxSurfacePhong_SetFactor(outsurface);
@@ -520,7 +526,7 @@ namespace ZoneFbx
             for (int i = 0; i < layers.Length; i++)
             {
                 var layer = layers[i];
-                if (disableFestivals && layer.FestivalID != 0) continue;
+                if (!flags.enableFestivals && layer.FestivalID != 0) continue;
 
                 var layer_node = Fbx.FbxNode_Create(scene, layer.Name);
 
