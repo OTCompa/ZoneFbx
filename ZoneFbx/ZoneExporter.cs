@@ -294,18 +294,21 @@ namespace ZoneFbx
             }
 
             var materialInfo = disableBaking ? null : get_shader(mat);
-            //extract_textures(mat, materialInfo);
             outsurface = Fbx.FbxSurfacePhong_Create(scene, material_name);
 
             Fbx.FbxSurfacePhong_SetFactor(outsurface);
-
+            HashSet<Texture.Usage> alreadySet = new HashSet<Texture.Usage>();
             for (int i = 0; i < mat.Textures.Length; i++)
             {
-                if (mat.Textures[i].TexturePath.Contains("dummy")) continue;
+                var tex = mat.Textures[i];
+                if (tex.TexturePath.Contains("dummy")) continue;
+
+                if (alreadySet.Contains(tex.TextureUsageSimple)) continue;
+                alreadySet.Add(tex.TextureUsageSimple);
 
                 Vector3? v = null;
 
-                switch (mat.Textures[i].TextureUsageSimple)
+                switch (tex.TextureUsageSimple)
                 {
                     case Texture.Usage.Diffuse:
                         v = materialInfo?.DiffuseColor ?? v; break;
@@ -314,16 +317,16 @@ namespace ZoneFbx
                         // emissives would be here if i knew what the texture usage for it is called lmfao
                 }
 
-                var rel = Util.get_texture_path(output_path, zone_code, mat.Textures[i].TexturePath, mat.MaterialPath, v);
+                var rel = Util.get_texture_path(output_path, zone_code, tex.TexturePath, mat.MaterialPath, v);
 
-                extract_texture(mat.Textures[i], v, rel);
+                extract_texture(tex, v, rel);
 
-                string tex_name = Path.GetFileNameWithoutExtension(mat.Textures[i].TexturePath);
+                string tex_name = Path.GetFileNameWithoutExtension(tex.TexturePath);
 
                 var texture = Fbx.FbxFileTexture_Create(scene, tex_name);
                 Fbx.FbxFileTexture_SetStuff(texture, rel);
 
-                switch (mat.Textures[i].TextureUsageSimple)
+                switch (tex.TextureUsageSimple)
                 {
                     case Texture.Usage.Diffuse:
                         Fbx.FbxSurfacePhong_ConnectSrcObject(outsurface, texture, 0);
@@ -461,12 +464,16 @@ namespace ZoneFbx
             if (diffuseOffset >= -1)
             {
                 br.Seek(cursor + diffuseOffset);
-                ret.DiffuseColor = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+                var v = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+                if (v != Vector3.One)
+                    ret.DiffuseColor = v;
             }
             if (specularOffset >= -1)
             {
                 br.Seek(cursor + specularOffset);
-                ret.SpecularColor = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+                var v = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+                if (v != Vector3.One)
+                    ret.SpecularColor = v;
             }
             //if (emissiveOffset >= -1)
             //{
