@@ -146,8 +146,9 @@ namespace ZoneFbx
             return true;
         }
 
-        private void process_model(Lumina.Models.Models.Model model, IntPtr node)
+        private bool process_model(Lumina.Models.Models.Model model, IntPtr node)
         {
+            var has_children = false;
             var path = model!.File!.FilePath.Path;
             path = path.Substring(path.LastIndexOf('/') + 1);
             for (int i = 0; i < model.Meshes.Length; i++)
@@ -172,7 +173,9 @@ namespace ZoneFbx
                 }
                 Fbx.FbxNode_SetNodeAttribute(mesh_node, mesh);
                 Fbx.FbxNode_AddChild(node, mesh_node);
+                has_children = true;
             }
+            return has_children;
         }
 
         private IntPtr create_mesh(Lumina.Models.Models.Mesh game_mesh, string mesh_name)
@@ -483,8 +486,9 @@ namespace ZoneFbx
             return obj_node;
         }
 
-        private void process_layers(LayerCommon.Layer[] layers, IntPtr parentNode)
+        private bool process_layers(LayerCommon.Layer[] layers, IntPtr parentNode)
         {
+            var has_child = false;
             for (int i = 0; i < layers.Length; i++)
             {
                 var layer = layers[i];
@@ -518,24 +522,32 @@ namespace ZoneFbx
 
                         var model_node = Fbx.FbxNode_Create(scene, object_path.Substring(object_path.LastIndexOf("/") + 1));
 
-                        process_model(model, model_node);
+                        if (process_model(model, model_node))
+                        {
+                            Fbx.FbxNode_AddChild(obj_node, model_node);
+                            Fbx.FbxNode_AddChild(layer_node, obj_node);
+                            has_child = true;
+                        }
 
-                        Fbx.FbxNode_AddChild(obj_node, model_node);
-                        Fbx.FbxNode_AddChild(layer_node, obj_node);
                     } else if (obj.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.SharedGroup)
                     {
                         var obj_node = init_child_node(obj);
                         var sharedGroupObj = (Lumina.Data.Parsing.Layer.LayerCommon.SharedGroupInstanceObject)obj.Object;
-                        process_sgb(sharedGroupObj.AssetPath, obj_node);
-                        Fbx.FbxNode_AddChild(layer_node, obj_node);
+                        if (process_sgb(sharedGroupObj.AssetPath, obj_node))
+                        {
+                            Fbx.FbxNode_AddChild(layer_node, obj_node);
+                            has_child = true;
+                        }
                     }
                 }
                 Fbx.FbxNode_AddChild(parentNode, layer_node);
             }
+            return has_child;
         }
 
         private bool process_sgb(string sgb_path, IntPtr parentNode)
         {
+            var has_child = false;
             var sgb = data.GetFile<SgbFile>(sgb_path);
             if (sgb == null) return false;
 
@@ -544,15 +556,17 @@ namespace ZoneFbx
                 var layer_group = sgb.LayerGroups[i];
                 var layer_group_node = Fbx.FbxNode_Create(scene, layer_group.Name);
 
-                process_layers(layer_group.Layers, layer_group_node);
-
-                Fbx.FbxNode_AddChild(parentNode, layer_group_node);
+                if (process_layers(layer_group.Layers, layer_group_node))
+                {
+                    Fbx.FbxNode_AddChild(parentNode, layer_group_node);
+                    has_child = true;
+                }
 
 #if DEBUG
                 save_json($"{Path.GetFileNameWithoutExtension(sgb_path)}_{i}", layer_group.Layers);
 #endif
             }
-            return true;
+            return has_child;
         }
 
         private bool process_bg()
