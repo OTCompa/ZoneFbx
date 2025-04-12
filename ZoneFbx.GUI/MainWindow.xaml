@@ -73,7 +73,8 @@
                       Width="550"
                       IsEditable="True"
                       ItemsSource="{Binding FilteredLevels}"
-                      Text="{Binding Level}"
+                      DisplayMemberPath="DisplayValue"
+                      Text="{Binding Level, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       IsTextSearchEnabled="False"
                 >
                     <ComboBox.ItemContainerStyle>

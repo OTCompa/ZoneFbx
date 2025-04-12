@@ -71,9 +71,10 @@ namespace ZoneFbx.GUI
                 DisplayValue = displayValue;
             }
         }
+
         // dropdown elements
         public ObservableCollection<ComboBoxItem> Levels { get; set; } = new();
-        public ObservableCollection<string> FilteredLevels { get; set; } = new();
+        public ListCollectionView FilteredLevels { get; private set; }
 
         private string _level = "";
         public string Level
@@ -88,7 +89,7 @@ namespace ZoneFbx.GUI
                     _level = value;
 
                 OnPropertyChanged(nameof(Level));
-                FilterLevels();
+                FilteredLevels.Refresh();
             }
         }
 
@@ -132,6 +133,8 @@ namespace ZoneFbx.GUI
         public MainWindow()
         {
             InitializeComponent();
+            FilteredLevels = new ListCollectionView(Levels);
+            FilteredLevels.Filter = LevelFilter;
             DataContext = this;
         }
 
@@ -142,7 +145,7 @@ namespace ZoneFbx.GUI
                 data = new Lumina.GameData(GamePath);
             } catch (Exception ex)
             {
-                ConsoleString = "Invalid game path";
+                ConsoleString = $"Unable to resolve game data: {ex.Message}\nYou might want to check if you correctly set the path to the sqpack folder.";
                 return;
             }
 
@@ -155,6 +158,14 @@ namespace ZoneFbx.GUI
             }
             Level = "";
 
+        }
+
+        private bool LevelFilter(object item)
+        {
+            if (item is not ComboBoxItem comboItem) return false;
+            if (string.IsNullOrWhiteSpace(Level)) return true;
+
+            return comboItem.DisplayValue.IndexOf(Level, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private void SelectGamePath(object sender, RoutedEventArgs e)
@@ -194,18 +205,6 @@ namespace ZoneFbx.GUI
         {
             ConsoleString += $"{line}\n";
             Dispatcher.BeginInvoke(ConsoleTextBox.ScrollToEnd);
-        }
-
-        private void FilterLevels()
-        {
-            FilteredLevels.Clear();
-            foreach (var level in Levels)
-            {
-                if (string.IsNullOrWhiteSpace(Level) || level.DisplayValue.Contains(Level, StringComparison.OrdinalIgnoreCase))
-                {
-                    FilteredLevels.Add(level.DisplayValue);
-                }
-            }
         }
 
         private async void ExportMap(object sender, RoutedEventArgs e)
