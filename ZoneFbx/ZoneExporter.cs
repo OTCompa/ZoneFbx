@@ -18,6 +18,11 @@ namespace ZoneFbx
         private string zone_path;
         private string output_path;
         private string zone_code;
+
+        private bool disableLightshafts = true;
+        private bool disableFestivals = true;
+        private bool disableBaking = false;
+
         private Lumina.GameData data;
 
 #if DEBUG
@@ -160,6 +165,8 @@ namespace ZoneFbx
                     mesh = create_mesh(model.Meshes[i], mesh_name);
                     IntPtr material;
                     material = create_material(model.Meshes[i].Material);
+                    if (material == IntPtr.Zero) continue;
+
                     Fbx.FbxNode_AddMaterial(mesh_node, material);
                     mesh_cache[mesh_name] = mesh;
                 }
@@ -268,6 +275,7 @@ namespace ZoneFbx
 
         private IntPtr create_material(Lumina.Models.Materials.Material mat)
         {
+            if (disableLightshafts && mat.ShaderPack == "lightshaft.shpk") return IntPtr.Zero;
             IntPtr outsurface;
             var mat_path = mat.MaterialPath;
             var material_name = mat_path.Substring(mat_path.LastIndexOf('/') + 1);
@@ -282,7 +290,7 @@ namespace ZoneFbx
                 return res;
             }
 
-            var materialInfo = get_shader(mat);
+            var materialInfo = disableBaking ? null : get_shader(mat);
             //extract_textures(mat, materialInfo);
             outsurface = Fbx.FbxSurfacePhong_Create(scene, material_name);
 
@@ -480,6 +488,8 @@ namespace ZoneFbx
             for (int i = 0; i < layers.Length; i++)
             {
                 var layer = layers[i];
+                if (disableFestivals && layer.FestivalID != 0) continue;
+
                 var layer_node = Fbx.FbxNode_Create(scene, layer.Name);
 
                 for (int j = 0; j < layer.InstanceObjects.Length; j++)
