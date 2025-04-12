@@ -37,7 +37,6 @@ namespace ZoneFbx
             zone_code = zone_path.Substring(zone_path.LastIndexOf("/level") - 4, 4);
 
             this.output_path = Path.Combine(output_path, zone_code) + Path.DirectorySeparatorChar;
-            Console.WriteLine(this.output_path);
             Directory.CreateDirectory(this.output_path);
 
             Console.WriteLine("Initializing...");
@@ -492,6 +491,10 @@ namespace ZoneFbx
                         var instance_object = (LayerCommon.BGInstanceObject)obj.Object;
                         var object_path = instance_object.AssetPath;
                         var object_file = data.GetFile<MdlFile>(object_path);
+                        if (object_file == null) {
+                            Console.WriteLine($"Unable to get {object_path} from game data."); 
+                            continue;
+                        }
                         var model = new Lumina.Models.Models.Model(object_file);
                         try
                         {
