@@ -5,12 +5,38 @@ is a program that exports FFXIV zones to FBX format, complete with textures
 and proper hierarchy/object grouping.
 
 This fork of ZoneFbx is a rewrite of the original in C# with some mappings to C++ code to utilize the FBX SDK.
-Majority of the logic is kept 1:1 with the original. In other words, I have 0 idea what I'm doing.
+A large amount of the logic is kept 1:1 with the original. In other words, I have 0 idea what I'm doing.
 
-If normal maps look weird in Blender, which they will, set the Normal node
+For all surfaces:
+- Specular factor = 0.3
+- Emissive factor = 0.2 (Applied when baking textures since the FBX SDK's emissiveFactor didn't seem to be doing anything)
+- Normal factor = 0.2
+These values were set arbitrarily, pretty much just what was in the
+original code or what made it look close enough to the game. I
+do not know where this information is located (if it is) in the .mtrl
+file. If you do know or have any ideas, please let me know.
+
+If normal maps look weird in Blender, try setting the Normal node
 to sRGB color space, and set the Normal/Map to World Space.
 
 # Usage
+## GUI
+![image](https://github.com/user-attachments/assets/8c20a2e2-1b1f-4791-95ce-f318f1cbcfa4)
+
+The GUI is a wrapper for the CLI that makes it easier to input in the correct arguments.
+From top to bottom:
+1. Path to the `sqpack` folder
+2. Desired output directory
+3. Level/map that you want to extract (Options are populated upon selecting a valid `sqpack` folder)
+4. Miscellaneous flags, described in the following section
+5. Execute button, disabled until the level/map text box has a value
+
+## CLI
+### Flags
+- `-l`    Allows lightshafts to be included in the final export
+- `-f`    Allows festival models to be included in the final export
+- `-b`    Disables texture baking
+
 https://streamable.com/tjg45n
 
 - download the file
