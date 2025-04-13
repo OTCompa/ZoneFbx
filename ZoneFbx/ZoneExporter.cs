@@ -508,7 +508,8 @@ namespace ZoneFbx
             Fbx.FbxNode_SetStuff(obj_node, obj.Transform.Translation.X, obj.Transform.Translation.Y, obj.Transform.Translation.Z, 0);
             if (obj.AssetType == LayerEntryType.LayLight)
             {
-                Fbx.FbxNode_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X) + 90, Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
+                // rotate light nodes -90 degrees on the X axis since the light nodes point towards its negative Y axis
+                Fbx.FbxNode_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X) - 90, Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
             } else
             {
                 Fbx.FbxNode_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X), Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
@@ -597,15 +598,22 @@ namespace ZoneFbx
 
                     obj_node = init_child_node(obj);
                     var lightObj = (LayerCommon.LightInstanceObject)obj.Object;
-                    var light = Fbx.FbxLight_Create(scene, "light");
+                    if (lightObj.DiffuseColorHDRI.Intensity == 0.0) return IntPtr.Zero;
+
+                    var light = Fbx.FbxLight_Create(scene, $"light_{obj.InstanceId}");
+
                     Fbx.FbxLight_SetLightType(light, (int)lightObj.LightType);
                     Fbx.FbxLight_SetColor(light, lightObj.DiffuseColorHDRI.Red, lightObj.DiffuseColorHDRI.Green, lightObj.DiffuseColorHDRI.Blue);
-                    Fbx.FbxLight_SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity);
+                    Fbx.FbxLight_SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity * .1);  // arbitrarily chosen to make it look more natural
                     Fbx.FbxLight_SetDecay(light, (int)lightObj.Attenuation);
-                    Fbx.FbxNode_SetNodeAttribute(obj_node, light);
                     if (lightObj.BGShadowEnabled == 1) Fbx.FbxLight_CastShadows(light);
-                    Fbx.FbxLight_SetConeDegree(light, lightObj.ConeDegree);  // not 100% sure about this one
-                    // TODO: figure out attenuation coefficient
+                    
+                    if (lightObj.LightType == LightType.Spot)
+                    {
+                        Fbx.FbxLight_SetAngle(light, lightObj.AttenuationConeCoefficient, lightObj.ConeDegree); 
+                    }
+
+                    Fbx.FbxNode_SetNodeAttribute(obj_node, light);
                     return obj_node;
             }
             return IntPtr.Zero;

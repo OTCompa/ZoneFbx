@@ -250,8 +250,9 @@ extern "C" {
         light->CastShadows.Set(true);
     }
 
-    __declspec(dllexport) void FbxLight_SetConeDegree(FbxLight* light, double degrees) {
-        light->OuterAngle.Set(degrees);
+    __declspec(dllexport) void FbxLight_SetAngle(FbxLight* light, double falloff, double hotspot) {
+        light->OuterAngle.Set(falloff);
+        light->InnerAngle.Set(hotspot);
     }
 
     __declspec(dllexport) void FbxNode_SetPostTargetRotation(FbxNode* node) {

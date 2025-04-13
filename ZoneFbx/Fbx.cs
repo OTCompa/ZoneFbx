@@ -136,7 +136,7 @@ namespace ZoneFbx
         [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void FbxLight_CastShadows(IntPtr light);
         [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void FbxLight_SetConeDegree(IntPtr light, double degrees);
+        public static extern void FbxLight_SetAngle(IntPtr light, double falloff, double hotspot);
         [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void FbxNode_SetPostTargetRotation(IntPtr node);
     }
