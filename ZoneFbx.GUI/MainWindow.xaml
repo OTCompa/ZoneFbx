@@ -93,7 +93,7 @@
                     </ComboBox.ItemsPanel>
                 </ComboBox>
             <LineBreak/>
-            <Grid Width="400">
+            <Grid Width="600">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1*" />
                     <RowDefinition Height="1*"/>
@@ -101,10 +101,12 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
                 
                 <CheckBox IsChecked="{Binding EnableLightshaft, Mode=TwoWay}">Enable lightshaft models</CheckBox>
-                <CheckBox Grid.Column="1" IsChecked="{Binding EnableFestival, Mode=TwoWay}">Enable festival models</CheckBox>
+                <CheckBox Grid.Column="1" IsChecked="{Binding EnableLighting, Mode=TwoWay}">Enable lighting</CheckBox>
+                <CheckBox Grid.Column="2" IsChecked="{Binding EnableFestival, Mode=TwoWay}">Enable festival models</CheckBox>
                 <CheckBox Grid.Row="1" IsChecked="{Binding DisableBaking, Mode=TwoWay}">Disable baking textures</CheckBox>
                 <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding EnableJsonExport, Mode=TwoWay}">Enable LGB/SGB Json export</CheckBox>
             </Grid>

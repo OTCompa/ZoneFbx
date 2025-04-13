@@ -277,7 +277,7 @@ namespace ZoneFbx
 
         private IntPtr create_material(Lumina.Models.Materials.Material mat)
         {
-            if (!flags.enableLightshafts && mat.ShaderPack == "lightshaft.shpk") return IntPtr.Zero;
+            if (!flags.enableLightshaftModels && mat.ShaderPack == "lightshaft.shpk") return IntPtr.Zero;
 
             IntPtr outsurface;
             var mat_path = mat.MaterialPath;
@@ -593,6 +593,8 @@ namespace ZoneFbx
                     }
                     break;
                 case LayerEntryType.LayLight:
+                    if (!flags.enableLighting) return IntPtr.Zero;
+
                     obj_node = init_child_node(obj);
                     var lightObj = (LayerCommon.LightInstanceObject)obj.Object;
                     var light = Fbx.FbxLight_Create(scene, "light");

@@ -4,7 +4,8 @@
     {
         public class Flags
         {
-            public bool enableLightshafts = false;
+            public bool enableLightshaftModels = false;
+            public bool enableLighting = false;
             public bool enableFestivals = false;
             public bool enableJsonExport = false;
 

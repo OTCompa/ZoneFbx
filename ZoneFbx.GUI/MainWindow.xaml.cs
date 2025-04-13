@@ -105,6 +105,17 @@ namespace ZoneFbx.GUI
             }
         }
 
+        private bool _enableLighting = false;
+        public bool EnableLighting
+        {
+            get => _enableLighting;
+            set
+            {
+                _enableLighting = value;
+                OnPropertyChanged(nameof(EnableLighting));
+            }
+        }
+
         private bool _enableFestival = false;
         public bool EnableFestival
         {
@@ -237,12 +248,18 @@ namespace ZoneFbx.GUI
         {
             var argLevel = Level;
             var argOutput = OutputPath.EndsWith(System.IO.Path.DirectorySeparatorChar) ? OutputPath : OutputPath + System.IO.Path.DirectorySeparatorChar;
-            var argFlags = "";
-            if (EnableLightshaft) argFlags += "l";
-            if (EnableFestival) argFlags += "f";
-            if (DisableBaking) argFlags += "b";
-            if (EnableJsonExport) argFlags += "j";
-            if (argFlags.Length > 0) argFlags = "-" + argFlags;
+            var argFlags = string.Concat([
+                "-",
+                ..new[]{
+                    EnableLightshaft ? "l" : "",
+                    EnableFestival ? "f" : "",
+                    DisableBaking ? "b" : "",
+                    EnableJsonExport ? "j" : "",
+                    EnableLighting ? "i" : ""
+                    }
+                ]);
+
+            if (argFlags == "-") argFlags = "";
 
             ConsoleString = "";
             ConsoleString += $"ZoneFbx {GamePath} {argLevel} {argOutput} {argFlags}";

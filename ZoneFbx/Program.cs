@@ -66,13 +66,15 @@ if (args.Length >= 4)
             switch(flag)
             {
                 case 'l':
-                    flags.enableLightshafts = true; break;
+                    flags.enableLightshaftModels = true; break;
                 case 'f':
                     flags.enableFestivals = true; break;
                 case 'b':
                     flags.disableBaking = true; break;
                 case 'j':
                     flags.enableJsonExport = true; break;
+                case 'i':
+                    flags.enableLighting = true; break;
                 default:
                     Console.WriteLine($"Unknown flag: {flag}");
                     break;
