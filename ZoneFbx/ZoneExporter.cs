@@ -27,7 +27,6 @@ namespace ZoneFbx
 
         Dictionary<ulong, IntPtr> material_cache = new();
         Dictionary<string, IntPtr> mesh_cache = new();
-        Dictionary<string, IntPtr> sgb_cache = new();
 
         public ZoneExporter(string game_path, string zone_path, string output_path, Flags flags)
         {
@@ -587,18 +586,9 @@ namespace ZoneFbx
                     obj_node = init_child_node(obj);
                     var sharedGroupObj = (LayerCommon.SharedGroupInstanceObject)obj.Object;
                     var sgb_path = sharedGroupObj.AssetPath;
-                    
-                    // TODO: figure out edge case where cache supposedly misses on same file
-                    // multiple of the same sgb referenced in a single sgb
-                    var result = sgb_cache.TryGetValue(sgb_path, out var cached_sgb);
-                    if (result)
-                    {
-                        return cached_sgb;
-                    }
 
                     if (process_sgb(sgb_path, obj_node))
                     {
-                        sgb_cache[sgb_path] = obj_node;
                         return obj_node;
                     }
                     break;
