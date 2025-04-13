@@ -638,7 +638,7 @@ namespace ZoneFbx
 
                 if (flags.enableJsonExport)
                 {
-                    Util.save_json($"{Path.GetFileNameWithoutExtension(sgb_path)}_{i}", layer_group.Layers, output_path, ctr);
+                    Util.save_json($"{Path.GetFileNameWithoutExtension(sgb_path)}_{i}", layer_group.Layers, output_path);
                 }
 
             }
@@ -661,8 +661,8 @@ namespace ZoneFbx
 
             if (flags.enableJsonExport)
             {
-                Util.save_json(Path.GetFileNameWithoutExtension(bg_path), bg.Layers, output_path, ctr);
-                if (planmap != null) Util.save_json(Path.GetFileNameWithoutExtension(planmap_path), planmap.Layers, output_path, ctr);
+                Util.save_json(Path.GetFileNameWithoutExtension(bg_path), bg.Layers, output_path);
+                if (planmap != null) Util.save_json(Path.GetFileNameWithoutExtension(planmap_path), planmap.Layers, output_path);
             }
 
 

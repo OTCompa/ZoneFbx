@@ -78,13 +78,16 @@ namespace ZoneFbx
             }
         }
 
-        public static void save_json(string filename, Layer[] layers, string output_path, int ctr)
+        public static void save_json(string filename, Layer[] layers, string output_path)
         {
             var layerJson = JsonConvert.SerializeObject(layers, Formatting.Indented);
             var jsonFolder = Path.Combine(output_path, "json");
             Directory.CreateDirectory(jsonFolder);
-            File.WriteAllText(Path.Combine(jsonFolder, $"{ctr}_{filename}.json"), layerJson);
-            ctr++;
+            var filepath = Path.Combine(jsonFolder, $"{filename}.json");
+            if (!File.Exists(filepath))
+            {
+                File.WriteAllText(Path.Combine(jsonFolder, $"{filename}.json"), layerJson);
+            }
         }
     }
 }
