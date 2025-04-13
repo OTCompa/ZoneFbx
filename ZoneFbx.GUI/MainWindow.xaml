@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         MinHeight="550"
         MinWidth="750"
-        Title="ZoneFbx.GUI" Height="550" Width="750">
+        Title="ZoneFbx.GUI" Height="481" Width="652">
     <Window.Resources>
         <Style TargetType="{x:Type ComboBoxItem}">
             <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -44,7 +44,7 @@
         </Style>
     </Window.Resources>
     <Grid Margin="0,25,0,72">
-        <TextBlock HorizontalAlignment="Center" Margin="0,0,0,-51" Grid.RowSpan="2">
+        <TextBlock HorizontalAlignment="Center" Margin="0,-8,0,-56" Grid.RowSpan="2">
             <TextBox Name="ConsoleTextBox"
                      Text="{Binding ConsoleString}"
                      Width="700" Height="320"
@@ -93,9 +93,21 @@
                     </ComboBox.ItemsPanel>
                 </ComboBox>
             <LineBreak/>
-            <CheckBox Width="200" IsChecked="{Binding EnableLightshaft, Mode=TwoWay}">Enable lightshaft models</CheckBox>
-            <CheckBox Width="200" IsChecked="{Binding EnableFestival, Mode=TwoWay}">Enable festival models</CheckBox>
-            <CheckBox IsChecked="{Binding DisableBaking, Mode=TwoWay}">Disable baking textures</CheckBox>
+            <Grid Width="400">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                
+                <CheckBox IsChecked="{Binding EnableLightshaft, Mode=TwoWay}">Enable lightshaft models</CheckBox>
+                <CheckBox Grid.Column="1" IsChecked="{Binding EnableFestival, Mode=TwoWay}">Enable festival models</CheckBox>
+                <CheckBox Grid.Row="1" IsChecked="{Binding DisableBaking, Mode=TwoWay}">Disable baking textures</CheckBox>
+                <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding EnableJsonExport, Mode=TwoWay}">Enable LGB/SGB Json export</CheckBox>
+            </Grid>
             <LineBreak/>
             <LineBreak/>
             <Button Content="Extract map" Click="ExportMap" Width="120" Height="36">

@@ -18,6 +18,7 @@ namespace ZoneFbx
         {
             public bool enableLightshafts = false;
             public bool enableFestivals = false;
+            public bool enableJsonExport = false;
 
             public bool disableBaking = false;
         }
@@ -29,9 +30,8 @@ namespace ZoneFbx
 
         private Flags flags;
 
-#if DEBUG
         private int ctr;
-#endif
+
 
         IntPtr manager = IntPtr.Zero;
         IntPtr scene = IntPtr.Zero;
@@ -288,6 +288,7 @@ namespace ZoneFbx
         private IntPtr create_material(Lumina.Models.Materials.Material mat)
         {
             if (!flags.enableLightshafts && mat.ShaderPack == "lightshaft.shpk") return IntPtr.Zero;
+
             IntPtr outsurface;
             var mat_path = mat.MaterialPath;
             var material_name = mat_path.Substring(mat_path.LastIndexOf('/') + 1);
@@ -596,9 +597,11 @@ namespace ZoneFbx
                     has_child = true;
                 }
 
-#if DEBUG
-                save_json($"{Path.GetFileNameWithoutExtension(sgb_path)}_{i}", layer_group.Layers);
-#endif
+                if (flags.enableJsonExport)
+                {
+                    save_json($"{Path.GetFileNameWithoutExtension(sgb_path)}_{i}", layer_group.Layers);
+                }
+
             }
             return has_child;
         }
@@ -617,15 +620,16 @@ namespace ZoneFbx
 
             if (planmap != null) process_layers(planmap.Layers, root_node);
 
-#if DEBUG
-            save_json(Path.GetFileNameWithoutExtension(bg_path), bg.Layers);
-            if (planmap != null) save_json(Path.GetFileNameWithoutExtension(planmap_path), planmap.Layers);
-#endif
+            if (flags.enableJsonExport)
+            {
+                save_json(Path.GetFileNameWithoutExtension(bg_path), bg.Layers);
+                if (planmap != null) save_json(Path.GetFileNameWithoutExtension(planmap_path), planmap.Layers);
+            }
+
 
             return true;
         }
 
-#if DEBUG
         private void save_json(string filename, Layer[] layers)
         {
             var layerJson = JsonConvert.SerializeObject(layers, Formatting.Indented);
@@ -634,7 +638,6 @@ namespace ZoneFbx
             File.WriteAllText(Path.Combine(jsonFolder, $"{ctr}_{filename}.json"), layerJson);
             ctr++;
         }
-#endif
 
         private bool save_scene()
         {

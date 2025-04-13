@@ -71,6 +71,8 @@ if (args.Length >= 4)
                     flags.enableFestivals = true; break;
                 case 'b':
                     flags.disableBaking = true; break;
+                case 'j':
+                    flags.enableJsonExport = true; break;
                 default:
                     Console.WriteLine($"Unknown flag: {flag}");
                     break;

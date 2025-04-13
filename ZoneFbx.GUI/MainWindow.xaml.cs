@@ -115,6 +115,18 @@ namespace ZoneFbx.GUI
                 OnPropertyChanged(nameof(EnableFestival));
             }
         }
+
+        private bool _enableJsonExport = false;
+        public bool EnableJsonExport
+        {
+            get => _enableJsonExport;
+            set
+            {
+                _enableJsonExport = value;
+                OnPropertyChanged(nameof(EnableJsonExport));
+            }
+        }
+
         private bool _disableBaking = false;
         public bool DisableBaking
         {
@@ -224,6 +236,7 @@ namespace ZoneFbx.GUI
             if (EnableLightshaft) argFlags += "l";
             if (EnableFestival) argFlags += "f";
             if (DisableBaking) argFlags += "b";
+            if (EnableJsonExport) argFlags += "j";
             if (argFlags.Length > 0) argFlags = "-" + argFlags;
 
             ConsoleString = "";
