@@ -1,13 +1,16 @@
 ﻿using Lumina.Data.Files;
 using Lumina.Models.Materials;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading.Tasks;
+using static Lumina.Data.Parsing.Layer.LayerCommon;
 
 namespace ZoneFbx
 {
@@ -73,6 +76,15 @@ namespace ZoneFbx
                     return new Bitmap(width, height, width * 4, PixelFormat.Format32bppArgb, imageData);
                 }
             }
+        }
+
+        public static void save_json(string filename, Layer[] layers, string output_path, int ctr)
+        {
+            var layerJson = JsonConvert.SerializeObject(layers, Formatting.Indented);
+            var jsonFolder = Path.Combine(output_path, "json");
+            Directory.CreateDirectory(jsonFolder);
+            File.WriteAllText(Path.Combine(jsonFolder, $"{ctr}_{filename}.json"), layerJson);
+            ctr++;
         }
     }
 }

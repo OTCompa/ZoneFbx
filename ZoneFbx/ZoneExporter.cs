@@ -12,32 +12,23 @@ using System;
 
 namespace ZoneFbx
 {
-    internal class ZoneExporter
+    internal partial class ZoneExporter
     {
-        public class Flags
-        {
-            public bool enableLightshafts = false;
-            public bool enableFestivals = false;
-            public bool enableJsonExport = false;
-
-            public bool disableBaking = false;
-        }
         private string game_path;
         private string zone_path;
         private string output_path;
         private string zone_code;
         private Lumina.GameData data;
-
         private Flags flags;
-
         private int ctr;
-
 
         IntPtr manager = IntPtr.Zero;
         IntPtr scene = IntPtr.Zero;
+
         Dictionary<ulong, IntPtr> material_cache = new();
         Dictionary<string, IntPtr> mesh_cache = new();
         Dictionary<string, IntPtr> sgb_cache = new();
+
         public ZoneExporter(string game_path, string zone_path, string output_path, Flags flags)
         {
             this.game_path = game_path;
@@ -631,7 +622,7 @@ namespace ZoneFbx
 
                 if (flags.enableJsonExport)
                 {
-                    save_json($"{Path.GetFileNameWithoutExtension(sgb_path)}_{i}", layer_group.Layers);
+                    Util.save_json($"{Path.GetFileNameWithoutExtension(sgb_path)}_{i}", layer_group.Layers, output_path, ctr);
                 }
 
             }
@@ -654,21 +645,12 @@ namespace ZoneFbx
 
             if (flags.enableJsonExport)
             {
-                save_json(Path.GetFileNameWithoutExtension(bg_path), bg.Layers);
-                if (planmap != null) save_json(Path.GetFileNameWithoutExtension(planmap_path), planmap.Layers);
+                Util.save_json(Path.GetFileNameWithoutExtension(bg_path), bg.Layers, output_path, ctr);
+                if (planmap != null) Util.save_json(Path.GetFileNameWithoutExtension(planmap_path), planmap.Layers, output_path, ctr);
             }
 
 
             return true;
-        }
-
-        private void save_json(string filename, Layer[] layers)
-        {
-            var layerJson = JsonConvert.SerializeObject(layers, Formatting.Indented);
-            var jsonFolder = Path.Combine(output_path, "json");
-            Directory.CreateDirectory(jsonFolder);
-            File.WriteAllText(Path.Combine(jsonFolder, $"{ctr}_{filename}.json"), layerJson);
-            ctr++;
         }
 
         private bool save_scene()
