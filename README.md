@@ -7,17 +7,24 @@ and proper hierarchy/object grouping.
 This fork of ZoneFbx is a rewrite of the original in C# with some mappings to C++ code to utilize the FBX SDK.
 A large amount of the logic is kept 1:1 with the original. In other words, I have 0 idea what I'm doing.
 
-For all surfaces:
+If normal maps look weird in Blender, try setting the Normal node
+to sRGB color space, and set the Normal/Map to World Space.
+
+## Arbitrary constants
+In this program, there are some arbitrary constant multipliers used
+to make the preview in Blender look closer to what it does in-game
+by default. I'm not really sure what's the best way to go about this,
+so I'm just doing what I think is reasonable. Feel free to suggest
+what I should do. I may add an option to set specify these factors
+manually in the future.
+
+For all meshes:
 - Specular factor = 0.3
 - Emissive factor = 0.2 (Applied when baking textures since the FBX SDK's emissiveFactor didn't seem to be doing anything)
 - Normal factor = 0.2
-These values were set arbitrarily, pretty much just what was in the
-original code or what made it look close enough to the game. I
-do not know where this information is located (if it is) in the .mtrl
-file. If you do know or have any ideas, please let me know.
 
-If normal maps look weird in Blender, try setting the Normal node
-to sRGB color space, and set the Normal/Map to World Space.
+For all lighting:
+- Intensity factor = 0.1
 
 # Usage
 ## GUI
