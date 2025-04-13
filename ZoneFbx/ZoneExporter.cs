@@ -507,7 +507,13 @@ namespace ZoneFbx
         {
             var obj_node = Fbx.FbxNode_Create(scene, obj.Name);
             Fbx.FbxNode_SetStuff(obj_node, obj.Transform.Translation.X, obj.Transform.Translation.Y, obj.Transform.Translation.Z, 0);
-            Fbx.FbxNode_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X), Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
+            if (obj.AssetType == LayerEntryType.LayLight)
+            {
+                Fbx.FbxNode_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X) + 90, Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
+            } else
+            {
+                Fbx.FbxNode_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X), Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
+            }
             Fbx.FbxNode_SetStuff(obj_node, obj.Transform.Scale.X, obj.Transform.Scale.Y, obj.Transform.Scale.Z, 2);
             return obj_node;
         }
@@ -597,8 +603,18 @@ namespace ZoneFbx
                     }
                     break;
                 case LayerEntryType.LayLight:
-                    // TODO implement this
-                    break;
+                    obj_node = init_child_node(obj);
+                    var lightObj = (LayerCommon.LightInstanceObject)obj.Object;
+                    var light = Fbx.FbxLight_Create(scene, "light");
+                    Fbx.FbxLight_SetLightType(light, (int)lightObj.LightType);
+                    Fbx.FbxLight_SetColor(light, lightObj.DiffuseColorHDRI.Red, lightObj.DiffuseColorHDRI.Green, lightObj.DiffuseColorHDRI.Blue);
+                    Fbx.FbxLight_SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity);
+                    Fbx.FbxLight_SetDecay(light, (int)lightObj.Attenuation);
+                    Fbx.FbxNode_SetNodeAttribute(obj_node, light);
+                    if (lightObj.BGShadowEnabled == 1) Fbx.FbxLight_CastShadows(light);
+                    Fbx.FbxLight_SetConeDegree(light, lightObj.ConeDegree);  // not 100% sure about this one
+                    // TODO: figure out attenuation coefficient
+                    return obj_node;
             }
             return IntPtr.Zero;
         }

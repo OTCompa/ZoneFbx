@@ -119,5 +119,25 @@ namespace ZoneFbx
         public static extern bool FbxExporter_Export(IntPtr exporter, IntPtr scene);
         [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void FbxExporter_Destroy(IntPtr exporter);
+
+
+        [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr FbxLight_Create(IntPtr scene, [MarshalAs(UnmanagedType.LPStr)] string name);
+
+        [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void FbxLight_SetColor(IntPtr light, double X, double Y, double Z);
+
+        [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void FbxLight_SetIntensity(IntPtr light, double intensity);
+        [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void FbxLight_SetLightType(IntPtr light, int type);
+        [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void FbxLight_SetDecay(IntPtr light, int decay);
+        [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void FbxLight_CastShadows(IntPtr light);
+        [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void FbxLight_SetConeDegree(IntPtr light, double degrees);
+        [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void FbxNode_SetPostTargetRotation(IntPtr node);
     }
 }
