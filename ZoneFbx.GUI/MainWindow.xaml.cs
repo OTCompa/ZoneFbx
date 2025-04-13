@@ -148,6 +148,11 @@ namespace ZoneFbx.GUI
             FilteredLevels = new ListCollectionView(Levels);
             FilteredLevels.Filter = LevelFilter;
             DataContext = this;
+            var defaultDir = "C:\\Program Files (x86)\\SquareEnix\\FINAL FANTASY XIV - A Realm Reborn\\game\\sqpack";
+            if (Directory.Exists(defaultDir))
+            {
+                GamePath = defaultDir;
+            }
         }
 
         private async void TryResolvingLumina()
