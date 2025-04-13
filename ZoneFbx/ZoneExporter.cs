@@ -35,9 +35,9 @@ namespace ZoneFbx
 
         IntPtr manager = IntPtr.Zero;
         IntPtr scene = IntPtr.Zero;
-        Dictionary<ulong, IntPtr> material_cache = new Dictionary<ulong, IntPtr>();
-        Dictionary<string, IntPtr> mesh_cache = new Dictionary<string, IntPtr>();
-
+        Dictionary<ulong, IntPtr> material_cache = new();
+        Dictionary<string, IntPtr> mesh_cache = new();
+        Dictionary<string, IntPtr> sgb_cache = new();
         public ZoneExporter(string game_path, string zone_path, string output_path, Flags flags)
         {
             this.game_path = game_path;
@@ -523,61 +523,93 @@ namespace ZoneFbx
 
         private bool process_layers(LayerCommon.Layer[] layers, IntPtr parentNode)
         {
-            var has_child = false;
+            var group_has_child = false;
             for (int i = 0; i < layers.Length; i++)
             {
                 var layer = layers[i];
                 if (!flags.enableFestivals && layer.FestivalID != 0) continue;
 
                 var layer_node = Fbx.FbxNode_Create(scene, layer.Name);
+                var layer_has_child = false;
 
                 for (int j = 0; j < layer.InstanceObjects.Length; j++)
                 {
-                    var obj = layer.InstanceObjects[j];
-                    if (obj.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.BG)
+                    var childNode = process_asset(layer.InstanceObjects[j]);
+                    if (childNode != IntPtr.Zero)
                     {
-                        var obj_node = init_child_node(obj);
-                        var instance_object = (LayerCommon.BGInstanceObject)obj.Object;
-                        var object_path = instance_object.AssetPath;
-                        var object_file = data.GetFile<MdlFile>(object_path);
-                        if (object_file == null) {
-                            Console.WriteLine($"Unable to get {object_path} from game data."); 
-                            continue;
-                        }
-                        var model = new Lumina.Models.Models.Model(object_file);
-                        try
-                        {
-                            model.Update(data);
-                        } catch (ArgumentOutOfRangeException e)
-                        {
-                            Console.WriteLine("Object " + object_path + " could not be resolved from game data.");
-                            Console.WriteLine(e.Message);
-                            model = new Lumina.Models.Models.Model(object_file);
-                        }
-
-                        var model_node = Fbx.FbxNode_Create(scene, object_path.Substring(object_path.LastIndexOf("/") + 1));
-
-                        if (process_model(model, model_node))
-                        {
-                            Fbx.FbxNode_AddChild(obj_node, model_node);
-                            Fbx.FbxNode_AddChild(layer_node, obj_node);
-                            has_child = true;
-                        }
-
-                    } else if (obj.AssetType == Lumina.Data.Parsing.Layer.LayerEntryType.SharedGroup)
-                    {
-                        var obj_node = init_child_node(obj);
-                        var sharedGroupObj = (Lumina.Data.Parsing.Layer.LayerCommon.SharedGroupInstanceObject)obj.Object;
-                        if (process_sgb(sharedGroupObj.AssetPath, obj_node))
-                        {
-                            Fbx.FbxNode_AddChild(layer_node, obj_node);
-                            has_child = true;
-                        }
+                        Fbx.FbxNode_AddChild(layer_node, childNode);
+                        layer_has_child = true;
                     }
                 }
-                Fbx.FbxNode_AddChild(parentNode, layer_node);
+
+                if (layer_has_child)
+                {
+                    Fbx.FbxNode_AddChild(parentNode, layer_node);
+                    group_has_child = true;
+                }
             }
-            return has_child;
+            return group_has_child;
+        }
+
+        private IntPtr process_asset(InstanceObject obj)
+        {
+            IntPtr obj_node;
+            switch (obj.AssetType)
+            {
+                case LayerEntryType.BG:
+                    obj_node = init_child_node(obj);
+                    var instance_object = (LayerCommon.BGInstanceObject)obj.Object;
+                    var object_path = instance_object.AssetPath;
+                    var object_file = data.GetFile<MdlFile>(object_path);
+                    if (object_file == null)
+                    {
+                        Console.WriteLine($"Unable to get {object_path} from game data.");
+                        return IntPtr.Zero;
+                    }
+                    var model = new Lumina.Models.Models.Model(object_file);
+                    try
+                    {
+                        model.Update(data);
+                    } catch (ArgumentOutOfRangeException e)
+                    {
+                        Console.WriteLine("Object " + object_path + " could not be resolved from game data.");
+                        Console.WriteLine(e.Message);
+                        model = new Lumina.Models.Models.Model(object_file);  
+                        // this should still create a mesh without a material (?)
+                    }
+
+                    var model_node = Fbx.FbxNode_Create(scene, object_path.Substring(object_path.LastIndexOf("/") + 1));
+
+                    if (process_model(model, model_node))
+                    {
+                        Fbx.FbxNode_AddChild(obj_node, model_node);
+                        return obj_node;
+                    }
+                    break;
+                case LayerEntryType.SharedGroup:
+                    obj_node = init_child_node(obj);
+                    var sharedGroupObj = (LayerCommon.SharedGroupInstanceObject)obj.Object;
+                    var sgb_path = sharedGroupObj.AssetPath;
+                    
+                    // TODO: figure out edge case where cache supposedly misses on same file
+                    // multiple of the same sgb referenced in a single sgb
+                    var result = sgb_cache.TryGetValue(sgb_path, out var cached_sgb);
+                    if (result)
+                    {
+                        return cached_sgb;
+                    }
+
+                    if (process_sgb(sgb_path, obj_node))
+                    {
+                        sgb_cache[sgb_path] = obj_node;
+                        return obj_node;
+                    }
+                    break;
+                case LayerEntryType.LayLight:
+                    // TODO implement this
+                    break;
+            }
+            return IntPtr.Zero;
         }
 
         private bool process_sgb(string sgb_path, IntPtr parentNode)
