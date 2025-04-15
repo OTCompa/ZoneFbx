@@ -39,12 +39,13 @@ jobs:
       run: dotnet test --no-build --verbosity normal --configuration GithubRelease
     - name: Pack release archives
       run: |
-        Compress-Archive -Path .\ZoneFbx.GUI\bin\x64\GithubRelease\net9.0-windows* -DestinationPath .\ZoneFbx.GUI_${{ github.ref_name }}.zip
+        mkdir release
+        Compress-Archive -Path .\ZoneFbx.GUI\bin\x64\GithubRelease\net9.0-windows* -DestinationPath .\release\ZoneFbx.GUI_${{ github.ref_name }}.zip
     - name: Create Release
       env:
         token: ${{ secrets.TOKEN }}
       uses: softprops/action-gh-release@v2
       with:
         name: ZoneFbx.GUI {{ github.ref_name }}
-        files: .\ZoneFbx.GUI_${{ github.ref_name }}.zip
+        files: release\**
         generate_release_notes: true
