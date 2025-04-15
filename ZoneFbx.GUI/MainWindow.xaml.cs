@@ -184,6 +184,8 @@ namespace ZoneFbx.GUI
                 var territoryType = data.GetExcelSheet<TerritoryType>();
                 if (territoryType == null) {
                     ConsoleString = $"Unable to get excel datasheet.";
+                    return;
+                }
                 foreach (var row in territoryType.Where(territory => !String.IsNullOrEmpty(territory.PlaceName.ValueNullable?.Name.ExtractText())))
                 {
                     Dispatcher.BeginInvoke(() =>
