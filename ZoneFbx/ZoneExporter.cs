@@ -20,7 +20,6 @@ namespace ZoneFbx
         private string zone_code;
         private Lumina.GameData data;
         private Flags flags;
-        private int ctr;
 
         IntPtr manager = IntPtr.Zero;
         IntPtr scene = IntPtr.Zero;

@@ -149,7 +149,7 @@ namespace ZoneFbx.GUI
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
@@ -182,6 +182,8 @@ namespace ZoneFbx.GUI
                 ConsoleString = "";
                 Dispatcher.BeginInvoke(Levels.Clear);
                 var territoryType = data.GetExcelSheet<TerritoryType>();
+                if (territoryType == null) {
+                    ConsoleString = $"Unable to get excel datasheet.";
                 foreach (var row in territoryType.Where(territory => !String.IsNullOrEmpty(territory.PlaceName.ValueNullable?.Name.ExtractText())))
                 {
                     Dispatcher.BeginInvoke(() =>
@@ -219,6 +221,7 @@ namespace ZoneFbx.GUI
         private void GamePathChanged(object sender, TextChangedEventArgs e)
         {
             var textBox = sender as TextBox;
+            if (textBox == null) return;
             GamePath = textBox.Text;
             TryResolvingLumina();
         }
@@ -235,6 +238,7 @@ namespace ZoneFbx.GUI
         private void OutputPathChanged(object sender, TextChangedEventArgs e)
         {
             var textBox = sender as TextBox;
+            if (textBox == null) return;
             OutputPath = textBox.Text;
         }
 

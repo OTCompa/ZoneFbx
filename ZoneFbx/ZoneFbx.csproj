@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PlatformTarget>x64</PlatformTarget>
@@ -21,10 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FBXCSharp\FBXCSharp.vcxproj" />
+    <ProjectReference Include="..\FBXCSharp\FBXCSharp.vcxproj" Condition="'$(Configuration)' != 'GithubRelease'"/>
   </ItemGroup>
-
-  
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="if $(ConfigurationName) == GithubRelease (&#xD;&#xA;    xcopy /y &quot;$(SolutionDir)prebuilt\FBXCSharp.dll&quot; &quot;$(TargetDir)&quot;&#xD;&#xA;) ELSE (&#xD;&#xA;    xcopy /y &quot;$(SolutionDir)$(Platform)\$(ConfigurationName)\FBXCSharp.dll&quot; &quot;$(TargetDir)&quot;&#xD;&#xA;)" />
