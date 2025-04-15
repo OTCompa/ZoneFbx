@@ -9,6 +9,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>AnyCPU;x64</Platforms>
     <Version>0.6.0</Version>
+    <Configurations>Debug;Release;GithubRelease</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +27,7 @@
   
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y &quot;$(SolutionDir)$(Platform)\$(ConfigurationName)\FBXCSharp.dll&quot; &quot;$(TargetDir)&quot;&#xA;" />
+    <Exec Command="if $(ConfigurationName) == GithubRelease (&#xD;&#xA;    xcopy /y &quot;$(SolutionDir)prebuilt\FBXCSharp.dll&quot; &quot;$(TargetDir)&quot;&#xD;&#xA;) ELSE (&#xD;&#xA;    xcopy /y &quot;$(SolutionDir)$(Platform)\$(ConfigurationName)\FBXCSharp.dll&quot; &quot;$(TargetDir)&quot;&#xD;&#xA;)" />
   </Target>
 
 </Project>
