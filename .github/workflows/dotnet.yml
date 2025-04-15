@@ -18,10 +18,10 @@ jobs:
     - name: Find prebuilt FBXCSharp.dll in releases
       run: |
         $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases"
-        $fbxRelease = $releases | Where-Object { $_.tag_name -like "fbx-prebuilt-*" }
+        $fbxRelease = $releases | Where-Object { $_.tag_name -like "fbxcsharp-prebuilt-*" }
         $asset = $fbxRelease.assets | Where-Object { $_.name -eq "FBXCSharp.dll" } | Select-Object -First 1
         if (-not $asset) {
-          Write-Error "FBXCSharp.dll not found in latest fbx-prebuilt-* release."
+          Write-Error "FBXCSharp.dll not found in latest fbxcsharp-prebuilt-* release."
           exit 1
         }
         echo "PREBUILT_DLL_URL=$($asset.browser_download_url)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
