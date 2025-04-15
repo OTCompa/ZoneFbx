@@ -1,0 +1,37 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - '*'
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: Pack release archives
+      run: |
+        Compress-Archive -Path .\ZoneFbx.GUI\bin\x64\Release\net9.0-windows\* -DestinationPath .\ZoneFbx.GUI_${{ github.ref_name }}.zip
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: ZoneFbx.GUI {{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
+        files: .\ZoneFbx.GUI_${{ github.ref_name }}.zip
