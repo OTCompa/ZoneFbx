@@ -47,5 +47,5 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         name: ZoneFbx.GUI ${{ github.ref_name }}
-        files: release\**
+        files: release/**
         generate_release_notes: true
