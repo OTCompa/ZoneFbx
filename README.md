@@ -7,8 +7,14 @@ and proper hierarchy/object grouping.
 This fork of ZoneFbx is a rewrite of the original in C# with some mappings to C++ code to utilize the FBX SDK.
 A large amount of the logic is kept 1:1 with the original. In other words, I have 0 idea what I'm doing.
 
+# Issues
 If normal maps look weird in Blender, try setting the Normal node
-to sRGB color space, and set the Normal/Map to World Space.
+to sRGB color space, and set the Normal/Map to World Space.  
+If lights look weird, try disabling "Shadows" for the specific light source. 
+Unfortunately, FBX's `CastShadows` option doesn't do anything with regards to this
+in Blender so I'm not sure how to handle this.  
+
+For any other errors, please open an issue.
 
 ## Arbitrary constants
 In this program, there are some arbitrary constant multipliers used
@@ -56,15 +62,9 @@ https://streamable.com/tjg45n
 
 note: the program is really bad with slashes and spaces in file paths, type it exactly like the video
 
-# Issues
-If you encounter the issue: `Object bg/ffxiv/wil_w1/evt/w1eb/bgplate/0015.mdl could not be resolved from game data.`
-followed by specifically:
-```
-Specified argument was out of the range of valid values. (Parameter 'usage')
-Actual value was 3845360663.
-```
-This is because of what I think is a bug in a [Lumina](https://github.com/NotAdam/Lumina) which this program uses.
-I have a [fork](https://github.com/OTCompa/Lumina) of it that "fixes" the issue, but it'll probably get fixed in the main branch soon.
-You should only be seeing the above error if you built it by yourself, as I have included the modified Lumina DLL in the release.  
-
-For any other errors, please open an issue.
+# Building
+To build this from scratch, you need the [FBX SDK](https://aps.autodesk.com/developer/overview/fbx-sdk)
+installed. This project specifically uses `FBX SDK 2020.3.7 VS2022` at the time of writing this.
+There shouldn't be any issue with changing to a different version if needed, just make sure to update
+the paths in the properties.  
+Building this project is only tested with Visual Studio Community 2022.
