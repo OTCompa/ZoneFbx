@@ -36,9 +36,9 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore  --configuration GithubRelease
+      run: dotnet build --no-restore --configuration GithubRelease
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build --verbosity normal --configuration GithubRelease
     - name: Pack release archives
       run: |
         Compress-Archive -Path .\ZoneFbx.GUI\bin\x64\GithubRelease\net9.0-windows* -DestinationPath .\ZoneFbx.GUI_${{ github.ref_name }}.zip
