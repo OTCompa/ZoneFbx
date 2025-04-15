@@ -40,7 +40,7 @@ jobs:
     - name: Pack release archives
       run: |
         mkdir release
-        Compress-Archive -Path .\ZoneFbx.GUI\bin\x64\GithubRelease\net9.0-windows* -DestinationPath .\release\ZoneFbx.GUI_${{ github.ref_name }}.zip
+        Compress-Archive -Path .\ZoneFbx.GUI\bin\x64\GithubRelease\net9.0-windows* -DestinationPath .\release\ZoneFbx.GUI_${{ github.ref_name }}.zip -Force
     - name: Create Release
       env:
         token: ${{ secrets.TOKEN }}
