@@ -7,8 +7,6 @@ on:
   push:
     tags:
       - '*'
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   release:
@@ -46,5 +44,6 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         name: ZoneFbx.GUI {{ github.ref_name }}
-        tag_name: ${{ github.ref_name }}
+        token: ${{ secrets.TOKEN }}
         files: .\ZoneFbx.GUI_${{ github.ref_name }}.zip
+        generate_release_notes: true
