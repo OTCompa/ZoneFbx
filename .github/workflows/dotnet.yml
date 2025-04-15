@@ -5,7 +5,6 @@ name: .NET
 
 on:
   push:
-    branches: [ "main" ]
     tags:
       - '*'
   pull_request:
@@ -16,6 +15,20 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
+    - name: Find prebuilt FBXCSharp.dll in releases
+      run: |
+        $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases"
+        $fbxRelease = $releases | Where-Object { $_.tag_name -like "fbx-prebuilt-*" }
+        $asset = $fbxRelease.assets | Where-Object { $_.name -eq "FBXCSharp.dll" } | Select-Object -First 1
+        if (-not $asset) {
+          Write-Error "FBXCSharp.dll not found in latest fbx-prebuilt-* release."
+          exit 1
+        }
+        echo "PREBUILT_DLL_URL=$($asset.browser_download_url)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+    - name: Fetch prebuilt FBXCSharp.dll
+      run: |
+        mkdir prebuilt
+        Invoke-WebRequest -Uri $env:PREBUILT_DLL_URL -OutFile "prebuilt\FBXCSharp.dll"
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -23,12 +36,12 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore  --configuration GithubRelease
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Pack release archives
       run: |
-        Compress-Archive -Path .\ZoneFbx.GUI\bin\x64\Release\net9.0-windows\* -DestinationPath .\ZoneFbx.GUI_${{ github.ref_name }}.zip
+        Compress-Archive -Path .\ZoneFbx.GUI\bin\x64\GithubRelease\net9.0-windows* -DestinationPath .\ZoneFbx.GUI_${{ github.ref_name }}.zip
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
