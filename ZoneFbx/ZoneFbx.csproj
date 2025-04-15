@@ -21,11 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FBXCSharp\FBXCSharp.vcxproj" Condition="'$(Configuration)' != 'GithubRelease'"/>
+    <ProjectReference Include="..\FBXCSharp\FBXCSharp.vcxproj" Condition="'$(Configuration)' != 'GithubRelease'" />
+    <None Include="$(SolutionDir)prebuilt\FBXCSharp.dll" Condition="'$(Configuration)' == 'GithubRelease'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
-  
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="if $(ConfigurationName) == GithubRelease (&#xD;&#xA;    xcopy /y &quot;$(SolutionDir)prebuilt\FBXCSharp.dll&quot; &quot;$(TargetDir)&quot;&#xD;&#xA;) ELSE (&#xD;&#xA;    xcopy /y &quot;$(SolutionDir)$(Platform)\$(ConfigurationName)\FBXCSharp.dll&quot; &quot;$(TargetDir)&quot;&#xD;&#xA;)" />
-  </Target>
 
 </Project>

@@ -269,7 +269,7 @@ namespace ZoneFbx.GUI
 
             ConsoleString = "";
             ConsoleString += $"ZoneFbx {GamePath} {argLevel} {argOutput} {argFlags}";
-            var result = await CliWrap.Cli.Wrap("bin\\ZoneFbx")
+            var result = await CliWrap.Cli.Wrap("ZoneFbx")
                 .WithArguments([GamePath, argLevel, argOutput, argFlags])
                 .WithStandardOutputPipe(PipeTarget.ToDelegate(AppendConsole))
                 .ExecuteAsync();
