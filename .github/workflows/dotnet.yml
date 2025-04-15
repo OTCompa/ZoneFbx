@@ -41,9 +41,10 @@ jobs:
       run: |
         Compress-Archive -Path .\ZoneFbx.GUI\bin\x64\GithubRelease\net9.0-windows* -DestinationPath .\ZoneFbx.GUI_${{ github.ref_name }}.zip
     - name: Create Release
+      env:
+        token: ${{ secrets.TOKEN }}
       uses: softprops/action-gh-release@v2
       with:
         name: ZoneFbx.GUI {{ github.ref_name }}
-        token: ${{ secrets.TOKEN }}
         files: .\ZoneFbx.GUI_${{ github.ref_name }}.zip
         generate_release_notes: true
