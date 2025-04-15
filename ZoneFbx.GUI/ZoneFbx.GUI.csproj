@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="mkdir $(TargetDir)\bin&#xD;&#xA;xcopy /y /i &quot;$(SolutionDir)\ZoneFbx\bin\$(Platform)\$(ConfigurationName)\net9.0\*&quot; &quot;$(TargetDir)\bin&quot;&#xA;" />
+    <Exec Command="mkdir $(TargetDir)bin&#xD;&#xA;xcopy /y /i &quot;$(SolutionDir)ZoneFbx\bin\$(Platform)\$(ConfigurationName)\net9.0\*&quot; &quot;$(TargetDir)bin&quot;&#xA;" />
   </Target>
 
 </Project>
