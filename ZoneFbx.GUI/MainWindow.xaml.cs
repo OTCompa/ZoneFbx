@@ -60,6 +60,17 @@ namespace ZoneFbx.GUI
             }
         }
 
+        private bool _execInProgress = false;
+        public bool ExecInProgress
+        {
+            get => _execInProgress;
+            set
+            {
+                _execInProgress = value;
+                OnPropertyChanged(nameof(ExecInProgress));
+            }
+        }
+
         // levels
         public class ComboBoxItem
         {
@@ -252,6 +263,7 @@ namespace ZoneFbx.GUI
 
         private async void ExportMap(object sender, RoutedEventArgs e)
         {
+            ExecInProgress = true;
             var argLevel = Level;
             var argOutput = OutputPath.EndsWith(System.IO.Path.DirectorySeparatorChar) ? OutputPath : OutputPath + System.IO.Path.DirectorySeparatorChar;
             var argFlags = string.Concat([
@@ -273,6 +285,7 @@ namespace ZoneFbx.GUI
                 .WithArguments([GamePath, argLevel, argOutput, argFlags])
                 .WithStandardOutputPipe(PipeTarget.ToDelegate(AppendConsole))
                 .ExecuteAsync();
+            ExecInProgress = false;
         }
     }
 }
