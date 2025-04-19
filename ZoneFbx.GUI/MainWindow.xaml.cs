@@ -280,7 +280,7 @@ namespace ZoneFbx.GUI
             if (argFlags == "-") argFlags = "";
 
             ConsoleString = "";
-            ConsoleString += $"ZoneFbx {GamePath} {argLevel} {argOutput} {argFlags}";
+            ConsoleString += $"ZoneFbx \"{GamePath}\" {argLevel} \"{argOutput}\\\" {argFlags}\n";
             var result = await CliWrap.Cli.Wrap("ZoneFbx")
                 .WithArguments([GamePath, argLevel, argOutput, argFlags])
                 .WithStandardOutputPipe(PipeTarget.ToDelegate(AppendConsole))
