@@ -375,31 +375,33 @@ namespace ZoneFbx
             try
             {
                 texture = Util.toBitmap(texfile.ImageData, texfile.Header.Width, texfile.Header.Height, v);
+                Directory.CreateDirectory(Path.GetDirectoryName(tex_path)!);
+                texture.Save(tex_path, ImageFormat.Png);
             } catch (NotSupportedException)
             {
+                var decoded = new byte[texfile.Header.Width * texfile.Header.Height * 4];
+                var bufCopy = new byte[texfile.Data.Length];
+                texfile.Data.CopyTo(bufCopy, 0);
                 if (texfile.Header.Format == TexFile.TextureFormat.BC7)
                 {
                     Console.WriteLine("Processing BC7 texture: " + tex_path);
-                    var decodedBc7 = new byte[texfile.Header.Width * texfile.Header.Height * 4];
-                    Bc7Sharp.Decode(texfile.Data, decodedBc7, texfile.Header.Width, texfile.Header.Height);
+                    Bc7Sharp.Decode(bufCopy, decoded, texfile.Header.Width, texfile.Header.Height);
 
-                    texture = Util.toBitmap(decodedBc7, texfile.Header.Width, texfile.Header.Height, v);
-
+                    texture = Util.toBitmap(decoded, texfile.Header.Width, texfile.Header.Height, v);
                 } else if (texfile.Header.Format == TexFile.TextureFormat.BC5)
                 {
                     Console.WriteLine("Processing BC5 texture: " + tex_path);
-                    var decodedBc5 = new byte[texfile.Header.Width * texfile.Header.Height * 4];
-                    Bc5Sharp.Decode(texfile.Data, decodedBc5, texfile.Header.Width, texfile.Header.Height);
+                    Bc5Sharp.Decode(bufCopy, decoded, texfile.Header.Width, texfile.Header.Height);
 
-                    texture = Util.toBitmap(decodedBc5, texfile.Header.Width, texfile.Header.Height, v);
+                    texture = Util.toBitmap(decoded, texfile.Header.Width, texfile.Header.Height, v);
                 } else
                 {
                     Console.WriteLine("Not supported: " + tex_path);
                     return;
                 }
+                Directory.CreateDirectory(Path.GetDirectoryName(tex_path)!);
+                texture.Save(tex_path, ImageFormat.Png);
             }
-            Directory.CreateDirectory(Path.GetDirectoryName(tex_path)!);
-            texture.Save(tex_path, ImageFormat.Png);
         }
 
         private MaterialInfo? get_shader(Material mat)
@@ -637,7 +639,7 @@ namespace ZoneFbx
 
                 if (flags.enableJsonExport)
                 {
-                    Util.save_json($"{Path.GetFileNameWithoutExtension(sgb_path)}_{i}", layer_group.Layers, output_path);
+                    Util.save_json(Path.GetFileNameWithoutExtension(sgb_path), layer_group.Layers, output_path);
                 }
 
             }

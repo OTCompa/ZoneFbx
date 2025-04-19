@@ -69,7 +69,6 @@ namespace ZoneFbx
 
             unsafe
             {
-                byte[] buffer = new byte[data.Length];
                 fixed (byte* p = data)
                 {
                     IntPtr imageData = (IntPtr)p;
