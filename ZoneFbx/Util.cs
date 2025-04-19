@@ -55,7 +55,7 @@ namespace ZoneFbx
             return 180 / Math.PI * radians;
         }
 
-        public static Bitmap toBitmap(byte[] data, int width, int height, Vector3? multiplier = null)
+        public static void SaveAsBitmap(string tex_path, byte[] data, int width, int height, Vector3? multiplier = null)
         {
             if (multiplier != null)
             {
@@ -72,7 +72,10 @@ namespace ZoneFbx
                 fixed (byte* p = data)
                 {
                     IntPtr imageData = (IntPtr)p;
-                    return new Bitmap(width, height, width * 4, PixelFormat.Format32bppArgb, imageData);
+                    var texture = new Bitmap(width, height, width * 4, PixelFormat.Format32bppArgb, imageData);
+                    
+                    Directory.CreateDirectory(Path.GetDirectoryName(tex_path)!);
+                    texture.Save(tex_path, ImageFormat.Png);
                 }
             }
         }

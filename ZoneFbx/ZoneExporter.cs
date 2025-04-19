@@ -370,37 +370,29 @@ namespace ZoneFbx
                 return;
             }
 
-            Image texture;
-
             try
             {
-                texture = Util.toBitmap(texfile.ImageData, texfile.Header.Width, texfile.Header.Height, v);
-                Directory.CreateDirectory(Path.GetDirectoryName(tex_path)!);
-                texture.Save(tex_path, ImageFormat.Png);
+                Util.SaveAsBitmap(tex_path, texfile.ImageData, texfile.Header.Width, texfile.Header.Height, v);
             } catch (NotSupportedException)
             {
                 var decoded = new byte[texfile.Header.Width * texfile.Header.Height * 4];
-                var bufCopy = new byte[texfile.Data.Length];
-                texfile.Data.CopyTo(bufCopy, 0);
                 if (texfile.Header.Format == TexFile.TextureFormat.BC7)
                 {
                     Console.WriteLine("Processing BC7 texture: " + tex_path);
-                    Bc7Sharp.Decode(bufCopy, decoded, texfile.Header.Width, texfile.Header.Height);
+                    Bc7Sharp.Decode(texfile.Data, decoded, texfile.Header.Width, texfile.Header.Height);
 
-                    texture = Util.toBitmap(decoded, texfile.Header.Width, texfile.Header.Height, v);
+                    Util.SaveAsBitmap(tex_path, decoded, texfile.Header.Width, texfile.Header.Height, v);
                 } else if (texfile.Header.Format == TexFile.TextureFormat.BC5)
                 {
                     Console.WriteLine("Processing BC5 texture: " + tex_path);
-                    Bc5Sharp.Decode(bufCopy, decoded, texfile.Header.Width, texfile.Header.Height);
+                    Bc5Sharp.Decode(texfile.Data, decoded, texfile.Header.Width, texfile.Header.Height);
 
-                    texture = Util.toBitmap(decoded, texfile.Header.Width, texfile.Header.Height, v);
+                    Util.SaveAsBitmap(tex_path, decoded, texfile.Header.Width, texfile.Header.Height, v);
                 } else
                 {
                     Console.WriteLine("Not supported: " + tex_path);
                     return;
                 }
-                Directory.CreateDirectory(Path.GetDirectoryName(tex_path)!);
-                texture.Save(tex_path, ImageFormat.Png);
             }
         }
 
