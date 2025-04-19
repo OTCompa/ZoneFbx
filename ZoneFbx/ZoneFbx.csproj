@@ -22,6 +22,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FBXCSharp\FBXCSharp.vcxproj" Condition="'$(Configuration)' != 'GithubRelease'" />
+    <None Include="$(SolutionDir)$(Platform)\$(Configuration)\FBXCSharp.dll" Condition="'$(Configuration)' != 'GithubRelease'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="$(SolutionDir)prebuilt\FBXCSharp.dll" Condition="'$(Configuration)' == 'GithubRelease'">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
