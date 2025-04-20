@@ -14,6 +14,11 @@ If lights look weird, try disabling "Shadows" for the specific light source.
 Unfortunately, FBX's `CastShadows` option doesn't do anything with regards to this
 in Blender so I'm not sure how to handle this.  
 
+I've not thoroughly tested every map. I know for the For'ard Cabins (and probably Tuliyollal too) there's a crash
+due to some edge cases. I've attached a separate `Lumina.dll` file built from 
+[my fork](https://github.com/OTCompa/Lumina/tree/zonefbx) that may possibly help, just replace the
+existing Lumina.dll in the same folder. 
+
 For any other errors, please open an issue.
 
 ## Arbitrary constants
