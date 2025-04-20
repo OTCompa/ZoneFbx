@@ -9,6 +9,8 @@ using Lumina.Models.Materials;
 using Lumina.Extensions;
 using System.Numerics;
 using System;
+using Lumina.Excel.Sheets;
+using Lumina.Excel;
 
 namespace ZoneFbx
 {
@@ -18,7 +20,8 @@ namespace ZoneFbx
         private string zone_path;
         private string output_path;
         private string zone_code;
-        private Lumina.GameData data;
+        private readonly Lumina.GameData data;
+        private readonly ExcelSheet<EObj> EObjSheet;
         private Flags flags;
 
         IntPtr manager = IntPtr.Zero;
@@ -47,7 +50,16 @@ namespace ZoneFbx
             } catch (DirectoryNotFoundException)
             {
                 Console.WriteLine("Error: Game path directory is not valid!\n");
-                throw new Exception();
+                throw new Exception("game path directory is not valid");
+            }
+
+            try
+            {
+                EObjSheet = data.GetExcelSheet<EObj>()!;
+            } catch (DirectoryNotFoundException)
+            {
+                Console.WriteLine("Error: Unable to get EObj sheet!\n");
+                throw new Exception("unable to get EObj sheet");
             }
 
             if (!init())
@@ -544,6 +556,7 @@ namespace ZoneFbx
         private IntPtr process_asset(InstanceObject obj)
         {
             IntPtr obj_node;
+            string sgb_path;
             switch (obj.AssetType)
             {
                 case LayerEntryType.BG:
@@ -579,7 +592,7 @@ namespace ZoneFbx
                 case LayerEntryType.SharedGroup:
                     obj_node = init_child_node(obj);
                     var sharedGroupObj = (LayerCommon.SharedGroupInstanceObject)obj.Object;
-                    var sgb_path = sharedGroupObj.AssetPath;
+                    sgb_path = sharedGroupObj.AssetPath;
 
                     if (process_sgb(sgb_path, obj_node))
                     {
@@ -608,6 +621,20 @@ namespace ZoneFbx
 
                     Fbx.FbxNode_SetNodeAttribute(obj_node, light);
                     return obj_node;
+                case LayerEntryType.EventObject:
+                    var eventObj = (LayerCommon.EventInstanceObject)obj.Object;
+                    var success = EObjSheet.TryGetRow(eventObj.ParentData.BaseId, out var row);
+                    if (!success) return IntPtr.Zero;
+                    if (row.SgbPath.ValueNullable == null) return IntPtr.Zero;
+                    sgb_path = row.SgbPath.Value.SgbPath.ToString();
+                    if (!sgb_path.EndsWith("sgb")) return IntPtr.Zero;  // 1 more sanity check
+
+                    obj_node = init_child_node(obj);
+                    if (process_sgb(sgb_path, obj_node))
+                    {
+                        return obj_node;
+                    }
+                    break;
             }
             return IntPtr.Zero;
         }
