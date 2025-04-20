@@ -312,6 +312,7 @@ namespace ZoneFbx
             for (int i = 0; i < mat.Textures.Length; i++)
             {
                 var tex = mat.Textures[i];
+                if (tex == null) continue;
                 if (tex.TexturePath.Contains("dummy")) continue;
 
                 if (alreadySet.Contains(tex.TextureUsageSimple)) continue;
