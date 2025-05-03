@@ -193,20 +193,20 @@ namespace ZoneFbx
             var mesh = Mesh.Create(scene, mesh_name);
             Mesh.Init(mesh, game_mesh.Vertices.Length);
 
-            var colorElement = GeometryElement.VertexColor_Create(mesh);
-            GeometryElement.VertexColor_SetMappingNode(colorElement);
+            var colorElement = GeometryElement.VertexColor.Create(mesh);
+            GeometryElement.VertexColor.SetMappingNode(colorElement);
 
-            var uvElement1 = GeometryElement.UV_Create(mesh, "uv1");
-            GeometryElement.UV_SetMappingNode(uvElement1);
+            var uvElement1 = GeometryElement.UV.Create(mesh, "uv1");
+            GeometryElement.UV.SetMappingNode(uvElement1);
 
-            var uvElement2 = GeometryElement.UV_Create(mesh, "uv2");
-            GeometryElement.UV_SetMappingNode(uvElement2);
+            var uvElement2 = GeometryElement.UV.Create(mesh, "uv2");
+            GeometryElement.UV.SetMappingNode(uvElement2);
 
-            var tangentElem1 = GeometryElement.Tangent_Create(mesh);
-            GeometryElement.Tangent_SetMappingNode(tangentElem1);
+            var tangentElem1 = GeometryElement.Tangent.Create(mesh);
+            GeometryElement.Tangent.SetMappingNode(tangentElem1);
 
-            var tangentElem2 = GeometryElement.Tangent_Create(mesh);
-            GeometryElement.Tangent_SetMappingNode(tangentElem2);
+            var tangentElem2 = GeometryElement.Tangent.Create(mesh);
+            GeometryElement.Tangent.SetMappingNode(tangentElem2);
 
             for (int i = 0; i < game_mesh.Vertices.Length; i++)
             {
@@ -260,18 +260,18 @@ namespace ZoneFbx
 
                 if (game_mesh.Vertices[i].UV.HasValue)
                 {
-                    var uv1Array = GeometryElement.UV_GetDirectArray(uvElement1);
+                    var uv1Array = GeometryElement.UV.GetDirectArray(uvElement1);
                     Fbx.Layer.UV_Add(uv1Array, Fbx.Vector2.Create(game_mesh.Vertices[i].UV!.Value.X, game_mesh.Vertices[i].UV!.Value.Y * -1));
-                    var uv2Array = GeometryElement.UV_GetDirectArray(uvElement2);
+                    var uv2Array = GeometryElement.UV.GetDirectArray(uvElement2);
                     Fbx.Layer.UV_Add(uv2Array, Fbx.Vector2.Create(game_mesh.Vertices[i].UV!.Value.Z, game_mesh.Vertices[i].UV!.Value.W * -1));
                 }
 
-                var colorArray = GeometryElement.VertexColor_GetDirectArray(colorElement);
+                var colorArray = GeometryElement.VertexColor.GetDirectArray(colorElement);
                 Fbx.Layer.Color_Add(colorArray, color);
 
-                var tangent1Array = GeometryElement.Tangent_GetDirectArray(tangentElem1);
+                var tangent1Array = GeometryElement.Tangent.GetDirectArray(tangentElem1);
                 Fbx.Layer.Tangent_Add(tangent1Array, tangent1);
-                var tangent2Array = GeometryElement.Tangent_GetDirectArray(tangentElem2);
+                var tangent2Array = GeometryElement.Tangent.GetDirectArray(tangentElem2);
                 Fbx.Layer.Tangent_Add(tangent2Array, tangent2);
             }
 
@@ -287,7 +287,7 @@ namespace ZoneFbx
             return mesh;
         }
 
-        private IntPtr create_material(Lumina.Models.Materials.Material mat)
+        private IntPtr create_material(Material mat)
         {
             if (!flags.enableLightshaftModels && mat.ShaderPack == "lightshaft.shpk") return IntPtr.Zero;
 
@@ -412,9 +412,9 @@ namespace ZoneFbx
 
         private MaterialInfo? get_shader(Material mat)
         {
-            var diffuseOffset = -1;
-            var specularOffset = -1;
-            var emissiveOffset = -1;
+            long? diffuseOffset = null;
+            long? specularOffset = null;
+            long? emissiveOffset = null;
 
             if (mat.File == null) { return null; }
 
@@ -484,23 +484,24 @@ namespace ZoneFbx
 
             // get all the relevant information
             var ret = new MaterialInfo();
-            if (diffuseOffset >= -1)
+            if (diffuseOffset.HasValue)
             {
-                br.Seek(cursor + diffuseOffset);
+                br.Seek(cursor + diffuseOffset.Value);
                 var v = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
                 if (v != Vector3.One)
                     ret.DiffuseColor = v;
             }
             if (specularOffset >= -1)
             {
-                br.Seek(cursor + specularOffset);
+                br.Seek(cursor + specularOffset.Value);
                 var v = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
                 if (v != Vector3.One)
                     ret.SpecularColor = v;
             }
             if (emissiveOffset >= -1)
             {
-                br.Seek(cursor + emissiveOffset);  // multiply by 0.2 to simulate emissiveFactor = 0.2
+                br.Seek(cursor + emissiveOffset.Value);
+                // multiply by 0.2 to simulate emissiveFactor = 0.2
                 var v = new Vector3(br.ReadSingle() * .2f, br.ReadSingle() * .2f, br.ReadSingle() * .2f);
                 if (v != Vector3.Zero)
                     ret.EmissiveColor = v;
@@ -509,7 +510,7 @@ namespace ZoneFbx
             return ret;
         }
 
-        private IntPtr init_child_node(LayerCommon.InstanceObject obj)
+        private IntPtr init_child_node(InstanceObject obj)
         {
             var obj_node = Node.Create(scene, obj.Name);
             Node.SetStuff(obj_node, obj.Transform.Translation.X, obj.Transform.Translation.Y, obj.Transform.Translation.Z, 0);
@@ -563,7 +564,7 @@ namespace ZoneFbx
             {
                 case LayerEntryType.BG:
                     obj_node = init_child_node(obj);
-                    var instance_object = (LayerCommon.BGInstanceObject)obj.Object;
+                    var instance_object = (BGInstanceObject)obj.Object;
                     var object_path = instance_object.AssetPath;
                     var object_file = data.GetFile<MdlFile>(object_path);
                     if (object_file == null)
@@ -593,7 +594,7 @@ namespace ZoneFbx
                     break;
                 case LayerEntryType.SharedGroup:
                     obj_node = init_child_node(obj);
-                    var sharedGroupObj = (LayerCommon.SharedGroupInstanceObject)obj.Object;
+                    var sharedGroupObj = (SharedGroupInstanceObject)obj.Object;
                     sgb_path = sharedGroupObj.AssetPath;
 
                     if (process_sgb(sgb_path, obj_node))
@@ -605,7 +606,7 @@ namespace ZoneFbx
                     if (!flags.enableLighting) return IntPtr.Zero;
 
                     obj_node = init_child_node(obj);
-                    var lightObj = (LayerCommon.LightInstanceObject)obj.Object;
+                    var lightObj = (LightInstanceObject)obj.Object;
                     if (lightObj.DiffuseColorHDRI.Intensity == 0.0) return IntPtr.Zero;
 
                     var light = Light.Create(scene, $"light_{obj.InstanceId}");
@@ -643,7 +644,7 @@ namespace ZoneFbx
                     Node.SetNodeAttribute(obj_node, light);
                     return obj_node;
                 case LayerEntryType.EventObject:
-                    var eventObj = (LayerCommon.EventInstanceObject)obj.Object;
+                    var eventObj = (EventInstanceObject)obj.Object;
                     var success = EObjSheet.TryGetRow(eventObj.ParentData.BaseId, out var row);
                     if (!success) return IntPtr.Zero;
                     if (row.SgbPath.ValueNullable == null) return IntPtr.Zero;
@@ -689,10 +690,10 @@ namespace ZoneFbx
         private bool process_bg()
         {
             string bg_path = "bg/" + zone_path.Substring(0, zone_path.Length - 5) + "/bg.lgb";
-            var bg = data.GetFile<Lumina.Data.Files.LgbFile>(bg_path);
+            var bg = data.GetFile<LgbFile>(bg_path);
 
             string planmap_path = "bg/" + zone_path.Substring(0, zone_path.Length - 5) + "/planmap.lgb";
-            var planmap = data.GetFile<Lumina.Data.Files.LgbFile>(planmap_path);
+            var planmap = data.GetFile<LgbFile>(planmap_path);
 
             if (bg == null) return false;
             var root_node = Scene.GetRootNode(scene);
