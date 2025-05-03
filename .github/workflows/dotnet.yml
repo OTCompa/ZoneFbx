@@ -4,10 +4,9 @@
 name: .NET
 
 on:
-  workflow_dispatch:
-  # push:
-  #   tags:
-  #     - '*'
+  push:
+    tags:
+      - '*'
 
 jobs:
   release:
