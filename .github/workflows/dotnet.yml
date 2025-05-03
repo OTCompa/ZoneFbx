@@ -13,6 +13,9 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
+    # Avoid building FBXCSharp in the workflow
+    # I do this because I don't want to/I don't know how to include it in Github Actions
+    # If anyone knows how to include it painlessly, please let me know
     - name: Find prebuilt FBXCSharp.dll in releases
       run: |
         $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases"
