@@ -98,14 +98,14 @@ namespace ZoneFbx
         {
             string name = zone_path.Substring(zone_path.LastIndexOf("/level") - 4, 4);
 
-            manager = Fbx.FbxManager_Create();
+            manager = Fbx.Manager_Create();
             if (manager == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to create FbxManager");
                 return false;
             }
-            Fbx.FbxManager_Initialize(manager);
-            scene = Fbx.FbxScene_Create(manager, name);
+            Fbx.Manager_Initialize(manager);
+            scene = Fbx.Scene_Create(manager, name);
             return true;
         }
 
@@ -120,13 +120,13 @@ namespace ZoneFbx
             var terafile = data.GetFile<TeraFile>(terafile_path);
             if (terafile == null) return false;
 
-            var terrain_node = Fbx.FbxNode_Create(manager, "terrain");
+            var terrain_node = Fbx.Node_Create(manager, "terrain");
 
             for (int i = 0; i < terafile?.PlateCount; i++)
             {
-                var plate_node = Fbx.FbxNode_Create(manager, "bgplate_" + i.ToString());
+                var plate_node = Fbx.Node_Create(manager, "bgplate_" + i.ToString());
                 var pos = terafile.GetPlatePosition(i);
-                Fbx.FbxNode_SetLclTranslation(plate_node, pos.X, 0, pos.Y);
+                Fbx.Node_SetLclTranslation(plate_node, pos.X, 0, pos.Y);
 
                 string model_filename = string.Format("{0:D4}.mdl", i);
                 string model_path = Path.Combine(terrain_path, model_filename);
@@ -146,11 +146,11 @@ namespace ZoneFbx
 
                 process_model(plate_model, plate_node);
 
-                Fbx.FbxNode_AddChild(terrain_node, plate_node);
+                Fbx.Node_AddChild(terrain_node, plate_node);
             }
 
-            var rootNode = Fbx.FbxScene_GetRootNode(scene);
-            Fbx.FbxNode_AddChild(rootNode, terrain_node);
+            var rootNode = Fbx.Scene_GetRootNode(scene);
+            Fbx.Node_AddChild(rootNode, terrain_node);
 
             return true;
         }
@@ -163,7 +163,7 @@ namespace ZoneFbx
             for (int i = 0; i < model.Meshes.Length; i++)
             {
                 string mesh_name = path + "_" + i.ToString();
-                var mesh_node = Fbx.FbxNode_Create(manager, mesh_name);
+                var mesh_node = Fbx.Node_Create(manager, mesh_name);
 
                 var result = mesh_cache.TryGetValue(mesh_name, out var cached_mesh);
                 IntPtr mesh;
@@ -177,11 +177,11 @@ namespace ZoneFbx
                     material = create_material(model.Meshes[i].Material);
                     if (material == IntPtr.Zero) continue;
 
-                    Fbx.FbxNode_AddMaterial(mesh_node, material);
+                    Fbx.Node_AddMaterial(mesh_node, material);
                     mesh_cache[mesh_name] = mesh;
                 }
-                Fbx.FbxNode_SetNodeAttribute(mesh_node, mesh);
-                Fbx.FbxNode_AddChild(node, mesh_node);
+                Fbx.Node_SetNodeAttribute(mesh_node, mesh);
+                Fbx.Node_AddChild(node, mesh_node);
                 has_children = true;
             }
             return has_children;
@@ -189,23 +189,23 @@ namespace ZoneFbx
 
         private IntPtr create_mesh(Lumina.Models.Models.Mesh game_mesh, string mesh_name)
         {
-            var mesh = Fbx.FbxMesh_Create(scene, mesh_name);
-            Fbx.FbxMesh_Init(mesh, game_mesh.Vertices.Length);
+            var mesh = Fbx.Mesh_Create(scene, mesh_name);
+            Fbx.Mesh_Init(mesh, game_mesh.Vertices.Length);
 
-            var colorElement = Fbx.FbxGeometryElementVertexColor_Create(mesh);
-            Fbx.FbxGeometryElementVertexColor_SetMappingNode(colorElement);
+            var colorElement = Fbx.GeometryElementVertexColor_Create(mesh);
+            Fbx.GeometryElementVertexColor_SetMappingNode(colorElement);
 
-            var uvElement1 = Fbx.FbxGeometryElementUV_Create(mesh, "uv1");
-            Fbx.FbxGeometryElementUV_SetMappingNode(uvElement1);
+            var uvElement1 = Fbx.GeometryElementUV_Create(mesh, "uv1");
+            Fbx.GeometryElementUV_SetMappingNode(uvElement1);
 
-            var uvElement2 = Fbx.FbxGeometryElementUV_Create(mesh, "uv2");
-            Fbx.FbxGeometryElementUV_SetMappingNode(uvElement2);
+            var uvElement2 = Fbx.GeometryElementUV_Create(mesh, "uv2");
+            Fbx.GeometryElementUV_SetMappingNode(uvElement2);
 
-            var tangentElem1 = Fbx.FbxGeometryElementTangent_Create(mesh);
-            Fbx.FbxGeometryElementTangent_SetMappingNode(tangentElem1);
+            var tangentElem1 = Fbx.GeometryElementTangent_Create(mesh);
+            Fbx.GeometryElementTangent_SetMappingNode(tangentElem1);
 
-            var tangentElem2 = Fbx.FbxGeometryElementTangent_Create(mesh);
-            Fbx.FbxGeometryElementTangent_SetMappingNode(tangentElem2);
+            var tangentElem2 = Fbx.GeometryElementTangent_Create(mesh);
+            Fbx.GeometryElementTangent_SetMappingNode(tangentElem2);
 
             for (int i = 0; i < game_mesh.Vertices.Length; i++)
             {
@@ -214,7 +214,7 @@ namespace ZoneFbx
 
                 if (game_mesh.Vertices[i].Position.HasValue)
                 {
-                    pos = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Position!.Value.X,
+                    pos = Fbx.Vector4_Create(game_mesh.Vertices[i].Position!.Value.X,
                              game_mesh.Vertices[i].Position!.Value.Y,
                              game_mesh.Vertices[i].Position!.Value.Z,
                              game_mesh.Vertices[i].Position!.Value.W);
@@ -222,7 +222,7 @@ namespace ZoneFbx
 
                 if (game_mesh.Vertices[i].Normal.HasValue)
                 {
-                    norm = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Normal!.Value.X,
+                    norm = Fbx.Vector4_Create(game_mesh.Vertices[i].Normal!.Value.X,
                               game_mesh.Vertices[i].Normal!.Value.Y,
                               game_mesh.Vertices[i].Normal!.Value.Z,
                               0);
@@ -230,7 +230,7 @@ namespace ZoneFbx
 
                 if (game_mesh.Vertices[i].Color.HasValue)
                 {
-                    color = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Color!.Value.X,
+                    color = Fbx.Vector4_Create(game_mesh.Vertices[i].Color!.Value.X,
                              game_mesh.Vertices[i].Color!.Value.Y,
                              game_mesh.Vertices[i].Color!.Value.Z,
                              game_mesh.Vertices[i].Color!.Value.W);
@@ -238,7 +238,7 @@ namespace ZoneFbx
 
                 if (game_mesh.Vertices[i].Tangent1.HasValue)
                 {
-                    tangent1 = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Tangent1!.Value.X,
+                    tangent1 = Fbx.Vector4_Create(game_mesh.Vertices[i].Tangent1!.Value.X,
                               game_mesh.Vertices[i].Tangent1!.Value.Y,
                               game_mesh.Vertices[i].Tangent1!.Value.Z,
                               0);
@@ -246,7 +246,7 @@ namespace ZoneFbx
 
                 if (game_mesh.Vertices[i].Tangent2.HasValue)
                 {
-                    tangent2 = Fbx.FbxVector4_Create(game_mesh.Vertices[i].Tangent2!.Value.X,
+                    tangent2 = Fbx.Vector4_Create(game_mesh.Vertices[i].Tangent2!.Value.X,
                              game_mesh.Vertices[i].Tangent2!.Value.Y,
                              game_mesh.Vertices[i].Tangent2!.Value.Z,
                              game_mesh.Vertices[i].Tangent2!.Value.W);
@@ -254,33 +254,33 @@ namespace ZoneFbx
 
                 if (pos != IntPtr.Zero && norm != IntPtr.Zero)
                 {
-                    Fbx.FbxMesh_SetControlPointAt(mesh, pos, norm, i);
+                    Fbx.Mesh_SetControlPointAt(mesh, pos, norm, i);
                 }
 
                 if (game_mesh.Vertices[i].UV.HasValue)
                 {
-                    var uv1Array = Fbx.FbxGeometryElementUV_GetDirectArray(uvElement1);
-                    Fbx.FbxLayerUV_Add(uv1Array, Fbx.FbxVector2_Create(game_mesh.Vertices[i].UV!.Value.X, game_mesh.Vertices[i].UV!.Value.Y * -1));
-                    var uv2Array = Fbx.FbxGeometryElementUV_GetDirectArray(uvElement2);
-                    Fbx.FbxLayerUV_Add(uv2Array, Fbx.FbxVector2_Create(game_mesh.Vertices[i].UV!.Value.Z, game_mesh.Vertices[i].UV!.Value.W * -1));
+                    var uv1Array = Fbx.GeometryElementUV_GetDirectArray(uvElement1);
+                    Fbx.LayerUV_Add(uv1Array, Fbx.Vector2_Create(game_mesh.Vertices[i].UV!.Value.X, game_mesh.Vertices[i].UV!.Value.Y * -1));
+                    var uv2Array = Fbx.GeometryElementUV_GetDirectArray(uvElement2);
+                    Fbx.LayerUV_Add(uv2Array, Fbx.Vector2_Create(game_mesh.Vertices[i].UV!.Value.Z, game_mesh.Vertices[i].UV!.Value.W * -1));
                 }
 
-                var colorArray = Fbx.FbxGeometryElementVertexColor_GetDirectArray(colorElement);
-                Fbx.FbxLayerColor_Add(colorArray, color);
+                var colorArray = Fbx.GeometryElementVertexColor_GetDirectArray(colorElement);
+                Fbx.LayerColor_Add(colorArray, color);
 
-                var tangent1Array = Fbx.FbxGeometryElementTangent_GetDirectArray(tangentElem1);
-                Fbx.FbxLayerTangent_Add(tangent1Array, tangent1);
-                var tangent2Array = Fbx.FbxGeometryElementTangent_GetDirectArray(tangentElem2);
-                Fbx.FbxLayerTangent_Add(tangent2Array, tangent2);
+                var tangent1Array = Fbx.GeometryElementTangent_GetDirectArray(tangentElem1);
+                Fbx.LayerTangent_Add(tangent1Array, tangent1);
+                var tangent2Array = Fbx.GeometryElementTangent_GetDirectArray(tangentElem2);
+                Fbx.LayerTangent_Add(tangent2Array, tangent2);
             }
 
             for (int i = 0; i < game_mesh.Indices.Length; i+= 3)
             {
-                Fbx.FbxMesh_BeginPolygon(mesh);
-                Fbx.FbxMesh_AddPolygon(mesh, game_mesh.Indices[i]);
-                Fbx.FbxMesh_AddPolygon(mesh, game_mesh.Indices[i+1]);
-                Fbx.FbxMesh_AddPolygon(mesh, game_mesh.Indices[i+2]);
-                Fbx.FbxMesh_EndPolygon(mesh);
+                Fbx.Mesh_BeginPolygon(mesh);
+                Fbx.Mesh_AddPolygon(mesh, game_mesh.Indices[i]);
+                Fbx.Mesh_AddPolygon(mesh, game_mesh.Indices[i+1]);
+                Fbx.Mesh_AddPolygon(mesh, game_mesh.Indices[i+2]);
+                Fbx.Mesh_EndPolygon(mesh);
             }
 
             return mesh;
@@ -305,9 +305,9 @@ namespace ZoneFbx
             }
 
             var materialInfo = flags.disableBaking ? null : get_shader(mat);
-            outsurface = Fbx.FbxSurfacePhong_Create(scene, material_name);
+            outsurface = Fbx.SurfacePhong_Create(scene, material_name);
 
-            Fbx.FbxSurfacePhong_SetFactor(outsurface);
+            Fbx.SurfacePhong_SetFactor(outsurface);
             HashSet<Texture.Usage> alreadySet = new HashSet<Texture.Usage>();
             for (int i = 0; i < mat.Textures.Length; i++)
             {
@@ -340,26 +340,26 @@ namespace ZoneFbx
 
                 string tex_name = Path.GetFileNameWithoutExtension(tex.TexturePath);
 
-                var texture = Fbx.FbxFileTexture_Create(scene, tex_name);
-                Fbx.FbxFileTexture_SetStuff(texture, tex_path);
+                var texture = Fbx.FileTexture_Create(scene, tex_name);
+                Fbx.FileTexture_SetStuff(texture, tex_path);
 
                 switch (tex.TextureUsageSimple)
                 {
                     case Texture.Usage.Diffuse:
-                        Fbx.FbxSurfacePhong_ConnectSrcObject(outsurface, texture, 0);
+                        Fbx.SurfacePhong_ConnectSrcObject(outsurface, texture, 0);
                         if (emissive_path.Length > 0)
                         {
                             string emissive_name = Path.GetFileNameWithoutExtension(tex.TexturePath) + "_e";
-                            var emissive = Fbx.FbxFileTexture_Create(scene, emissive_name);
-                            Fbx.FbxFileTexture_SetStuff(emissive, emissive_path);
-                            Fbx.FbxSurfacePhong_ConnectSrcObject(outsurface, emissive, 3);
+                            var emissive = Fbx.FileTexture_Create(scene, emissive_name);
+                            Fbx.FileTexture_SetStuff(emissive, emissive_path);
+                            Fbx.SurfacePhong_ConnectSrcObject(outsurface, emissive, 3);
                         }
                         break;
                     case Texture.Usage.Specular:
-                        Fbx.FbxSurfacePhong_ConnectSrcObject(outsurface, texture, 1);
+                        Fbx.SurfacePhong_ConnectSrcObject(outsurface, texture, 1);
                         break;
                     case Texture.Usage.Normal:
-                        Fbx.FbxSurfacePhong_ConnectSrcObject(outsurface, texture, 2);
+                        Fbx.SurfacePhong_ConnectSrcObject(outsurface, texture, 2);
                         break;
                 }
             }
@@ -510,17 +510,17 @@ namespace ZoneFbx
 
         private IntPtr init_child_node(LayerCommon.InstanceObject obj)
         {
-            var obj_node = Fbx.FbxNode_Create(scene, obj.Name);
-            Fbx.FbxNode_SetStuff(obj_node, obj.Transform.Translation.X, obj.Transform.Translation.Y, obj.Transform.Translation.Z, 0);
+            var obj_node = Fbx.Node_Create(scene, obj.Name);
+            Fbx.Node_SetStuff(obj_node, obj.Transform.Translation.X, obj.Transform.Translation.Y, obj.Transform.Translation.Z, 0);
             if (obj.AssetType == LayerEntryType.LayLight)
             {
                 // rotate light nodes -90 degrees on the X axis since the light nodes point towards its negative Y axis
-                Fbx.FbxNode_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X) - 90, Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
+                Fbx.Node_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X) - 90, Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
             } else
             {
-                Fbx.FbxNode_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X), Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
+                Fbx.Node_SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X), Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
             }
-            Fbx.FbxNode_SetStuff(obj_node, obj.Transform.Scale.X, obj.Transform.Scale.Y, obj.Transform.Scale.Z, 2);
+            Fbx.Node_SetStuff(obj_node, obj.Transform.Scale.X, obj.Transform.Scale.Y, obj.Transform.Scale.Z, 2);
             return obj_node;
         }
 
@@ -532,7 +532,7 @@ namespace ZoneFbx
                 var layer = layers[i];
                 if (!flags.enableFestivals && layer.FestivalID != 0) continue;
 
-                var layer_node = Fbx.FbxNode_Create(scene, layer.Name);
+                var layer_node = Fbx.Node_Create(scene, layer.Name);
                 var layer_has_child = false;
 
                 for (int j = 0; j < layer.InstanceObjects.Length; j++)
@@ -540,14 +540,14 @@ namespace ZoneFbx
                     var childNode = process_asset(layer.InstanceObjects[j]);
                     if (childNode != IntPtr.Zero)
                     {
-                        Fbx.FbxNode_AddChild(layer_node, childNode);
+                        Fbx.Node_AddChild(layer_node, childNode);
                         layer_has_child = true;
                     }
                 }
 
                 if (layer_has_child)
                 {
-                    Fbx.FbxNode_AddChild(parentNode, layer_node);
+                    Fbx.Node_AddChild(parentNode, layer_node);
                     group_has_child = true;
                 }
             }
@@ -582,11 +582,11 @@ namespace ZoneFbx
                         // this should still create a mesh without a material (?)
                     }
 
-                    var model_node = Fbx.FbxNode_Create(scene, object_path.Substring(object_path.LastIndexOf("/") + 1));
+                    var model_node = Fbx.Node_Create(scene, object_path.Substring(object_path.LastIndexOf("/") + 1));
 
                     if (process_model(model, model_node))
                     {
-                        Fbx.FbxNode_AddChild(obj_node, model_node);
+                        Fbx.Node_AddChild(obj_node, model_node);
                         return obj_node;
                     }
                     break;
@@ -607,20 +607,20 @@ namespace ZoneFbx
                     var lightObj = (LayerCommon.LightInstanceObject)obj.Object;
                     if (lightObj.DiffuseColorHDRI.Intensity == 0.0) return IntPtr.Zero;
 
-                    var light = Fbx.FbxLight_Create(scene, $"light_{obj.InstanceId}");
+                    var light = Fbx.Light_Create(scene, $"light_{obj.InstanceId}");
 
-                    Fbx.FbxLight_SetLightType(light, (int)lightObj.LightType);
-                    Fbx.FbxLight_SetColor(light, lightObj.DiffuseColorHDRI.Red, lightObj.DiffuseColorHDRI.Green, lightObj.DiffuseColorHDRI.Blue);
-                    Fbx.FbxLight_SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity * .1);  // arbitrarily chosen to make it look more natural
-                    Fbx.FbxLight_SetDecay(light, (int)lightObj.Attenuation);
-                    if (lightObj.BGShadowEnabled == 1) Fbx.FbxLight_CastShadows(light);
+                    Fbx.Light_SetLightType(light, (int)lightObj.LightType);
+                    Fbx.Light_SetColor(light, lightObj.DiffuseColorHDRI.Red, lightObj.DiffuseColorHDRI.Green, lightObj.DiffuseColorHDRI.Blue);
+                    Fbx.Light_SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity * .1);  // arbitrarily chosen to make it look more natural
+                    Fbx.Light_SetDecay(light, (int)lightObj.Attenuation);
+                    if (lightObj.BGShadowEnabled == 1) Fbx.Light_CastShadows(light);
                     
                     if (lightObj.LightType == LightType.Spot)
                     {
-                        Fbx.FbxLight_SetAngle(light, lightObj.AttenuationConeCoefficient, lightObj.ConeDegree); 
+                        Fbx.Light_SetAngle(light, lightObj.AttenuationConeCoefficient, lightObj.ConeDegree); 
                     }
 
-                    Fbx.FbxNode_SetNodeAttribute(obj_node, light);
+                    Fbx.Node_SetNodeAttribute(obj_node, light);
                     return obj_node;
                 case LayerEntryType.EventObject:
                     var eventObj = (LayerCommon.EventInstanceObject)obj.Object;
@@ -649,11 +649,11 @@ namespace ZoneFbx
             for (int i = 0; i < sgb.LayerGroups.Length; i++)
             {
                 var layer_group = sgb.LayerGroups[i];
-                var layer_group_node = Fbx.FbxNode_Create(scene, layer_group.Name);
+                var layer_group_node = Fbx.Node_Create(scene, layer_group.Name);
 
                 if (process_layers(layer_group.Layers, layer_group_node))
                 {
-                    Fbx.FbxNode_AddChild(parentNode, layer_group_node);
+                    Fbx.Node_AddChild(parentNode, layer_group_node);
                     has_child = true;
                 }
 
@@ -675,7 +675,7 @@ namespace ZoneFbx
             var planmap = data.GetFile<Lumina.Data.Files.LgbFile>(planmap_path);
 
             if (bg == null) return false;
-            var root_node = Fbx.FbxScene_GetRootNode(scene);
+            var root_node = Fbx.Scene_GetRootNode(scene);
             process_layers(bg.Layers, root_node);
 
             if (planmap != null) process_layers(planmap.Layers, root_node);
@@ -692,23 +692,23 @@ namespace ZoneFbx
 
         private bool save_scene()
         {
-            var exporter = Fbx.FbxExporter_Create(manager, "exporter");
+            var exporter = Fbx.Exporter_Create(manager, "exporter");
             var out_fbx = output_path + zone_code + ".fbx";
 
-            if (!Fbx.FbxExporter_Initialize(exporter, out_fbx, manager))
+            if (!Fbx.Exporter_Initialize(exporter, out_fbx, manager))
             {
                 return false;
             }
-            var result = Fbx.FbxExporter_Export(exporter, scene);
+            var result = Fbx.Exporter_Export(exporter, scene);
 
-            Fbx.FbxExporter_Destroy(exporter);
+            Fbx.Exporter_Destroy(exporter);
             return result;
             
         }
 
         ~ZoneExporter()
         {
-            if (manager != IntPtr.Zero) Fbx.FbxManager_Destroy(manager);
+            if (manager != IntPtr.Zero) Fbx.Manager_Destroy(manager);
         }
     }
 }
