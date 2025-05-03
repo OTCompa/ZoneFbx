@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ZoneFbx.Fbx
 {
-    internal static partial class Node
+    internal partial class Node
     {
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxNode_Create")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
@@ -35,6 +35,6 @@ namespace ZoneFbx.Fbx
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxNode_SetPostTargetRotation")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial void Node_SetPostTargetRotation(IntPtr node);
+        public static partial void SetPostTargetRotation(IntPtr node);
     }
 }
