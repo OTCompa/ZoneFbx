@@ -609,10 +609,29 @@ namespace ZoneFbx
 
                     var light = Fbx.Light_Create(scene, $"light_{obj.InstanceId}");
 
-                    Fbx.Light_SetLightType(light, (int)lightObj.LightType);
+                    switch (lightObj.LightType)
+                    {
+                        case LightType.Directional:
+                            Fbx.Light_SetLightType(light, Fbx.EType.eDirectional); break;
+                        case LightType.Point:
+                            Fbx.Light_SetLightType(light, Fbx.EType.ePoint); break;
+                        case LightType.Spot:
+                            Fbx.Light_SetLightType(light, Fbx.EType.eSpot); break;
+                    }
+
                     Fbx.Light_SetColor(light, lightObj.DiffuseColorHDRI.Red, lightObj.DiffuseColorHDRI.Green, lightObj.DiffuseColorHDRI.Blue);
                     Fbx.Light_SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity * .1);  // arbitrarily chosen to make it look more natural
-                    Fbx.Light_SetDecay(light, (int)lightObj.Attenuation);
+
+                    switch (lightObj.Attenuation)
+                    {
+                        case 1:
+                            Fbx.Light_SetDecay(light, Fbx.EDecayType.eLinear); break;
+                        case 2:
+                            Fbx.Light_SetDecay(light, Fbx.EDecayType.eQuadratic); break;
+                        case 3:
+                            Fbx.Light_SetDecay(light, Fbx.EDecayType.eCubic); break;
+                    }
+
                     if (lightObj.BGShadowEnabled == 1) Fbx.Light_CastShadows(light);
                     
                     if (lightObj.LightType == LightType.Spot)

@@ -4,6 +4,23 @@ namespace ZoneFbx
 {
     internal static partial class Fbx
     {
+        public enum EType
+        {
+            ePoint, 
+            eDirectional, 
+            eSpot,
+            eArea,
+            eVolume
+        };
+
+        public enum EDecayType
+        {
+            eNone,
+            eLinear,
+            eQuadratic,
+            eCubic
+        };
+
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxManager_Create")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial IntPtr Manager_Create();
@@ -157,7 +174,6 @@ namespace ZoneFbx
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial void Exporter_Destroy(IntPtr exporter);
 
-
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxLight_Create")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial IntPtr Light_Create(IntPtr scene, [MarshalAs(UnmanagedType.LPStr)] string name);
@@ -171,10 +187,10 @@ namespace ZoneFbx
         public static partial void Light_SetIntensity(IntPtr light, double intensity);
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxLight_SetLightType")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial void Light_SetLightType(IntPtr light, int type);
+        public static partial void Light_SetLightType(IntPtr light, EType type);
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxLight_SetDecay")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial void Light_SetDecay(IntPtr light, int decay);
+        public static partial void Light_SetDecay(IntPtr light, EDecayType decay);
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxLight_CastShadows")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial void Light_CastShadows(IntPtr light);

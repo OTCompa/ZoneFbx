@@ -14,27 +14,12 @@ extern "C" {
         light->Intensity.Set(intensity);
     }
 
-    __declspec(dllexport) void FbxLight_SetLightType(FbxLight* light, int type) {
-        // based on Lumina.Data.Parsing.Layer.LayerEnums.LightType
-        switch (type) {
-        case 1:
-            light->LightType.Set(FbxLight::eDirectional); break;
-        case 2:
-            light->LightType.Set(FbxLight::ePoint); break;
-        case 3:
-            light->LightType.Set(FbxLight::eSpot); break;
-        }
+    __declspec(dllexport) void FbxLight_SetLightType(FbxLight* light, FbxLight::EType type) {
+        light->LightType.Set(type);
     }
 
-    __declspec(dllexport) void FbxLight_SetDecay(FbxLight* light, int decayType) {
-        switch (decayType) {
-        case 1:
-            light->DecayType.Set(FbxLight::eLinear); break;
-        case 2:
-            light->DecayType.Set(FbxLight::eQuadratic); break;
-        case 3:
-            light->DecayType.Set(FbxLight::eCubic); break;
-        }
+    __declspec(dllexport) void FbxLight_SetDecay(FbxLight* light, FbxLight::EDecayType decayType) {
+        light->DecayType.Set(decayType);
     }
 
     __declspec(dllexport) void FbxLight_CastShadows(FbxLight* light) {
