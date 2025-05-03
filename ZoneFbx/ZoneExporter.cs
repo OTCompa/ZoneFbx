@@ -16,19 +16,19 @@ namespace ZoneFbx
 {
     internal partial class ZoneExporter
     {
-        private string game_path;
-        private string zone_path;
-        private string output_path;
-        private string zone_code;
+        private readonly string game_path;
+        private readonly string zone_path;
+        private readonly string output_path;
+        private readonly string zone_code;
         private readonly Lumina.GameData data;
         private readonly ExcelSheet<EObj> EObjSheet;
-        private Flags flags;
+        private readonly Flags flags;
 
         IntPtr manager = IntPtr.Zero;
         IntPtr scene = IntPtr.Zero;
 
-        Dictionary<ulong, IntPtr> material_cache = new();
-        Dictionary<string, IntPtr> mesh_cache = new();
+        private readonly Dictionary<ulong, IntPtr> material_cache = [];
+        private readonly Dictionary<string, IntPtr> mesh_cache = [];
 
         public ZoneExporter(string game_path, string zone_path, string output_path, Flags flags)
         {
