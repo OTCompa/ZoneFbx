@@ -629,10 +629,13 @@ namespace ZoneFbx
                             Light.SetLightType(light, Light.EType.ePoint); break;
                         case LightType.Spot:
                             Light.SetLightType(light, Light.EType.eSpot); break;
+                        case LightType.Plane:
+                            Light.SetLightType(light, Light.EType.eArea); break;  // areaLightShape defaults to eRectangle
+                        default:
+                            Light.SetLightType(light, Light.EType.ePoint); break;
                     }
 
-                    Light.SetColor(light, lightObj.DiffuseColorHDRI.Red, lightObj.DiffuseColorHDRI.Green, lightObj.DiffuseColorHDRI.Blue);
-                    Light.SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity * .1);  // arbitrarily chosen to make it look more natural
+                    Light.SetColor(light, lightObj.DiffuseColorHDRI.Red / 255f, lightObj.DiffuseColorHDRI.Green / 255f, lightObj.DiffuseColorHDRI.Blue / 255f);
 
                     switch (lightObj.Attenuation)
                     {
@@ -648,7 +651,7 @@ namespace ZoneFbx
                     
                     if (lightObj.LightType == LightType.Spot)
                     {
-                        Light.SetAngle(light, lightObj.AttenuationConeCoefficient, lightObj.ConeDegree); 
+                        Light.SetAngle(light, lightObj.ConeDegree + lightObj.AttenuationConeCoefficient, lightObj.ConeDegree); 
                     }
 
                     Node.SetNodeAttribute(obj_node, light);
