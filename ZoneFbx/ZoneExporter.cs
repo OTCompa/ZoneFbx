@@ -508,20 +508,18 @@ namespace ZoneFbx
             return ret;
         }
 
-        private IntPtr init_child_node(InstanceObject obj)
+        private void init_child_node(InstanceObject obj, IntPtr node)
         {
-            var obj_node = Node.Create(scene, obj.Name);
-            Node.SetStuff(obj_node, obj.Transform.Translation.X, obj.Transform.Translation.Y, obj.Transform.Translation.Z, 0);
+            Node.SetStuff(node, obj.Transform.Translation.X, obj.Transform.Translation.Y, obj.Transform.Translation.Z, 0);
             if (obj.AssetType == LayerEntryType.LayLight)
             {
                 // rotate light nodes -90 degrees on the X axis since the light nodes point towards its negative Y axis
-                Node.SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X) - 90, Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
+                Node.SetStuff(node, Util.degrees(obj.Transform.Rotation.X) - 90, Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
             } else
             {
-                Node.SetStuff(obj_node, Util.degrees(obj.Transform.Rotation.X), Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
+                Node.SetStuff(node, Util.degrees(obj.Transform.Rotation.X), Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
             }
-            Node.SetStuff(obj_node, obj.Transform.Scale.X, obj.Transform.Scale.Y, obj.Transform.Scale.Z, 2);
-            return obj_node;
+            Node.SetStuff(node, obj.Transform.Scale.X, obj.Transform.Scale.Y, obj.Transform.Scale.Z, 2);
         }
 
         private bool process_layers(LayerCommon.Layer[] layers, IntPtr parentNode)
@@ -565,7 +563,6 @@ namespace ZoneFbx
             switch (obj.AssetType)
             {
                 case LayerEntryType.BG:
-                    obj_node = init_child_node(obj);
                     var instance_object = (BGInstanceObject)obj.Object;
                     var object_path = instance_object.AssetPath;
                     var object_file = data.GetFile<MdlFile>(object_path);
@@ -587,17 +584,19 @@ namespace ZoneFbx
                     }
 
                     var model_node = Node.Create(scene, object_path.Substring(object_path.LastIndexOf("/") + 1));
+                    init_child_node(obj, model_node);
 
                     if (process_model(model, model_node))
                     {
-                        Node.AddChild(obj_node, model_node);
-                        return obj_node;
+                        return model_node;
                     }
                     break;
                 case LayerEntryType.SharedGroup:
-                    obj_node = init_child_node(obj);
                     var sharedGroupObj = (SharedGroupInstanceObject)obj.Object;
                     sgb_path = sharedGroupObj.AssetPath;
+
+                    obj_node = Node.Create(scene, sgb_path.Substring(sgb_path.LastIndexOf("/") + 1));
+                    init_child_node(obj, obj_node);
 
                     if (process_sgb(sgb_path, obj_node))
                     {
@@ -607,7 +606,9 @@ namespace ZoneFbx
                 case LayerEntryType.LayLight:
                     if (!flags.enableLighting) return IntPtr.Zero;
 
-                    obj_node = init_child_node(obj);
+                    obj_node = Node.Create(scene, $"light_{obj.InstanceId}");
+                    init_child_node(obj, obj_node);
+
                     var lightObj = (LightInstanceObject)obj.Object;
                     if (lightObj.DiffuseColorHDRI.Intensity == 0.0) return IntPtr.Zero;
 
@@ -653,7 +654,8 @@ namespace ZoneFbx
                     sgb_path = row.SgbPath.Value.SgbPath.ToString();
                     if (!sgb_path.EndsWith("sgb")) return IntPtr.Zero;  // 1 more sanity check
 
-                    obj_node = init_child_node(obj);
+                    obj_node = Node.Create(scene, sgb_path.Substring(sgb_path.LastIndexOf("/") + 1));
+                    init_child_node(obj, obj_node);
                     if (process_sgb(sgb_path, obj_node))
                     {
                         return obj_node;
@@ -672,7 +674,7 @@ namespace ZoneFbx
             for (int i = 0; i < sgb.LayerGroups.Length; i++)
             {
                 var layer_group = sgb.LayerGroups[i];
-                var layer_group_node = Node.Create(scene, layer_group.Name);
+                var layer_group_node = Node.Create(scene, $"LayerGroup{i}");  // this is probably redundant, i've only seen sgbs with 1 layer group
 
                 if (process_layers(layer_group.Layers, layer_group_node))
                 {
