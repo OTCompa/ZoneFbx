@@ -18,7 +18,6 @@ namespace ZoneFbx
 {
     internal partial class ZoneExporter
     {
-        private readonly string game_path;
         private readonly string zone_path;
         private readonly string output_path;
         private readonly string zone_code;
@@ -34,7 +33,6 @@ namespace ZoneFbx
 
         public ZoneExporter(string game_path, string zone_path, string output_path, Flags flags)
         {
-            this.game_path = game_path;
             this.zone_path = zone_path;
 
             zone_code = zone_path.Substring(zone_path.LastIndexOf("/level") - 4, 4);
@@ -175,8 +173,7 @@ namespace ZoneFbx
                 } else
                 {
                     mesh = create_mesh(model.Meshes[i], mesh_name);
-                    IntPtr material;
-                    material = create_material(model.Meshes[i].Material);
+                    IntPtr material = create_material(model.Meshes[i].Material);
                     if (material == IntPtr.Zero) continue;
 
                     Node.AddMaterial(mesh_node, material);
