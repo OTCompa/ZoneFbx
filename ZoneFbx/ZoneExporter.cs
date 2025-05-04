@@ -12,6 +12,7 @@ using System;
 using Lumina.Excel.Sheets;
 using Lumina.Excel;
 using ZoneFbx.Fbx;
+using System.Drawing.Text;
 
 namespace ZoneFbx
 {
@@ -77,10 +78,10 @@ namespace ZoneFbx
                 return;
             }
 
-            Console.WriteLine("Processing bg.lgb...");
-            if (!process_bg())
+            Console.WriteLine("Processing lgb files...");
+            if (!process_lgbs())
             {
-                Console.WriteLine("Failed to process zone bg.");
+                Console.WriteLine("Failed to process bg.lgb.");
                 return;
             }
 
@@ -687,26 +688,26 @@ namespace ZoneFbx
             return has_child;
         }
 
-        private bool process_bg()
+        private bool process_lgbs()
         {
-            string bg_path = "bg/" + zone_path.Substring(0, zone_path.Length - 5) + "/bg.lgb";
-            var bg = data.GetFile<LgbFile>(bg_path);
+            string[] lgbs = {"bg", "planevent", "planlive", "planmap", "planner"};
 
-            string planmap_path = "bg/" + zone_path.Substring(0, zone_path.Length - 5) + "/planmap.lgb";
-            var planmap = data.GetFile<LgbFile>(planmap_path);
-
-            if (bg == null) return false;
             var root_node = Scene.GetRootNode(scene);
-            process_layers(bg.Layers, root_node);
-
-            if (planmap != null) process_layers(planmap.Layers, root_node);
-
-            if (flags.enableJsonExport)
+            foreach (var lgb_name in lgbs)
             {
-                Util.save_json(Path.GetFileNameWithoutExtension(bg_path), bg.Layers, output_path);
-                if (planmap != null) Util.save_json(Path.GetFileNameWithoutExtension(planmap_path), planmap.Layers, output_path);
-            }
+                var path = $"bg/{zone_path.Substring(0, zone_path.Length - 5)}/{lgb_name}.lgb";
+                var file = data.GetFile<LgbFile>(path);
 
+                // skip if lgb doesn't exist (or fail if bg.lgb doesn't exist)
+                if (file == null)
+                {
+                    if (lgb_name == "bg") return false;
+                    continue;
+                }
+
+                process_layers(file.Layers, root_node);
+                if (flags.enableJsonExport) Util.save_json(Path.GetFileNameWithoutExtension(path), file.Layers, output_path);
+            }
 
             return true;
         }
