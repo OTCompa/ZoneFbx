@@ -533,7 +533,11 @@ namespace ZoneFbx
             for (int i = 0; i < layers.Length; i++)
             {
                 var layer = layers[i];
-                if (!flags.enableFestivals && layer.FestivalID != 0) continue;
+                if (!flags.enableFestivals && layer.FestivalID != 0)
+                {
+                    Console.WriteLine($"Skipping festival {layer.FestivalID}");
+                    continue;
+                }
 
                 var layer_node = Node.Create(scene, layer.Name);
                 var layer_has_child = false;
