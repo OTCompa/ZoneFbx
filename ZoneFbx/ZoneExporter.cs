@@ -486,7 +486,14 @@ namespace ZoneFbx
             {
                 br.Seek(cursor + diffuseOffset.Value);
                 var v = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
-                if (v != Vector3.One)
+                
+                // Throwing away diffuseColor == Vector3.Zero might not be the correct solution
+                // Keeping it means that some textures that aren't supposed to be black are black (FRU P5 arena memories)
+                // In M7S's P3 arena, I think that keeping it is probably the correct case where the texture 
+                // becomes darker as you go out to the edge (it's just black since it's not possible/out of
+                // my abilities to implement this in FBX. 
+                // in any case, since it causes more problems than it solves, i'm just throwing it away.
+                if (v != Vector3.One && v != Vector3.Zero)
                     ret.DiffuseColor = v;
             }
             if (specularOffset >= -1)
