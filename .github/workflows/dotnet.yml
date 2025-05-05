@@ -13,6 +13,8 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
+      with: 
+        submodules: 'recursive'
     # Avoid building FBXCSharp in the workflow
     # I do this because I don't want to/I don't know how to include the FBX SDK in Github Actions
     # If anyone knows how to include it painlessly, please let me know
