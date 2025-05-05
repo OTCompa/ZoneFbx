@@ -106,6 +106,7 @@ namespace ZoneFbx
             }
             Manager.Initialize(manager);
             scene = Scene.Create(manager, name);
+            Scene.SetSystemUnit(scene);  // set units to meters
             return true;
         }
 
@@ -620,6 +621,7 @@ namespace ZoneFbx
                     if (lightObj.DiffuseColorHDRI.Intensity == 0.0) return IntPtr.Zero;
 
                     var light = Light.Create(scene, $"light_{obj.InstanceId}");
+                    Light.SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity * 10000);  // arbitrary value constant, just what makes lighting look correct
 
                     switch (lightObj.LightType)
                     {

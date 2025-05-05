@@ -16,5 +16,9 @@ namespace ZoneFbx.Fbx
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxScene_GetRootNode")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial IntPtr GetRootNode(IntPtr scene);
+
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxScene_SetSystemUnit")]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        public static partial void SetSystemUnit(IntPtr scene);
     }
 }

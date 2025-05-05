@@ -9,4 +9,8 @@ extern "C" {
     __declspec(dllexport) FbxNode* FbxScene_GetRootNode(FbxScene* scene) {
         return scene->GetRootNode();
     }
+
+    __declspec(dllexport) void FbxScene_SetSystemUnit(FbxScene* scene) {
+        scene->GetGlobalSettings().SetSystemUnit(FbxSystemUnit::m);
+    }
 }
