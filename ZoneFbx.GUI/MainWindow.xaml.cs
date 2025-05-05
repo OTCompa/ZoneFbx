@@ -281,10 +281,18 @@ namespace ZoneFbx.GUI
 
             ConsoleString = "";
             ConsoleString += $"ZoneFbx \"{GamePath}\" {argLevel} \"{argOutput}\\\" {argFlags}\n";
-            var result = await CliWrap.Cli.Wrap("ZoneFbx")
-                .WithArguments([GamePath, argLevel, argOutput, argFlags])
-                .WithStandardOutputPipe(PipeTarget.ToDelegate(AppendConsole))
-                .ExecuteAsync();
+            try
+            {
+                var result = await CliWrap.Cli.Wrap("ZoneFbx")
+                    .WithArguments([GamePath, argLevel, argOutput, argFlags])
+                    .WithStandardOutputPipe(PipeTarget.ToDelegate(AppendConsole))
+                    .ExecuteAsync();
+                ConsoleString += $"ZoneFbx was {(!result.IsSuccess ? "un" : "")}able to successfully exit.";
+            } catch (Exception ex)
+            {
+                ConsoleString += $"ZoneFbx failed to extract {Level} with the error {ex.Message}\n";
+                ConsoleString += $"Trace:\n{ex.StackTrace}\n";
+            }
             ExecInProgress = false;
         }
     }
