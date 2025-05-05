@@ -12,11 +12,11 @@
 
   <ItemGroup>
     <PackageReference Include="CliWrap" Version="3.8.2" />
-    <PackageReference Include="Lumina" Version="5.7.0" />
     <PackageReference Include="Lumina.Excel" Version="7.2.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Lumina\src\Lumina\Lumina.csproj" />
     <ProjectReference Include="..\ZoneFbx\ZoneFbx.csproj" />
   </ItemGroup>
 
