@@ -4,7 +4,7 @@ ZoneFbx, based on its namesake from a now deleted [repository](https://github.co
 is a program that exports FFXIV zones to FBX format, complete with textures
 and proper hierarchy/object grouping.
 
-This fork of ZoneFbx is a rewrite of the original in C# with some mappings to C++ code to utilize the FBX SDK.
+This version of ZoneFbx is a rewrite of the original in C# with some mappings to C++ code to utilize the FBX SDK.
 A large amount of the logic is kept 1:1 with the original. In other words, I have 0 idea what I'm doing.
 
 # Issues
@@ -35,7 +35,7 @@ For all meshes:
 - Normal factor = 0.2
 
 For all lighting:
-- Intensity factor = 0.1
+- Intensity factor = 1000
 
 # Usage
 ## GUI
@@ -54,6 +54,8 @@ From top to bottom:
 - `-l`    Allows lightshafts to be included in the final export
 - `-f`    Allows festival models to be included in the final export
 - `-b`    Disables texture baking
+- `-j`    Exports all relevant LGB/SGB files as JSON for debugging purposes
+- `-i`    Allows light sources to be included in the final export
 
 https://streamable.com/tjg45n
 
@@ -73,3 +75,12 @@ installed. This project specifically uses `FBX SDK 2020.3.7 VS2022` at the time 
 There shouldn't be any issue with changing to a different version if needed, just make sure to update
 the paths in the properties.  
 Building this project is only tested with Visual Studio Community 2022.
+
+# Credits
+In the process of writing this code, I heavily referenced other people's code for research. 
+I'd like to thank the people behind these projects for the amount of information that I've learned from them.
+- [Imcintyre for the original ZoneFbx](https://github.com/lmcintyre/ZoneFbx) (Deleted repository)
+- [Lumina](https://github.com/NotAdam/Lumina)
+- [TexTools](https://github.com/TexTools)
+- [Takhlaq](https://github.com/takhlaq/ZoneFbx)
+- [AzureRain1](https://github.com/AzureRain1/ZoneFbx)
