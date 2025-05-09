@@ -385,7 +385,9 @@ namespace ZoneFbx
 
             try
             {
-                Util.SaveAsBitmap(tex_path, texfile.ImageData, texfile.Header.Width, texfile.Header.Height, v);
+                byte[] imageDataCopy = new byte[texfile.ImageData.Length];
+                texfile.ImageData.CopyTo(imageDataCopy, 0);
+                Util.SaveAsBitmap(tex_path, imageDataCopy, texfile.Header.Width, texfile.Header.Height, v);
             } catch (NotSupportedException)
             {
                 var decoded = new byte[texfile.Header.Width * texfile.Header.Height * 4];
