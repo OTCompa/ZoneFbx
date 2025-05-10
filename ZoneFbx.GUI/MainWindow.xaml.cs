@@ -286,6 +286,7 @@ namespace ZoneFbx.GUI
                 var result = await CliWrap.Cli.Wrap("ZoneFbx")
                     .WithArguments([GamePath, argLevel, argOutput, argFlags])
                     .WithStandardOutputPipe(PipeTarget.ToDelegate(AppendConsole))
+                    .WithStandardErrorPipe(PipeTarget.ToDelegate(AppendConsole))
                     .ExecuteAsync();
                 ConsoleString += $"ZoneFbx was {(!result.IsSuccess ? "un" : "")}able to successfully exit.";
             } catch (Exception ex)
