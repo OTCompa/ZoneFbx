@@ -13,6 +13,7 @@ using Lumina.Excel.Sheets;
 using Lumina.Excel;
 using ZoneFbx.Fbx;
 using System.Drawing.Text;
+using ZoneFbx.Processor;
 
 namespace ZoneFbx
 {
@@ -24,9 +25,11 @@ namespace ZoneFbx
         private readonly Lumina.GameData data;
         private readonly ExcelSheet<EObj> EObjSheet;
         private readonly Flags flags;
-
-        IntPtr manager = IntPtr.Zero;
-        IntPtr scene = IntPtr.Zero;
+        private readonly TextureProcessor textureProcessor;
+        private readonly MaterialProcessor materialProcessor;
+        private readonly FbxExporter fbxExporter;
+        IntPtr manager;
+        IntPtr scene;
 
         private readonly Dictionary<ulong, IntPtr> material_cache = [];
         private readonly Dictionary<string, IntPtr> mesh_cache = [];
@@ -43,7 +46,9 @@ namespace ZoneFbx
             this.flags = flags;
 
             Console.WriteLine("Initializing...");
-
+            this.fbxExporter = new(zone_code);
+            manager = fbxExporter.GetManager();
+            scene = fbxExporter.GetScene();
             try
             {
                 data = new Lumina.GameData(game_path);
@@ -62,11 +67,8 @@ namespace ZoneFbx
                 throw new Exception("unable to get EObj sheet");
             }
 
-            if (!init())
-            {
-                Console.WriteLine("Error occurred during ZoneExporter initialization.");
-                return;
-            }
+            this.textureProcessor = new(data, this.output_path, zone_code, fbxExporter.GetScene());
+            this.materialProcessor = new(data, textureProcessor, fbxExporter.GetScene(), flags);
 
             Console.WriteLine("Processing models and textures...");
             Console.WriteLine("Processing zone terrain");
@@ -84,7 +86,7 @@ namespace ZoneFbx
             }
 
             Console.WriteLine("Saving scene...");
-            if (!save_scene())
+            if (!fbxExporter.Export($"{this.output_path}{zone_code}.fbx"))
             {
                 Console.WriteLine("Failed to save scene.");
                 return;
@@ -92,22 +94,6 @@ namespace ZoneFbx
 
             Console.WriteLine($"Done! Map exported to {Path.Combine(output_path, zone_code, $"{Path.GetFileName(zone_code)}.fbx")}");
 
-        }
-
-        private bool init()
-        {
-            string name = zone_path.Substring(zone_path.LastIndexOf("/level") - 4, 4);
-
-            manager = Manager.Create();
-            if (manager == IntPtr.Zero)
-            {
-                Console.WriteLine("Failed to create FbxManager");
-                return false;
-            }
-            Manager.Initialize(manager);
-            scene = Scene.Create(manager, name);
-            Scene.SetSystemUnit(scene);  // set units to meters
-            return true;
         }
 
         private bool process_terrain()
@@ -174,7 +160,7 @@ namespace ZoneFbx
                 } else
                 {
                     mesh = create_mesh(model.Meshes[i], mesh_name);
-                    IntPtr material = create_material(model.Meshes[i].Material);
+                    IntPtr material = materialProcessor.CreateMaterial(model.Meshes[i].Material);
                     if (material == IntPtr.Zero) continue;
 
                     Node.AddMaterial(mesh_node, material);
@@ -284,238 +270,6 @@ namespace ZoneFbx
             }
 
             return mesh;
-        }
-
-        private IntPtr create_material(Material mat)
-        {
-            if (!flags.enableLightshaftModels && mat.ShaderPack == "lightshaft.shpk") return IntPtr.Zero;
-
-            IntPtr outsurface;
-            var mat_path = mat.MaterialPath;
-            var material_name = mat_path.Substring(mat_path.LastIndexOf('/') + 1);
-
-            var hash_file = mat.File;
-            if (hash_file == null) return IntPtr.Zero;
-            var hash = hash_file.FilePath.IndexHash;
-            var result = material_cache.TryGetValue(hash, out var res);
-
-            if (result)
-            {
-                return res;
-            }
-
-            var materialInfo = flags.disableBaking ? null : get_shader(mat);
-            outsurface = SurfacePhong.Create(scene, material_name);
-
-            SurfacePhong.SetFactor(outsurface);
-            HashSet<Texture.Usage> alreadySet = new HashSet<Texture.Usage>();
-            for (int i = 0; i < mat.Textures.Length; i++)
-            {
-                var tex = mat.Textures[i];
-                if (tex == null) continue;
-                if (tex.TexturePath.Contains("dummy")) continue;
-
-                if (alreadySet.Contains(tex.TextureUsageSimple)) continue;
-                alreadySet.Add(tex.TextureUsageSimple);
-
-                Vector3? v = null;
-
-                switch (tex.TextureUsageSimple)
-                {
-                    case Texture.Usage.Diffuse:
-                        v = materialInfo?.DiffuseColor ?? v; break;
-                    case Texture.Usage.Specular:
-                        v = materialInfo?.SpecularColor ?? v; break;
-                }
-
-                var tex_path = Util.get_texture_path(output_path, zone_code, tex.TexturePath, mat.MaterialPath, v);
-                var emissive_path = "";
-                extract_texture(tex, v, tex_path);
-                
-                if (tex.TextureUsageSimple == Texture.Usage.Diffuse && materialInfo != null && materialInfo.EmissiveColor.HasValue)
-                {
-                    emissive_path = Util.get_texture_path(output_path, zone_code, tex.TexturePath, mat.MaterialPath, materialInfo.EmissiveColor, type: "_e");
-                    extract_texture(tex, materialInfo.EmissiveColor, emissive_path);
-                }
-
-                string tex_name = Path.GetFileNameWithoutExtension(tex.TexturePath);
-
-                var texture = FileTexture.Create(scene, tex_name);
-                FileTexture.SetStuff(texture, tex_path);
-
-                switch (tex.TextureUsageSimple)
-                {
-                    case Texture.Usage.Diffuse:
-                        SurfacePhong.ConnectSrcObject(outsurface, texture, 0);
-                        if (emissive_path.Length > 0)
-                        {
-                            string emissive_name = Path.GetFileNameWithoutExtension(tex.TexturePath) + "_e";
-                            var emissive = FileTexture.Create(scene, emissive_name);
-                            FileTexture.SetStuff(emissive, emissive_path);
-                            SurfacePhong.ConnectSrcObject(outsurface, emissive, 3);
-                        }
-                        break;
-                    case Texture.Usage.Specular:
-                        SurfacePhong.ConnectSrcObject(outsurface, texture, 1);
-                        break;
-                    case Texture.Usage.Normal:
-                        SurfacePhong.ConnectSrcObject(outsurface, texture, 2);
-                        break;
-                }
-            }
-
-            material_cache[hash] = outsurface;
-
-            return outsurface;
-        }
-
-        private void extract_texture(Texture tex, Vector3? v, string tex_path)
-        {
-            if (File.Exists(tex_path)) return;
-            TexFile? texfile;
-            try
-            {
-                texfile = tex.GetTextureNc(data);
-                if (texfile == null) throw new Exception();
-            } catch (Exception)
-            {
-                Console.WriteLine("Failed to get texture: " + tex.TexturePath);
-                return;
-            }
-
-            try
-            {
-                byte[] imageDataCopy = new byte[texfile.ImageData.Length];
-                texfile.ImageData.CopyTo(imageDataCopy, 0);
-                Util.SaveAsBitmap(tex_path, imageDataCopy, texfile.Header.Width, texfile.Header.Height, v);
-            } catch (NotSupportedException)
-            {
-                var decoded = new byte[texfile.Header.Width * texfile.Header.Height * 4];
-                if (texfile.Header.Format == TexFile.TextureFormat.BC7)
-                {
-                    Console.WriteLine("Processing BC7 texture: " + tex_path);
-                    Bc7Sharp.Decode(texfile.Data, decoded, texfile.Header.Width, texfile.Header.Height);
-
-                    Util.SaveAsBitmap(tex_path, decoded, texfile.Header.Width, texfile.Header.Height, v);
-                } else if (texfile.Header.Format == TexFile.TextureFormat.BC5)
-                {
-                    Console.WriteLine("Processing BC5 texture: " + tex_path);
-                    Bc5Sharp.Decode(texfile.Data, decoded, texfile.Header.Width, texfile.Header.Height);
-
-                    Util.SaveAsBitmap(tex_path, decoded, texfile.Header.Width, texfile.Header.Height, v);
-                } else
-                {
-                    Console.WriteLine("Not supported: " + tex_path);
-                    return;
-                }
-            }
-        }
-
-        private MaterialInfo? get_shader(Material mat)
-        {
-            long? diffuseOffset = null;
-            long? specularOffset = null;
-            long? emissiveOffset = null;
-
-            if (mat.File == null) { return null; }
-
-            for (int i = 0; i < mat.File.Constants.Length; i++)
-            {
-                var constant = mat.File.Constants[i];
-                switch(constant.ConstantId)
-                {
-                    case 0x2C2A34DD:
-                        if (constant.ValueSize != 12)
-                        {
-                            Console.WriteLine("Unexpected size for diffuse color. May cause unexpected results.");
-                        }
-                        diffuseOffset = constant.ValueOffset;
-                        break;
-                    case 0x141722D5:
-                        if (constant.ValueSize != 12)
-                        {
-                            Console.WriteLine("Unexpected size for specular color. May cause unexpected results.");
-                        }
-                        specularOffset = constant.ValueOffset;
-                        break;
-                    case 0x38A64362:
-                        if (constant.ValueSize != 12)
-                        {
-                            Console.WriteLine("Unexpected size for emmisive color. May cause unexpected results.");
-                        }
-                        emissiveOffset = constant.ValueOffset;
-                        break;
-                }
-            }
-
-            if (diffuseOffset == -1 && specularOffset == -1) return null;
-
-            long cursor = 16; // mtrl header size
-            var br = mat.File.Reader;
-
-            int colorsetBlockSize;
-            int stringBlockSize;
-            int additionalDataSize;
-
-            // get string block size
-            br.Seek(6);
-            colorsetBlockSize = br.ReadUInt16();
-            stringBlockSize = br.ReadUInt16();
-
-            // get tex/map/colorset numbers to figure out where string block is
-            br.Seek(12);
-            var numStrings = 0;
-
-            for (int i = 0; i < 3; i++)
-            {
-                numStrings += br.ReadByte();
-            }
-
-            additionalDataSize = br.ReadByte();
-
-            // put cursor at beginning of shader area
-            cursor += numStrings * 4 + additionalDataSize + stringBlockSize + colorsetBlockSize + 2;  // skip shader constants data size
-            br.Seek(cursor);
-
-            var numShaderKeys = br.ReadUInt16();
-            var numShaderConstants = br.ReadUInt16();
-            var numTextureSampler = br.ReadUInt16();
-            br.Seek(br.Position + 4 + numShaderKeys * 8);  // position at the start of shader constants ids/offsets/sizes
-            cursor = br.Position + numShaderConstants * 8 + numTextureSampler * 12;
-
-            // get all the relevant information
-            var ret = new MaterialInfo();
-            if (diffuseOffset.HasValue)
-            {
-                br.Seek(cursor + diffuseOffset.Value);
-                var v = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
-                
-                // Throwing away diffuseColor == Vector3.Zero might not be the correct solution
-                // Keeping it means that some textures that aren't supposed to be black are black (FRU P5 arena memories)
-                // In M7S's P3 arena, I think that keeping it is probably the correct case where the texture 
-                // becomes darker as you go out to the edge (it's just black since it's not possible/out of
-                // my abilities to implement this in FBX. 
-                // in any case, since it causes more problems than it solves, i'm just throwing it away.
-                if (v != Vector3.One && v != Vector3.Zero)
-                    ret.DiffuseColor = v;
-            }
-            if (specularOffset >= -1)
-            {
-                br.Seek(cursor + specularOffset.Value);
-                var v = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
-                if (v != Vector3.One)
-                    ret.SpecularColor = v;
-            }
-            if (emissiveOffset >= -1)
-            {
-                br.Seek(cursor + emissiveOffset.Value);
-                // multiply by 0.2 to simulate emissiveFactor = 0.2
-                var v = new Vector3(br.ReadSingle() * .2f, br.ReadSingle() * .2f, br.ReadSingle() * .2f);
-                if (v != Vector3.Zero)
-                    ret.EmissiveColor = v;
-            }
-
-            return ret;
         }
 
         private void init_child_node(InstanceObject obj, IntPtr node)
@@ -727,22 +481,6 @@ namespace ZoneFbx
             }
 
             return true;
-        }
-
-        private bool save_scene()
-        {
-            var exporter = Exporter.Create(manager, "exporter");
-            var out_fbx = output_path + zone_code + ".fbx";
-
-            if (!Exporter.Initialize(exporter, out_fbx, manager))
-            {
-                return false;
-            }
-            var result = Exporter.Export(exporter, scene);
-
-            Exporter.Destroy(exporter);
-            return result;
-            
         }
 
         ~ZoneExporter()
