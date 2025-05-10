@@ -707,7 +707,7 @@ namespace ZoneFbx
 
         private bool process_lgbs()
         {
-            string[] lgbs = {"bg", "planevent", "planlive", "planmap", "planner"};
+            string[] lgbs = { "bg", "planevent", "planlive", "planmap" }; //, "planner"};
 
             var root_node = Scene.GetRootNode(scene);
             foreach (var lgb_name in lgbs)
