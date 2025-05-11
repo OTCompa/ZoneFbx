@@ -20,8 +20,9 @@ namespace ZoneFbx.Processor
             this.scene = scene;
         }
 
-        public IntPtr PrepareTexture(Material material, Texture tex, MaterialInfo? materialInfo, string suffix = "")
+        public IntPtr PrepareTexture(Material material, Texture tex, MaterialInfo? materialInfo, out string filename, string suffix = "")
         {
+            filename = "";
             Vector3? color = null;
             switch (tex.TextureUsageSimple)
             {
@@ -34,8 +35,11 @@ namespace ZoneFbx.Processor
                     }
 
                     // if processing emissives instead
-                    color = materialInfo?.EmissiveColor;
-                    if (color == null) return IntPtr.Zero;
+                    if (suffix.Equals("_e"))
+                    {
+                        color = materialInfo?.EmissiveColor;
+                        if (color == null) return IntPtr.Zero;
+                    }
                     break;
                 case Texture.Usage.Specular:
                     color = materialInfo?.SpecularColor; break;
@@ -43,6 +47,9 @@ namespace ZoneFbx.Processor
 
             var textureOutputPath = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, color, type: suffix);
             extractTexture(tex, color, textureOutputPath);
+            filename = textureOutputPath;
+
+            if (!string.IsNullOrEmpty(suffix) && !suffix.Equals("_e")) return IntPtr.Zero;
             return initializeFileTexture(tex.TexturePath, textureOutputPath, suffix);
         }
 

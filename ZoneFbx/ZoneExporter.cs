@@ -64,7 +64,7 @@ namespace ZoneFbx
             }
 
             textureProcessor = new(data, this.outputPath, zoneCode, scene);
-            materialProcessor = new(data, textureProcessor, scene, flags);
+            materialProcessor = new(data, textureProcessor, scene, flags, outputPath);
             modelProcessor = new(data, materialProcessor, manager, scene);
             instanceObjectProcessor = new(data, modelProcessor, scene, flags);
             layerProcessor = new(data, instanceObjectProcessor, scene, zonePath, this.outputPath, flags);
@@ -91,6 +91,8 @@ namespace ZoneFbx
                 Console.WriteLine("Failed to save scene.");
                 return;
             }
+
+            materialProcessor.ExportTextureJson();
 
             Console.WriteLine($"Done! Map exported to {Path.Combine(this.outputPath, $"{Path.GetFileName(zoneCode)}.fbx")}");
 

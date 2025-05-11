@@ -11,7 +11,10 @@ namespace ZoneFbx.Processor
         private readonly IntPtr scene;
         private readonly ZoneExporter.Flags flags;
 
+        private Dictionary<int, IntPtr> lightCache = new();
+
         private const float LightIntensityFactor = 10000;
+
 
         private Dictionary<LightType, Light.EType> lightTypeDict = new()
         {
@@ -53,17 +56,65 @@ namespace ZoneFbx.Processor
             }
         }
 
+        private class FbxLightObject
+        {
+            internal class DiffuseColorHDRI
+            {
+                public double Red;
+                public double Green;
+                public double Blue;
+                public DiffuseColorHDRI(double red, double green, double blue)
+                {
+                    Red = red;
+                    Green = green;
+                    Blue = blue;
+                }
+
+                public override int GetHashCode()
+                {
+                    return HashCode.Combine(Red, Green, Blue);
+                }
+            }
+            public float Intensity;
+            public DiffuseColorHDRI DiffuseColor;
+            public Light.EType LightType;
+            public Light.EDecayType DecayType;
+
+            public FbxLightObject(float intensity, DiffuseColorHDRI diffuseColor, Light.EType lightType, Light.EDecayType decayType)
+            {
+                Intensity = intensity;
+                DiffuseColor = diffuseColor;
+                LightType = lightType;
+                DecayType = decayType;
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Intensity, DiffuseColor, LightType, DecayType);
+            }
+        }
+
         public IntPtr ProcessInstanceObjectLayLight(LayerCommon.InstanceObject obj)
         {
             if (!flags.enableLighting) return IntPtr.Zero;
 
-            var lightNode = Node.Create(scene, $"light_{obj.InstanceId}");
-            Util.InitChildNode(obj, lightNode);
 
             var lightObj = (LightInstanceObject)obj.Object;
             if (lightObj.DiffuseColorHDRI.Intensity == 0.0) return IntPtr.Zero;
 
-            var light = Light.Create(scene, $"light_{obj.InstanceId}");
+            FbxLightObject.DiffuseColorHDRI diffuseColor = new(lightObj.DiffuseColorHDRI.Red, lightObj.DiffuseColorHDRI.Green, lightObj.DiffuseColorHDRI.Blue);
+            FbxLightObject toCache = new(lightObj.DiffuseColorHDRI.Intensity, diffuseColor, lightTypeDict.GetValueOrDefault(lightObj.LightType, Light.EType.ePoint), lightDecayTypeDict.GetValueOrDefault(lightObj.Attenuation, Light.EDecayType.eNone));
+
+            var lightNode = Node.Create(scene, $"light_{obj.InstanceId}");
+            Util.InitChildNode(obj, lightNode);
+            if (lightCache.TryGetValue(toCache.GetHashCode(), out var light))
+            {
+                Node.SetNodeAttribute(lightNode, light);
+                return lightNode;
+            }
+
+            light = Light.Create(scene, $"light_{obj.InstanceId}");
+
 
             Light.SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity * LightIntensityFactor);
             Light.SetColor(light, lightObj.DiffuseColorHDRI.Red / 255f, lightObj.DiffuseColorHDRI.Green / 255f, lightObj.DiffuseColorHDRI.Blue / 255f);
@@ -78,6 +129,7 @@ namespace ZoneFbx.Processor
             }
 
             Node.SetNodeAttribute(lightNode, light);
+            lightCache.Add(toCache.GetHashCode(), light);
             return lightNode;
         }
     }
