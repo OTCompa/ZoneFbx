@@ -1,33 +1,48 @@
-﻿using Lumina.Models.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Lumina.Data.Files;
+using Lumina.Models.Models;
 using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
     internal class ModelProcessor
     {
+        private readonly Lumina.GameData data;
         private readonly MaterialProcessor materialProcessor;
         private readonly Dictionary<string, IntPtr> mesh_cache = [];
         private readonly IntPtr manager;
         private readonly IntPtr scene;
 
-        public ModelProcessor(MaterialProcessor materialProcessor, IntPtr manager, IntPtr scene)
+        public ModelProcessor(Lumina.GameData data, MaterialProcessor materialProcessor, IntPtr manager, IntPtr scene)
         {
+            this.data = data;
             this.materialProcessor = materialProcessor;
             this.manager = manager;
             this.scene = scene;
+        }
+
+        public Model? LoadModel(string modelPath)
+        {
+            var modelFile = data.GetFile<MdlFile>(modelPath);
+            if (modelFile == null) return null;
+
+            var model = new Model(modelFile);
+            try
+            {
+                model.Update(data);
+            } catch (ArgumentOutOfRangeException e)
+            {
+                Console.WriteLine("Object " + modelPath + " could not be resolved from game data.");
+                Console.WriteLine(e.Message);
+                model = new Model(modelFile);
+            }
+            return model;
         }
 
         public bool ProcessModel(Model model, IntPtr node)
         {
             if (model.File == null) return false;
 
-            var path = model.File.FilePath.Path;
-            path = Path.GetFileName(path);
+            var path = Path.GetFileName(model.File.FilePath.Path);
 
             var hasChildren = false;
             for (int i = 0; i < model.Meshes.Length; i++)

@@ -1,14 +1,5 @@
-﻿using Lumina.Excel.Sheets;
-using Lumina.Models.Materials;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Lumina.Models.Materials;
 using ZoneFbx.Fbx;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ZoneFbx.Processor
 {

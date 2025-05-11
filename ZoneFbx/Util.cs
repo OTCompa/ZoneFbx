@@ -1,16 +1,8 @@
-﻿using Lumina.Data.Files;
-using Lumina.Data.Parsing.Layer;
-using Lumina.Models.Materials;
+﻿using Lumina.Data.Parsing.Layer;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Linq;
 using System.Numerics;
-using System.Runtime.ConstrainedExecution;
-using System.Text;
-using System.Threading.Tasks;
 using ZoneFbx.Fbx;
 using static Lumina.Data.Parsing.Layer.LayerCommon;
 

@@ -1,15 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Lumina.Data.Files;
+﻿using Lumina.Data.Files;
 using Lumina.Data.Parsing.Layer;
 using static Lumina.Data.Parsing.Layer.LayerCommon;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using ZoneFbx.Fbx;
-using Lumina.Excel;
-using Lumina.Excel.Sheets;
 namespace ZoneFbx.Processor
 {
     internal class InstanceObjectProcessor
@@ -46,23 +38,8 @@ namespace ZoneFbx.Processor
         public IntPtr ProcessInstanceObjectBG(LayerCommon.InstanceObject obj)
         {
             var objectFilePath = ((BGInstanceObject)obj.Object).AssetPath;
-            var objectFile = data.GetFile<MdlFile>(objectFilePath);
-            if (objectFile == null)
-            {
-                Console.WriteLine($"Unable to get {objectFilePath} from game data.");
-                return IntPtr.Zero;
-            }
-            var model = new Lumina.Models.Models.Model(objectFile);
-            try
-            {
-                model.Update(data);
-            } catch (ArgumentOutOfRangeException e)
-            {
-                Console.WriteLine("Object " + objectFilePath + " could not be resolved from game data.");
-                Console.WriteLine(e.Message);
-                model = new Lumina.Models.Models.Model(objectFile);
-                // this should still create a mesh without a material (?)
-            }
+            var model = modelProcessor.LoadModel(objectFilePath);
+            if (model == null) return IntPtr.Zero;
 
             var modelNode = Node.Create(scene, objectFilePath.Substring(objectFilePath.LastIndexOf("/") + 1));
             Util.InitChildNode(obj, modelNode);

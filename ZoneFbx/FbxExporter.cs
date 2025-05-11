@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ZoneFbx.Fbx;
+﻿using ZoneFbx.Fbx;
 
 namespace ZoneFbx
 {
@@ -12,16 +7,9 @@ namespace ZoneFbx
         private IntPtr scene;
         private IntPtr manager;
 
-        public FbxExporter(string name)
-        {
-            manager = Manager.Create();
-            scene = Scene.Create(manager, name);
-            Scene.SetSystemUnit(scene);
-        }
-
-        ~FbxExporter()
-        {
-            if (manager != IntPtr.Zero) Manager.Destroy(manager);
+        public FbxExporter(IntPtr manager, IntPtr scene) {
+            this.manager = manager;
+            this.scene = scene;
         }
 
         public bool Export(string outputPathWithFilename)
@@ -38,8 +26,5 @@ namespace ZoneFbx
             Exporter.Destroy(exporter);
             return result;
         }
-        public IntPtr GetScene() => scene;
-        public IntPtr GetManager() => manager;
-
     }
 }

@@ -1,13 +1,7 @@
 ﻿using JeremyAnsel.BcnSharp;
 using Lumina.Data.Files;
 using Lumina.Models.Materials;
-using Microsoft.VisualBasic.FileIO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor

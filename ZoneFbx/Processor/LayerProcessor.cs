@@ -1,10 +1,4 @@
 ﻿using Lumina.Data.Files;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using ZoneFbx.Fbx;
 using Lumina.Data.Parsing.Layer;
 using static Lumina.Data.Parsing.Layer.LayerCommon;
@@ -49,7 +43,6 @@ namespace ZoneFbx.Processor
             foreach (var lgbName in lgbs)
             {
                 var path = GetLgbPath(lgbName, zone_path);
-                Console.WriteLine(path);
                 if (!ProcessLayerGroupBinary(path))
                 {
                     Console.WriteLine($"LGB \"{lgbName}.lgb\" skipped.");

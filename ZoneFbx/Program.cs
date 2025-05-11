@@ -1,7 +1,6 @@
-﻿using Lumina.Data.Files;
-using ZoneFbx;
+﻿using ZoneFbx;
 
-String usage = """
+var usage = """
     Usage: zonefbx.exe [game_sqpack_path] [zone_path] [output_path]
     For example, if you have the default install location, and want to export Central Shroud to your desktop,
     zonefbx.exe "C:\Program Files (x86)\SquareEnix\FINAL FANTASY XIV - A Realm Reborn\game\sqpack" 
@@ -11,6 +10,8 @@ String usage = """
     -l    Enables lightshaft models in the export
     -f    Enables festival models in the export
     -b    Disables baking textures
+    -j    Exports all relevant LGB/SGB files as JSON for debugging purposes
+    -i    Allows light sources to be included in the final export
     """;
 
 if (args.Length < 3)
