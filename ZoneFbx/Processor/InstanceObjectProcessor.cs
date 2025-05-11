@@ -1,0 +1,107 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Lumina.Data.Files;
+using Lumina.Data.Parsing.Layer;
+using static Lumina.Data.Parsing.Layer.LayerCommon;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using ZoneFbx.Fbx;
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
+namespace ZoneFbx.Processor
+{
+    internal class InstanceObjectProcessor
+    {
+        private readonly Lumina.GameData data;
+        private readonly ModelProcessor modelProcessor;
+        private readonly IntPtr scene;
+        private readonly ZoneExporter.Flags flags;
+
+        private const float LightIntensityFactor = 10000;
+
+        private Dictionary<LightType, Light.EType> lightTypeDict = new()
+        {
+            {LightType.Directional, Light.EType.eDirectional },
+            {LightType.Point, Light.EType.ePoint },
+            {LightType.Spot, Light.EType.eSpot },
+            {LightType.Plane, Light.EType.eArea },
+        };
+
+        private Dictionary<float, Light.EDecayType> lightDecayTypeDict = new()
+        {
+            {1, Light.EDecayType.eLinear },
+            {2, Light.EDecayType.eQuadratic },
+            {3, Light.EDecayType.eCubic },
+        };
+
+        public InstanceObjectProcessor(Lumina.GameData data, ModelProcessor modelProcessor, IntPtr scene, ZoneExporter.Flags flags) { 
+            this.data = data;
+            this.modelProcessor = modelProcessor;
+            this.scene = scene;
+            this.flags = flags;
+        }
+
+        public IntPtr ProcessInstanceObjectBG(LayerCommon.InstanceObject obj)
+        {
+            var objectFilePath = ((BGInstanceObject)obj.Object).AssetPath;
+            var objectFile = data.GetFile<MdlFile>(objectFilePath);
+            if (objectFile == null)
+            {
+                Console.WriteLine($"Unable to get {objectFilePath} from game data.");
+                return IntPtr.Zero;
+            }
+            var model = new Lumina.Models.Models.Model(objectFile);
+            try
+            {
+                model.Update(data);
+            } catch (ArgumentOutOfRangeException e)
+            {
+                Console.WriteLine("Object " + objectFilePath + " could not be resolved from game data.");
+                Console.WriteLine(e.Message);
+                model = new Lumina.Models.Models.Model(objectFile);
+                // this should still create a mesh without a material (?)
+            }
+
+            var modelNode = Node.Create(scene, objectFilePath.Substring(objectFilePath.LastIndexOf("/") + 1));
+            Util.init_child_node(obj, modelNode);
+
+            if (modelProcessor.ProcessModel(model, modelNode))
+            {
+                return modelNode;
+            } else
+            {
+                return IntPtr.Zero;
+            }
+        }
+
+        public IntPtr ProcessInstanceObjectLayLight(LayerCommon.InstanceObject obj)
+        {
+            if (!flags.enableLighting) return IntPtr.Zero;
+
+            var lightNode = Node.Create(scene, $"light_{obj.InstanceId}");
+            Util.init_child_node(obj, lightNode);
+
+            var lightObj = (LightInstanceObject)obj.Object;
+            if (lightObj.DiffuseColorHDRI.Intensity == 0.0) return IntPtr.Zero;
+
+            var light = Light.Create(scene, $"light_{obj.InstanceId}");
+
+            Light.SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity * LightIntensityFactor);
+            Light.SetColor(light, lightObj.DiffuseColorHDRI.Red / 255f, lightObj.DiffuseColorHDRI.Green / 255f, lightObj.DiffuseColorHDRI.Blue / 255f);
+            Light.SetLightType(light, lightTypeDict.GetValueOrDefault(lightObj.LightType, Light.EType.ePoint));
+            Light.SetDecay(light, lightDecayTypeDict.GetValueOrDefault(lightObj.Attenuation, Light.EDecayType.eNone));
+
+            if (lightObj.BGShadowEnabled == 1) Light.CastShadows(light);
+
+            if (lightObj.LightType == LightType.Spot)
+            {
+                Light.SetAngle(light, lightObj.ConeDegree + lightObj.AttenuationConeCoefficient, lightObj.ConeDegree);
+            }
+
+            Node.SetNodeAttribute(lightNode, light);
+            return lightNode;
+        }
+    }
+}

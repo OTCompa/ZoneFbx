@@ -27,7 +27,7 @@ namespace ZoneFbx.Processor
             if (model.File == null) return false;
 
             var path = model.File.FilePath.Path;
-            path = path.Substring(path.LastIndexOf('/') + 1);
+            path = Path.GetFileName(path);
 
             var hasChildren = false;
             for (int i = 0; i < model.Meshes.Length; i++)

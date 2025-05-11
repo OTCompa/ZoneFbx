@@ -1,4 +1,5 @@
 ﻿using Lumina.Data.Files;
+using Lumina.Data.Parsing.Layer;
 using Lumina.Models.Materials;
 using Newtonsoft.Json;
 using System;
@@ -10,6 +11,7 @@ using System.Numerics;
 using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading.Tasks;
+using ZoneFbx.Fbx;
 using static Lumina.Data.Parsing.Layer.LayerCommon;
 
 namespace ZoneFbx
@@ -80,7 +82,7 @@ namespace ZoneFbx
             }
         }
 
-        public static void save_json(string filename, Layer[] layers, string output_path)
+        public static void save_json(string filename, LayerCommon.Layer[] layers, string output_path)
         {
             var layerJson = JsonConvert.SerializeObject(layers, Formatting.Indented);
             var jsonFolder = Path.Combine(output_path, "json");
@@ -91,5 +93,21 @@ namespace ZoneFbx
                 File.WriteAllText(Path.Combine(jsonFolder, $"{filename}.json"), layerJson);
             }
         }
+
+        public static void init_child_node(InstanceObject obj, IntPtr node)
+        {
+            Node.SetStuff(node, obj.Transform.Translation.X, obj.Transform.Translation.Y, obj.Transform.Translation.Z, 0);
+            if (obj.AssetType == LayerEntryType.LayLight)
+            {
+                // rotate light nodes -90 degrees on the X axis since the light nodes point towards its negative Y axis
+                Node.SetStuff(node, Util.degrees(obj.Transform.Rotation.X) - 90, Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
+            } else
+            {
+                Node.SetStuff(node, Util.degrees(obj.Transform.Rotation.X), Util.degrees(obj.Transform.Rotation.Y), Util.degrees(obj.Transform.Rotation.Z), 1);
+            }
+            Node.SetStuff(node, obj.Transform.Scale.X, obj.Transform.Scale.Y, obj.Transform.Scale.Z, 2);
+        }
+
+        public static string TrimLevelPath(string zonePath) => zonePath.Substring(0, zonePath.LastIndexOf("/"));
     }
 }
