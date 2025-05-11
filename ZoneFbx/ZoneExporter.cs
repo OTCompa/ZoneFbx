@@ -27,6 +27,7 @@ namespace ZoneFbx
         private readonly Flags flags;
         private readonly TextureProcessor textureProcessor;
         private readonly MaterialProcessor materialProcessor;
+        private readonly ModelProcessor modelProcessor;
         private readonly FbxExporter fbxExporter;
         IntPtr manager;
         IntPtr scene;
@@ -69,6 +70,7 @@ namespace ZoneFbx
 
             this.textureProcessor = new(data, this.output_path, zone_code, fbxExporter.GetScene());
             this.materialProcessor = new(data, textureProcessor, fbxExporter.GetScene(), flags);
+            this.modelProcessor = new(materialProcessor, fbxExporter.GetManager(), fbxExporter.GetScene());
 
             Console.WriteLine("Processing models and textures...");
             Console.WriteLine("Processing zone terrain");
@@ -131,7 +133,8 @@ namespace ZoneFbx
                     plate_model = new Lumina.Models.Models.Model(plate_model_file!);
                 }
 
-                process_model(plate_model, plate_node);
+
+                modelProcessor.ProcessModel(plate_model, plate_node);
 
                 Node.AddChild(terrain_node, plate_node);
             }
@@ -140,136 +143,6 @@ namespace ZoneFbx
             Node.AddChild(rootNode, terrain_node);
 
             return true;
-        }
-
-        private bool process_model(Lumina.Models.Models.Model model, IntPtr node)
-        {
-            var has_children = false;
-            var path = model!.File!.FilePath.Path;
-            path = path.Substring(path.LastIndexOf('/') + 1);
-            for (int i = 0; i < model.Meshes.Length; i++)
-            {
-                string mesh_name = path + "_" + i.ToString();
-                var mesh_node = Node.Create(manager, mesh_name);
-
-                var result = mesh_cache.TryGetValue(mesh_name, out var cached_mesh);
-                IntPtr mesh;
-                if (result)
-                {
-                    mesh = cached_mesh;
-                } else
-                {
-                    mesh = create_mesh(model.Meshes[i], mesh_name);
-                    IntPtr material = materialProcessor.CreateMaterial(model.Meshes[i].Material);
-                    if (material == IntPtr.Zero) continue;
-
-                    Node.AddMaterial(mesh_node, material);
-                    mesh_cache[mesh_name] = mesh;
-                }
-                Node.SetNodeAttribute(mesh_node, mesh);
-                Node.AddChild(node, mesh_node);
-                has_children = true;
-            }
-            return has_children;
-        }
-
-        private IntPtr create_mesh(Lumina.Models.Models.Mesh game_mesh, string mesh_name)
-        {
-            var mesh = Mesh.Create(scene, mesh_name);
-            Mesh.Init(mesh, game_mesh.Vertices.Length);
-
-            var colorElement = GeometryElement.VertexColor.Create(mesh);
-            GeometryElement.VertexColor.SetMappingNode(colorElement);
-
-            var uvElement1 = GeometryElement.UV.Create(mesh, "uv1");
-            GeometryElement.UV.SetMappingNode(uvElement1);
-
-            var uvElement2 = GeometryElement.UV.Create(mesh, "uv2");
-            GeometryElement.UV.SetMappingNode(uvElement2);
-
-            var tangentElem1 = GeometryElement.Tangent.Create(mesh);
-            GeometryElement.Tangent.SetMappingNode(tangentElem1);
-
-            var tangentElem2 = GeometryElement.Tangent.Create(mesh);
-            GeometryElement.Tangent.SetMappingNode(tangentElem2);
-
-            for (int i = 0; i < game_mesh.Vertices.Length; i++)
-            {
-                IntPtr pos = IntPtr.Zero, norm = IntPtr.Zero, uv = IntPtr.Zero, tangent1 = IntPtr.Zero, tangent2 = IntPtr.Zero, color = IntPtr.Zero;
-
-
-                if (game_mesh.Vertices[i].Position.HasValue)
-                {
-                    pos = Fbx.Vector4.Create(game_mesh.Vertices[i].Position!.Value.X,
-                             game_mesh.Vertices[i].Position!.Value.Y,
-                             game_mesh.Vertices[i].Position!.Value.Z,
-                             game_mesh.Vertices[i].Position!.Value.W);
-                }
-
-                if (game_mesh.Vertices[i].Normal.HasValue)
-                {
-                    norm = Fbx.Vector4.Create(game_mesh.Vertices[i].Normal!.Value.X,
-                              game_mesh.Vertices[i].Normal!.Value.Y,
-                              game_mesh.Vertices[i].Normal!.Value.Z,
-                              0);
-                }
-
-                if (game_mesh.Vertices[i].Color.HasValue)
-                {
-                    color = Fbx.Vector4.Create(game_mesh.Vertices[i].Color!.Value.X,
-                             game_mesh.Vertices[i].Color!.Value.Y,
-                             game_mesh.Vertices[i].Color!.Value.Z,
-                             game_mesh.Vertices[i].Color!.Value.W);
-                }
-
-                if (game_mesh.Vertices[i].Tangent1.HasValue)
-                {
-                    tangent1 = Fbx.Vector4.Create(game_mesh.Vertices[i].Tangent1!.Value.X,
-                              game_mesh.Vertices[i].Tangent1!.Value.Y,
-                              game_mesh.Vertices[i].Tangent1!.Value.Z,
-                              0);
-                }
-
-                if (game_mesh.Vertices[i].Tangent2.HasValue)
-                {
-                    tangent2 = Fbx.Vector4.Create(game_mesh.Vertices[i].Tangent2!.Value.X,
-                             game_mesh.Vertices[i].Tangent2!.Value.Y,
-                             game_mesh.Vertices[i].Tangent2!.Value.Z,
-                             game_mesh.Vertices[i].Tangent2!.Value.W);
-                }
-
-                if (pos != IntPtr.Zero && norm != IntPtr.Zero)
-                {
-                    Mesh.SetControlPointAt(mesh, pos, norm, i);
-                }
-
-                if (game_mesh.Vertices[i].UV.HasValue)
-                {
-                    var uv1Array = GeometryElement.UV.GetDirectArray(uvElement1);
-                    Fbx.Layer.UV_Add(uv1Array, Fbx.Vector2.Create(game_mesh.Vertices[i].UV!.Value.X, game_mesh.Vertices[i].UV!.Value.Y * -1));
-                    var uv2Array = GeometryElement.UV.GetDirectArray(uvElement2);
-                    Fbx.Layer.UV_Add(uv2Array, Fbx.Vector2.Create(game_mesh.Vertices[i].UV!.Value.Z, game_mesh.Vertices[i].UV!.Value.W * -1));
-                }
-
-                var colorArray = GeometryElement.VertexColor.GetDirectArray(colorElement);
-                Fbx.Layer.Color_Add(colorArray, color);
-
-                var tangent1Array = GeometryElement.Tangent.GetDirectArray(tangentElem1);
-                Fbx.Layer.Tangent_Add(tangent1Array, tangent1);
-                var tangent2Array = GeometryElement.Tangent.GetDirectArray(tangentElem2);
-                Fbx.Layer.Tangent_Add(tangent2Array, tangent2);
-            }
-
-            for (int i = 0; i < game_mesh.Indices.Length; i+= 3)
-            {
-                Mesh.BeginPolygon(mesh);
-                Mesh.AddPolygon(mesh, game_mesh.Indices[i]);
-                Mesh.AddPolygon(mesh, game_mesh.Indices[i+1]);
-                Mesh.AddPolygon(mesh, game_mesh.Indices[i+2]);
-                Mesh.EndPolygon(mesh);
-            }
-
-            return mesh;
         }
 
         private void init_child_node(InstanceObject obj, IntPtr node)
@@ -350,7 +223,7 @@ namespace ZoneFbx
                     var model_node = Node.Create(scene, object_path.Substring(object_path.LastIndexOf("/") + 1));
                     init_child_node(obj, model_node);
 
-                    if (process_model(model, model_node))
+                    if (modelProcessor.ProcessModel(model, model_node))
                     {
                         return model_node;
                     }
