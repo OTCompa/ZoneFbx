@@ -92,7 +92,7 @@ namespace ZoneFbx
                 return;
             }
 
-            Console.WriteLine($"Done! Map exported to {Path.Combine(this.outputPath, zoneCode, $"{Path.GetFileName(zoneCode)}.fbx")}");
+            Console.WriteLine($"Done! Map exported to {Path.Combine(this.outputPath, $"{Path.GetFileName(zoneCode)}.fbx")}");
 
         }
 
