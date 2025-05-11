@@ -33,18 +33,18 @@ namespace ZoneFbx.Processor
         {
             if (material.File == null) return;
 
-            ReadConstants(material);
+            readConstants(material);
 
             if (diffuseOffset == -1 && specularOffset == -1 && emissiveOffset == -1)
                 return;
 
             var br = material.File.Reader;
-            long baseOffset = GetMaterialConstantBaseOffset(br);
+            long baseOffset = getMaterialConstantBaseOffset(br);
 
-            ReadColorConstants(br, baseOffset);
+            readColorConstants(br, baseOffset);
         }
 
-        private void ReadConstants(Material material)
+        private void readConstants(Material material)
         {
             for (int i = 0; i < material.File!.Constants.Length; i++)
             {
@@ -76,7 +76,7 @@ namespace ZoneFbx.Processor
             }
         }
 
-        private long GetMaterialConstantBaseOffset(LuminaBinaryReader br)
+        private long getMaterialConstantBaseOffset(LuminaBinaryReader br)
         {
             int colorsetBlockSize;
             int stringBlockSize;
@@ -111,25 +111,25 @@ namespace ZoneFbx.Processor
             return cursor;
         }
 
-        private void ReadColorConstants(LuminaBinaryReader br, long baseOffset)
+        private void readColorConstants(LuminaBinaryReader br, long baseOffset)
         {
             // get all the relevant information
             if (diffuseOffset.HasValue)
             {
-                DiffuseColor = ReadVector3Constant(br, baseOffset + diffuseOffset.Value, true, true);
+                DiffuseColor = readVector3Constant(br, baseOffset + diffuseOffset.Value, true, true);
             }
             if (specularOffset.HasValue)
             {
-                SpecularColor = ReadVector3Constant(br, baseOffset + specularOffset.Value, false, true);
+                SpecularColor = readVector3Constant(br, baseOffset + specularOffset.Value, false, true);
             }
             if (emissiveOffset.HasValue)
             {
-                EmissiveColor = ReadVector3Constant(br, baseOffset + emissiveOffset.Value, true, false);
+                EmissiveColor = readVector3Constant(br, baseOffset + emissiveOffset.Value, true, false);
                 EmissiveColor *= .2f;
             }
         }
 
-        private Vector3? ReadVector3Constant(LuminaBinaryReader br, long offset, bool filterZero = false, bool filterOne = false)
+        private Vector3? readVector3Constant(LuminaBinaryReader br, long offset, bool filterZero = false, bool filterOne = false)
         {
             br.Seek(offset);
             var v = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());

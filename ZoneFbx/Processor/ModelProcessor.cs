@@ -37,7 +37,7 @@ namespace ZoneFbx.Processor
 
                 if (!mesh_cache.TryGetValue(name, out var mesh))
                 {
-                    mesh = CreateMesh(model.Meshes[i], name);
+                    mesh = createMesh(model.Meshes[i], name);
                     IntPtr material = materialProcessor.CreateMaterial(model.Meshes[i].Material);
                     if (material == IntPtr.Zero) continue;
 
@@ -52,7 +52,7 @@ namespace ZoneFbx.Processor
             return hasChildren;
         }
 
-        private IntPtr CreateMesh(Lumina.Models.Models.Mesh gameMesh, string name)
+        private IntPtr createMesh(Lumina.Models.Models.Mesh gameMesh, string name)
         {
             var mesh = Fbx.Mesh.Create(scene, name);
             Fbx.Mesh.Init(mesh, gameMesh.Vertices.Length);

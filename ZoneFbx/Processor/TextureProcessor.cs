@@ -47,12 +47,12 @@ namespace ZoneFbx.Processor
                     color = materialInfo?.SpecularColor; break;
             }
 
-            var textureOutputPath = Util.get_texture_path(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, color, type: suffix);
-            ExtractTexture(tex, color, textureOutputPath);
-            return InitializeFileTexture(tex.TexturePath, textureOutputPath, suffix);
+            var textureOutputPath = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, color, type: suffix);
+            extractTexture(tex, color, textureOutputPath);
+            return initializeFileTexture(tex.TexturePath, textureOutputPath, suffix);
         }
 
-        private IntPtr InitializeFileTexture(string texfilePath, string textureOutputPath, string suffix = "")
+        private IntPtr initializeFileTexture(string texfilePath, string textureOutputPath, string suffix = "")
         {
             string textureObjectName = $"{Path.GetFileNameWithoutExtension(texfilePath)}{suffix}";
             var texture = FileTexture.Create(scene, textureObjectName);
@@ -60,23 +60,26 @@ namespace ZoneFbx.Processor
             return texture;
         }
 
-        private void ExtractTexture(Texture tex, Vector3? color, string outputPath)
+        private void extractTexture(Texture tex, Vector3? color, string outputPath)
         {
             if (File.Exists(outputPath)) return;
 
-            TexFile? texfile = LoadTexture(tex);
+            TexFile? texfile = loadTexture(tex);
             if (texfile == null) return;
 
             try
             {
-                SaveTexture(texfile, outputPath, color);
+                byte[] imageDataCopy = new byte[texfile.ImageData.Length];
+                texfile.ImageData.CopyTo(imageDataCopy, 0);
+                Util.SaveAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height, color);
             } catch (NotSupportedException)
             {
-                DecodeAndSaveTexture(texfile, outputPath, color);
+                decodeTexture(texfile, outputPath, color, out var decodedData);
+                Util.SaveAsBitmap(outputPath, decodedData, texfile.Header.Width, texfile.Header.Height, color);
             }
         }
 
-        private TexFile? LoadTexture(Texture tex)
+        private TexFile? loadTexture(Texture tex)
         {
             TexFile? texFile = null;
             try
@@ -90,17 +93,9 @@ namespace ZoneFbx.Processor
             return texFile;
         }
 
-        private void SaveTexture(TexFile texfile, string outputPath, Vector3? color)
+        private void decodeTexture(TexFile texfile, string outputPath, Vector3? color, out byte[] decodedData)
         {
-            byte[] imageDataCopy = new byte[texfile.ImageData.Length];
-            texfile.ImageData.CopyTo(imageDataCopy, 0);
-            Util.SaveAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height, color);
-        }
-
-        private void DecodeAndSaveTexture(TexFile texfile, string outputPath, Vector3? color)
-        {
-            var decodedData = new byte[texfile.Header.Width * texfile.Header.Height * 4];
-
+            decodedData = new byte[texfile.Header.Width * texfile.Header.Height * 4];
             switch (texfile.Header.Format)
             {
                 case TexFile.TextureFormat.BC5:
@@ -113,8 +108,6 @@ namespace ZoneFbx.Processor
                     Console.WriteLine($"Format {texfile.Header.Format} not supported: {texfile.FilePath}");
                     return;
             }
-
-            Util.SaveAsBitmap(outputPath, decodedData, texfile.Header.Width, texfile.Header.Height, color);
         }
     }
 }

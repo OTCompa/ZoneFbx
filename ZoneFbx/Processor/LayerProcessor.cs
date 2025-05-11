@@ -68,10 +68,10 @@ namespace ZoneFbx.Processor
             if (file == null) return false;
 
             var root_node = Scene.GetRootNode(scene);
-            return ProcessLayers(file.Layers, root_node);
+            return processLayers(file.Layers, root_node);
         }
 
-        private IntPtr ProcessInstanceObject(LayerCommon.InstanceObject obj)
+        private IntPtr processInstanceObject(LayerCommon.InstanceObject obj)
         {
             string sgbPath;
             IntPtr objNode;
@@ -83,9 +83,9 @@ namespace ZoneFbx.Processor
                     sgbPath = sharedGroupObj.AssetPath;
 
                     objNode = Node.Create(scene, Path.GetFileName(sgbPath));
-                    Util.init_child_node(obj, objNode);
+                    Util.InitChildNode(obj, objNode);
 
-                    if (ProcessSharedGroupBinary(sgbPath, objNode)) return objNode;
+                    if (processSharedGroupBinary(sgbPath, objNode)) return objNode;
 
                     break;
                 case LayerEntryType.EventObject:
@@ -96,9 +96,9 @@ namespace ZoneFbx.Processor
                     if (!sgbPath.EndsWith("sgb")) return IntPtr.Zero;  // 1 more sanity check
 
                     objNode = Node.Create(scene, Path.GetFileName(sgbPath));
-                    Util.init_child_node(obj, objNode);
+                    Util.InitChildNode(obj, objNode);
 
-                    if (ProcessSharedGroupBinary(sgbPath, objNode)) return objNode;
+                    if (processSharedGroupBinary(sgbPath, objNode)) return objNode;
 
                     break;
                 case LayerEntryType.LayLight:
@@ -109,7 +109,7 @@ namespace ZoneFbx.Processor
             return IntPtr.Zero;
         }
 
-        private bool ProcessSharedGroupBinary(string sgbPath, IntPtr parentNode)
+        private bool processSharedGroupBinary(string sgbPath, IntPtr parentNode)
         {
             var hasChild = false;
             var sgb = data.GetFile<SgbFile>(sgbPath);
@@ -120,7 +120,7 @@ namespace ZoneFbx.Processor
                 var layerGroup = sgb.LayerGroups[i];
                 var layerGroupNode = Node.Create(scene, $"LayerGroup{i}");  // this is probably redundant, i've only seen sgbs with 1 layer group
 
-                if (ProcessLayers(layerGroup.Layers, layerGroupNode))
+                if (processLayers(layerGroup.Layers, layerGroupNode))
                 {
                     Node.AddChild(parentNode, layerGroupNode);
                     hasChild = true;
@@ -128,14 +128,14 @@ namespace ZoneFbx.Processor
 
                 if (flags.enableJsonExport)
                 {
-                    Util.save_json(Path.GetFileNameWithoutExtension(sgbPath), layerGroup.Layers, output_path);
+                    Util.SaveJson(Path.GetFileNameWithoutExtension(sgbPath), layerGroup.Layers, output_path);
                 }
 
             }
             return hasChild;
         }
 
-        private bool ProcessLayers(LayerCommon.Layer[] layers, IntPtr parentNode)
+        private bool processLayers(LayerCommon.Layer[] layers, IntPtr parentNode)
         {
             var groupHasChild = false;
             for (int i = 0; i < layers.Length; i++)
@@ -152,7 +152,7 @@ namespace ZoneFbx.Processor
 
                 for (int j = 0; j < layer.InstanceObjects.Length; j++)
                 {
-                    var childNode = ProcessInstanceObject(layer.InstanceObjects[j]);
+                    var childNode = processInstanceObject(layer.InstanceObjects[j]);
                     if (childNode != IntPtr.Zero)
                     {
                         Node.AddChild(layerNode, childNode);

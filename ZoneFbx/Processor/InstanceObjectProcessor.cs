@@ -65,7 +65,7 @@ namespace ZoneFbx.Processor
             }
 
             var modelNode = Node.Create(scene, objectFilePath.Substring(objectFilePath.LastIndexOf("/") + 1));
-            Util.init_child_node(obj, modelNode);
+            Util.InitChildNode(obj, modelNode);
 
             if (modelProcessor.ProcessModel(model, modelNode))
             {
@@ -81,7 +81,7 @@ namespace ZoneFbx.Processor
             if (!flags.enableLighting) return IntPtr.Zero;
 
             var lightNode = Node.Create(scene, $"light_{obj.InstanceId}");
-            Util.init_child_node(obj, lightNode);
+            Util.InitChildNode(obj, lightNode);
 
             var lightObj = (LightInstanceObject)obj.Object;
             if (lightObj.DiffuseColorHDRI.Intensity == 0.0) return IntPtr.Zero;

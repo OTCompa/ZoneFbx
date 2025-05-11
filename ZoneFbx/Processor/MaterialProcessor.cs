@@ -55,14 +55,14 @@ namespace ZoneFbx.Processor
 
                 var textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo);
                 var emissiveObject = textureProcessor.PrepareTexture(material, texture, materialInfo, "_e");
-                ConnectSrcObjects(texture.TextureUsageSimple, outputSurface, textureObject, emissiveObject);
+                connectSrcObjects(texture.TextureUsageSimple, outputSurface, textureObject, emissiveObject);
             }
 
             materialCache[hash] = outputSurface;
             return outputSurface;
         }
 
-        private void ConnectSrcObjects(Texture.Usage type, IntPtr outputSurface, IntPtr texture, IntPtr emissive)
+        private void connectSrcObjects(Texture.Usage type, IntPtr outputSurface, IntPtr texture, IntPtr emissive)
         {
             switch (type)
             {
