@@ -13,6 +13,7 @@ namespace ZoneFbx.Processor
         public Vector3? Specular2Color { get; set; } = null;
         public Vector3? EmissiveColor { get; set; } = null;
         public Vector3? Emissive2Color { get; set; } = null;
+        public bool BlendEnabled { get; set; } = false;
 
         private ushort? diffuseOffset = null;
         private ushort? diffuse2Offset = null;
@@ -26,6 +27,15 @@ namespace ZoneFbx.Processor
         {
             if (material.File == null) return;
 
+            foreach (var key in material.File.ShaderKeys)
+            {
+                if (key.Category == 0xB616DC5A && key.Value == 0x1DF2985C)
+                {
+                    BlendEnabled = true;
+                    break;
+                }
+            }
+
             readConstants(material);
 
             if (diffuseOffset == -1 && specularOffset == -1 && emissiveOffset == -1 && diffuse2Offset == -1 && emissive2Offset == -1)
@@ -35,10 +45,17 @@ namespace ZoneFbx.Processor
             long baseOffset = getMaterialConstantBaseOffset(br);
 
             readColorConstants(br, baseOffset);
-            if (EmissiveColor == Vector3.Zero && Emissive2Color == Vector3.Zero)
+            if ((EmissiveColor == Vector3.Zero || EmissiveColor == null) && (Emissive2Color == Vector3.Zero || Emissive2Color == null))
             {
                 EmissiveColor = null;
                 Emissive2Color = null;
+            }
+
+            if (!BlendEnabled)
+            {
+                diffuse2Offset = null;
+                specular2Offset = null;
+                emissive2Offset = null;
             }
         }
 
@@ -132,7 +149,7 @@ namespace ZoneFbx.Processor
             }
             if (diffuse2Offset.HasValue)
             {
-                Diffuse2Color = readVector3Constant(br, baseOffset + diffuse2Offset.Value, false, true);
+                Diffuse2Color = readVector3Constant(br, baseOffset + diffuse2Offset.Value, true, true);
             }
             if (specularOffset.HasValue)
             {

@@ -40,7 +40,7 @@ namespace ZoneFbx.Processor
         }
 
         //private readonly Dictionary<string, List<MaterialTextureHelper>> materialTextureDict = [];
-        private readonly Dictionary<string, Dictionary<string, MaterialTextureHelper.EffectiveTextureUsage>> materialTextureDict = [];
+        private readonly Dictionary<string, Dictionary<string, string>> materialTextureDict = [];
         public MaterialProcessor(Lumina.GameData data, TextureProcessor textureProcessor, IntPtr scene, ZoneExporter.Flags flags, string outputPath)
         {
             this.data = data;
@@ -63,7 +63,6 @@ namespace ZoneFbx.Processor
             SurfacePhong.SetFactor(outputSurface);
 
             HashSet<Texture.Usage> alreadySet = new HashSet<Texture.Usage>();
-            HashSet<string> alreadyRecorded = new HashSet<string>();
             string filename;
             for (int i = 0; i < material.Textures.Length; i++)
             {
@@ -74,53 +73,88 @@ namespace ZoneFbx.Processor
                 {
                     if (flags.enableBlend)
                     {
-                        textureProcessor.PrepareTexture(material, texture, materialInfo, out filename, "_blend");
-                        if (!string.IsNullOrEmpty(filename) && !SurfacePhong.PropertyExists(outputSurface, texture.TextureUsageSimple.ToString()))
+                        if (flags.disableBaking || (materialInfo != null && materialInfo.BlendEnabled))
                         {
-                            Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple}", filename);
-                            alreadyRecorded.Add(filename);
+                            textureProcessor.PrepareTexture(material, texture, materialInfo, out filename, "_blend");
+                            if (!string.IsNullOrEmpty(filename) && !SurfacePhong.PropertyExists(outputSurface, $"Blend{texture.TextureUsageSimple}"))
+                            {
+                                Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple}", filename);
+                            }
+                            AddToMaterialTextureDict(filename, material, texture.TextureUsageRaw.ToString());
                         }
-                        AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
                     }
                     continue;
+                    //if (flags.enableBlend)
+                    //{
+                    //    textureProcessor.PrepareTexture(material, texture, materialInfo, out filename, "_blend");
+                    //    if (!string.IsNullOrEmpty(filename) && !SurfacePhong.PropertyExists(outputSurface, texture.TextureUsageSimple.ToString()))
+                    //    {
+                    //        Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple}", filename);
+                    //        alreadyRecorded.Add(filename);
+                    //    }
+                    //    AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
+                    //}
+                    //continue;
                 }
                 alreadySet.Add(texture.TextureUsageSimple);
-
                 textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out filename);
-                var emissiveObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissiveFilename, "_e");
+                if (textureObject == IntPtr.Zero) return IntPtr.Zero;
 
-                if (textureObject != IntPtr.Zero)
+                AddToMaterialTextureDict(filename, material, texture.TextureUsageRaw.ToString());
+                if (texture.TextureUsageSimple == Texture.Usage.Diffuse)
                 {
-                    AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
-                    alreadyRecorded.Add(filename);
-
-                    if (flags.enableBlend)
+                    var emissiveObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissiveFilename, "_e");
+                    if (emissiveObject != IntPtr.Zero)
                     {
-                        if (materialInfo != null && materialInfo.Diffuse2Color != null)
+                        SurfacePhong.ConnectSrcObject(outputSurface, emissiveObject, 3);
+                        AddToMaterialTextureDict(emissiveFilename, material, "Emissive");
+                        if (flags.enableBlend)
                         {
-                            textureProcessor.PrepareTexture(material, texture, materialInfo, out var diffuse2Filename, "_blend");
-                            AddToMaterialTextureDict(diffuse2Filename, material, MaterialTextureHelper.EffectiveTextureUsage.Diffuse);
-                            Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple.ToString()}", diffuse2Filename);
-                        }
-                    }
-                }
-                if (emissiveObject != IntPtr.Zero)
-                {
-                    alreadyRecorded.Add(filename);
-                    AddToMaterialTextureDict(emissiveFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Emissive);
-
-                    if (flags.enableBlend)
-                    {
-                        if (materialInfo != null && materialInfo.Emissive2Color != null && texture.TextureUsageSimple == Texture.Usage.Diffuse)
-                        {
-                            textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissive2Filename, "_e_blend");
-                            AddToMaterialTextureDict(emissiveFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Emissive);
-                            Property.CreateString(outputSurface, $"BlendEmissive", emissive2Filename);
+                            textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissiveBlendFilename, "_e_blend");
+                            if (!string.IsNullOrEmpty(emissiveBlendFilename) && !SurfacePhong.PropertyExists(outputSurface, "BlendEmissive"))
+                            {
+                                Property.CreateString(outputSurface, $"BlendEmissive", emissiveBlendFilename);
+                                AddToMaterialTextureDict(emissiveBlendFilename, material, "BlendEmissive");
+                            }
                         }
                     }
                 }
 
-                connectSrcObjects(texture.TextureUsageSimple, outputSurface, textureObject, emissiveObject);
+                //textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out filename);
+                //var emissiveObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissiveFilename, "_e");
+
+                //if (textureObject != IntPtr.Zero)
+                //{
+                //    AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
+                //    alreadyRecorded.Add(filename);
+
+                //    if (flags.enableBlend)
+                //    {
+                //        if (materialInfo != null && materialInfo.BlendEnabled && materialInfo.Diffuse2Color != null)
+                //        {
+                //            textureProcessor.PrepareTexture(material, texture, materialInfo, out var diffuse2Filename, "_blend");
+                //            AddToMaterialTextureDict(diffuse2Filename, material, MaterialTextureHelper.EffectiveTextureUsage.Diffuse);
+                //            Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple.ToString()}", diffuse2Filename);
+                //        }
+                //    }
+                //}
+                //if (emissiveObject != IntPtr.Zero)
+                //{
+                //    alreadyRecorded.Add(filename);
+                //    AddToMaterialTextureDict(emissiveFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Emissive);
+
+                //    //if (flags.enableBlend)
+                //    //{
+                //    //    if (materialInfo != null && materialInfo.Emissive2Color != null && texture.TextureUsageSimple == Texture.Usage.Diffuse)
+                //    //    {
+                //    //        textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissive2Filename, "_e_blend");
+                //    //        AddToMaterialTextureDict(emissiveFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Emissive);
+                //    //        Property.CreateString(outputSurface, $"BlendEmissive", emissive2Filename);
+                //    //    }
+                //    //}
+                //}
+
+                connectSrcObjects(texture.TextureUsageSimple, outputSurface, textureObject);
             }
 
             materialCache.Add(hash, outputSurface);
@@ -135,13 +169,12 @@ namespace ZoneFbx.Processor
             File.WriteAllText(Path.Combine(jsonFolder, "materialTextureMap.json"), jsonExport);
         }
 
-        private void AddToMaterialTextureDict(string filename, Material material, MaterialTextureHelper.EffectiveTextureUsage usage)
+        private void AddToMaterialTextureDict(string filename, Material material, string usage)
         {
-            var mtrlFileName = Path.GetFileName(material.MaterialPath);
-            if (!materialTextureDict.TryGetValue(mtrlFileName, out var subdict))
+            if (!materialTextureDict.TryGetValue(material.MaterialPath, out var subdict))
             {
                 subdict = new();
-                materialTextureDict.Add(mtrlFileName, subdict);
+                materialTextureDict.Add(material.MaterialPath, subdict);
             }
                 subdict.TryAdd(filename, usage);
         }
@@ -160,12 +193,11 @@ namespace ZoneFbx.Processor
                     return MaterialTextureHelper.EffectiveTextureUsage.Unknown;
             }
         }
-        private void connectSrcObjects(Texture.Usage type, IntPtr outputSurface, IntPtr texture, IntPtr emissive)
+        private void connectSrcObjects(Texture.Usage type, IntPtr outputSurface, IntPtr texture)
         {
             switch (type)
             {
                 case Texture.Usage.Diffuse:
-                    if (emissive != IntPtr.Zero) SurfacePhong.ConnectSrcObject(outputSurface, emissive, 3);
                     SurfacePhong.ConnectSrcObject(outputSurface, texture, 0);
                     break;
                 case Texture.Usage.Specular:

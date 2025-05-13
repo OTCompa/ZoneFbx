@@ -44,7 +44,7 @@ namespace ZoneFbx.Processor
                     {
                         color = materialInfo?.Diffuse2Color;
                         //if (materialInfo?.DiffuseColor != null && materialInfo?.DiffuseColor != Vector3.Zero) color *= materialInfo.DiffuseColor;
-                        if (color == null) return IntPtr.Zero;
+                        //if (color == null) return IntPtr.Zero;
                     }
                     if (suffix.Equals("_e_blend"))
                     {
