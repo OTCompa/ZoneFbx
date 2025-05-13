@@ -254,10 +254,12 @@
     <ClCompile Include="FbxFileTexture.cpp" />
     <ClCompile Include="FbxGeometry.cpp" />
     <ClCompile Include="FbxLayer.cpp" />
+    <ClCompile Include="FbxLayeredTexture.cpp" />
     <ClCompile Include="FbxLight.cpp" />
     <ClCompile Include="FbxManager.cpp" />
     <ClCompile Include="FbxMesh.cpp" />
     <ClCompile Include="FbxNode.cpp" />
+    <ClCompile Include="FbxProperty.cpp" />
     <ClCompile Include="FbxScene.cpp" />
     <ClCompile Include="FbxSurfacePhong.cpp" />
     <ClCompile Include="FbxVector.cpp" />

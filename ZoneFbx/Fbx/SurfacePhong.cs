@@ -21,5 +21,9 @@ namespace ZoneFbx.Fbx
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial void ConnectSrcObject(IntPtr outsurface, IntPtr texture, int branch);
 
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxSurfacePhong_PropertyExists")]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        [return: MarshalAs(UnmanagedType.U1)]
+        public static partial bool PropertyExists(IntPtr obj, [MarshalAs(UnmanagedType.LPStr)] string propertyName);
     }
 }

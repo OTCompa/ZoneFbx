@@ -39,7 +39,8 @@ namespace ZoneFbx.Processor
             }
         }
 
-        private readonly Dictionary<string, List<MaterialTextureHelper>> materialTextureDict = new();
+        //private readonly Dictionary<string, List<MaterialTextureHelper>> materialTextureDict = [];
+        private readonly Dictionary<string, Dictionary<string, MaterialTextureHelper.EffectiveTextureUsage>> materialTextureDict = [];
         public MaterialProcessor(Lumina.GameData data, TextureProcessor textureProcessor, IntPtr scene, ZoneExporter.Flags flags, string outputPath)
         {
             this.data = data;
@@ -62,31 +63,50 @@ namespace ZoneFbx.Processor
             SurfacePhong.SetFactor(outputSurface);
 
             HashSet<Texture.Usage> alreadySet = new HashSet<Texture.Usage>();
+            HashSet<string> alreadyRecorded = new HashSet<string>();
+            string filename;
             for (int i = 0; i < material.Textures.Length; i++)
             {
                 var texture = material.Textures[i];
-                if (texture == null ||
-                    texture.TexturePath.Contains("dummy") ||
-                    alreadySet.Contains(texture.TextureUsageSimple))
+                IntPtr textureObject;
+                if (texture == null || texture.TexturePath.Contains("dummy")) continue;
+                if (alreadySet.Contains(texture.TextureUsageSimple))
                 {
-                    if (texture != null)
+                    textureProcessor.PrepareTexture(material, texture, materialInfo, out filename, "extra");
+                    if (!SurfacePhong.PropertyExists(outputSurface, texture.TextureUsageSimple.ToString()))
                     {
-                        textureProcessor.PrepareTexture(material, texture, materialInfo, out var unusedFilename, $"_u{i}");
-                        AddToMaterialTextureDict(unusedFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Unused);
-                        
+                        Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple.ToString()}", filename);
+                        alreadyRecorded.Add(filename);
                     }
+                    AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
                     continue;
                 }
                 alreadySet.Add(texture.TextureUsageSimple);
 
-                var textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out var filename);
+                textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out filename);
                 var emissiveObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissiveFilename, "_e");
-                if (textureObject != IntPtr.Zero) AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
-                if (emissiveObject != IntPtr.Zero) AddToMaterialTextureDict(emissiveFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Emissive);
+                if (textureObject != IntPtr.Zero)
+                {
+                    AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
+                    alreadyRecorded.Add(filename);
+                }
+                if (emissiveObject != IntPtr.Zero)
+                {
+                    alreadyRecorded.Add(filename);
+                    AddToMaterialTextureDict(emissiveFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Emissive);
+                }
                 connectSrcObjects(texture.TextureUsageSimple, outputSurface, textureObject, emissiveObject);
+                //if (textureObject != IntPtr.Zero) {
+                //    AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
+                //}
+                //if (emissiveObject != IntPtr.Zero)
+                //{
+                //    AddToMaterialTextureDict(emissiveFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Emissive);
+                //}
+                //connectSrcObjects(texture.TextureUsageSimple, outputSurface, textureObject, emissiveObject);
             }
 
-            materialCache[hash] = outputSurface;
+            materialCache.Add(hash, outputSurface);
             return outputSurface;
         }
 
@@ -99,12 +119,12 @@ namespace ZoneFbx.Processor
         private void AddToMaterialTextureDict(string filename, Material material, MaterialTextureHelper.EffectiveTextureUsage usage)
         {
             var mtrlFileName = Path.GetFileName(material.MaterialPath);
-            if (!materialTextureDict.TryGetValue(mtrlFileName, out var arr))
+            if (!materialTextureDict.TryGetValue(mtrlFileName, out var subdict))
             {
-                arr = new();
-                materialTextureDict.Add(mtrlFileName, arr);
+                subdict = new();
+                materialTextureDict.Add(mtrlFileName, subdict);
             }
-            arr.Add(new(filename, usage));
+                subdict.TryAdd(filename, usage);
         }
 
         private MaterialTextureHelper.EffectiveTextureUsage getUsage(Texture.Usage usage)

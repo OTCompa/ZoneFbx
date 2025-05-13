@@ -68,5 +68,11 @@
     <ClCompile Include="FbxLight.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FbxLayeredTexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FbxProperty.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

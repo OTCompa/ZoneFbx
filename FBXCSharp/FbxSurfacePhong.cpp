@@ -27,4 +27,9 @@ extern "C" {
             outsurface->Emissive.ConnectSrcObject(texture); break;
         }
     }
+
+    __declspec(dllexport) bool FbxSurfacePhong_PropertyExists(FbxSurfacePhong* outsurface, const char* propertyName) {
+        auto property = outsurface->FindProperty(propertyName);
+        return property.IsValid();
+    }
 }

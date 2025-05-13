@@ -45,12 +45,11 @@ namespace ZoneFbx.Processor
                     color = materialInfo?.SpecularColor; break;
             }
 
-            var textureOutputPath = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, color, type: suffix);
-            extractTexture(tex, color, textureOutputPath);
-            filename = textureOutputPath;
+            filename = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, color);
+            extractTexture(tex, color, filename);
 
             if (!string.IsNullOrEmpty(suffix) && !suffix.Equals("_e")) return IntPtr.Zero;
-            return initializeFileTexture(tex.TexturePath, textureOutputPath, suffix);
+            return initializeFileTexture(tex.TexturePath, filename, suffix);
         }
 
         private IntPtr initializeFileTexture(string texfilePath, string textureOutputPath, string suffix = "")

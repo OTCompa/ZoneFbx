@@ -64,7 +64,7 @@ namespace ZoneFbx
             }
 
             textureProcessor = new(data, this.outputPath, zoneCode, scene);
-            materialProcessor = new(data, textureProcessor, scene, flags, outputPath);
+            materialProcessor = new(data, textureProcessor, scene, flags, this.outputPath);
             modelProcessor = new(data, materialProcessor, manager, scene);
             instanceObjectProcessor = new(data, modelProcessor, scene, flags);
             layerProcessor = new(data, instanceObjectProcessor, scene, zonePath, this.outputPath, flags);
