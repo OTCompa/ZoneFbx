@@ -8,19 +8,19 @@ namespace ZoneFbx.Processor
     internal class MaterialInfo
     {
         public Vector3? DiffuseColor { get; set; } = null;
+        public Vector3? Diffuse2Color { get; set; } = null;
         public Vector3? SpecularColor { get; set; } = null;
+        public Vector3? Specular2Color { get; set; } = null;
         public Vector3? EmissiveColor { get; set; } = null;
+        public Vector3? Emissive2Color { get; set; } = null;
 
         private ushort? diffuseOffset = null;
+        private ushort? diffuse2Offset = null;
         private ushort? specularOffset = null;
+        private ushort? specular2Offset = null;
         private ushort? emissiveOffset = null;
+        private ushort? emissive2Offset = null;
 
-        public MaterialInfo(Vector3? diffuseColor = null, Vector3? specularColor = null, Vector3? emissiveColor = null)
-        {
-            if (diffuseColor != null) DiffuseColor = diffuseColor;
-            if (specularColor != null) SpecularColor = specularColor;
-            if (emissiveColor != null) EmissiveColor = emissiveColor;
-        }
 
         public MaterialInfo(Material material)
         {
@@ -28,13 +28,18 @@ namespace ZoneFbx.Processor
 
             readConstants(material);
 
-            if (diffuseOffset == -1 && specularOffset == -1 && emissiveOffset == -1)
+            if (diffuseOffset == -1 && specularOffset == -1 && emissiveOffset == -1 && diffuse2Offset == -1)
                 return;
 
             var br = material.File.Reader;
             long baseOffset = getMaterialConstantBaseOffset(br);
 
             readColorConstants(br, baseOffset);
+            if (EmissiveColor == Vector3.Zero && Emissive2Color == Vector3.Zero)
+            {
+                EmissiveColor = null;
+                Emissive2Color = null;
+            }
         }
 
         private void readConstants(Material material)
@@ -64,6 +69,20 @@ namespace ZoneFbx.Processor
                             Console.WriteLine("Unexpected size for emmisive color. May cause unexpected results.");
                         }
                         emissiveOffset = constant.ValueOffset;
+                        break;
+                    case 0xAA676D0F:
+                        if (constant.ValueSize != 12)
+                        {
+                            Console.WriteLine("Unexpected size for diffuse color. May cause unexpected results.");
+                        }
+                        diffuse2Offset = constant.ValueOffset;
+                        break;
+                    case 0x3F8AC211:
+                        if (constant.ValueSize != 12)
+                        {
+                            Console.WriteLine("Unexpected size for emmisive color. May cause unexpected results.");
+                        }
+                        emissive2Offset = constant.ValueOffset;
                         break;
                 }
             }
@@ -109,7 +128,11 @@ namespace ZoneFbx.Processor
             // get all the relevant information
             if (diffuseOffset.HasValue)
             {
-                DiffuseColor = readVector3Constant(br, baseOffset + diffuseOffset.Value, true, true);
+                DiffuseColor = readVector3Constant(br, baseOffset + diffuseOffset.Value, false, true);
+            }
+            if (diffuse2Offset.HasValue)
+            {
+                Diffuse2Color = readVector3Constant(br, baseOffset + diffuse2Offset.Value, false, true);
             }
             if (specularOffset.HasValue)
             {
@@ -117,8 +140,11 @@ namespace ZoneFbx.Processor
             }
             if (emissiveOffset.HasValue)
             {
-                EmissiveColor = readVector3Constant(br, baseOffset + emissiveOffset.Value, true, false);
-                EmissiveColor *= .2f;
+                EmissiveColor = readVector3Constant(br, baseOffset + emissiveOffset.Value, false, false);
+            }
+            if (emissive2Offset.HasValue)
+            {
+                Emissive2Color = readVector3Constant(br, baseOffset + emissive2Offset.Value, false, false);
             }
         }
 

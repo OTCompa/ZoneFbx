@@ -40,12 +40,24 @@ namespace ZoneFbx.Processor
                         color = materialInfo?.EmissiveColor;
                         if (color == null) return IntPtr.Zero;
                     }
+                    if (suffix.Equals("_blend"))
+                    {
+                        color = materialInfo?.Diffuse2Color;
+                        //if (materialInfo?.DiffuseColor != null && materialInfo?.DiffuseColor != Vector3.Zero) color *= materialInfo.DiffuseColor;
+                        if (color == null) return IntPtr.Zero;
+                    }
+                    if (suffix.Equals("_e_blend"))
+                    {
+                        color = materialInfo?.Emissive2Color;
+                        Console.WriteLine("Hello!");
+                        if (color == null) return IntPtr.Zero;
+                    }
                     break;
                 case Texture.Usage.Specular:
                     color = materialInfo?.SpecularColor; break;
             }
 
-            filename = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, color);
+            filename = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, color, suffix);
             extractTexture(tex, color, filename);
 
             if (!string.IsNullOrEmpty(suffix) && !suffix.Equals("_e")) return IntPtr.Zero;
