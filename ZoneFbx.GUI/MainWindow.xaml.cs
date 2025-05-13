@@ -149,6 +149,17 @@ namespace ZoneFbx.GUI
             }
         }
 
+        private bool _enableBlend = false;
+        public bool EnableBlend
+        {
+            get => _enableBlend;
+            set
+            {
+                _enableBlend = value;
+                OnPropertyChanged(nameof(EnableBlend));
+            }
+        }
+
         private bool _disableBaking = false;
         public bool DisableBaking
         {
@@ -273,7 +284,8 @@ namespace ZoneFbx.GUI
                     EnableFestival ? "f" : "",
                     DisableBaking ? "b" : "",
                     EnableJsonExport ? "j" : "",
-                    EnableLighting ? "i" : ""
+                    EnableLighting ? "i" : "",
+                    EnableBlend ? "s" : "",
                     }
                 ]);
 

@@ -49,7 +49,6 @@ namespace ZoneFbx.Processor
                     if (suffix.Equals("_e_blend"))
                     {
                         color = materialInfo?.Emissive2Color;
-                        Console.WriteLine("Hello!");
                         if (color == null) return IntPtr.Zero;
                     }
                     break;

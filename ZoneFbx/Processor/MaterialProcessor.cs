@@ -72,13 +72,16 @@ namespace ZoneFbx.Processor
                 if (texture == null || texture.TexturePath.Contains("dummy")) continue;
                 if (alreadySet.Contains(texture.TextureUsageSimple))
                 {
-                    textureProcessor.PrepareTexture(material, texture, materialInfo, out filename, "_blend");
-                    if (!string.IsNullOrEmpty(filename) && !SurfacePhong.PropertyExists(outputSurface, texture.TextureUsageSimple.ToString()))
+                    if (flags.enableBlend)
                     {
-                        Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple.ToString()}", filename);
-                        alreadyRecorded.Add(filename);
+                        textureProcessor.PrepareTexture(material, texture, materialInfo, out filename, "_blend");
+                        if (!string.IsNullOrEmpty(filename) && !SurfacePhong.PropertyExists(outputSurface, texture.TextureUsageSimple.ToString()))
+                        {
+                            Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple}", filename);
+                            alreadyRecorded.Add(filename);
+                        }
+                        AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
                     }
-                    AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
                     continue;
                 }
                 alreadySet.Add(texture.TextureUsageSimple);
@@ -91,11 +94,14 @@ namespace ZoneFbx.Processor
                     AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
                     alreadyRecorded.Add(filename);
 
-                    if (materialInfo != null && materialInfo.Diffuse2Color != null)
+                    if (flags.enableBlend)
                     {
-                        textureProcessor.PrepareTexture(material, texture, materialInfo, out var diffuse2Filename, "_blend");
-                        AddToMaterialTextureDict(diffuse2Filename, material, MaterialTextureHelper.EffectiveTextureUsage.Diffuse);
-                        Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple.ToString()}", diffuse2Filename);
+                        if (materialInfo != null && materialInfo.Diffuse2Color != null)
+                        {
+                            textureProcessor.PrepareTexture(material, texture, materialInfo, out var diffuse2Filename, "_blend");
+                            AddToMaterialTextureDict(diffuse2Filename, material, MaterialTextureHelper.EffectiveTextureUsage.Diffuse);
+                            Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple.ToString()}", diffuse2Filename);
+                        }
                     }
                 }
                 if (emissiveObject != IntPtr.Zero)
@@ -103,11 +109,14 @@ namespace ZoneFbx.Processor
                     alreadyRecorded.Add(filename);
                     AddToMaterialTextureDict(emissiveFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Emissive);
 
-                    if (materialInfo != null && materialInfo.Emissive2Color != null && texture.TextureUsageSimple == Texture.Usage.Diffuse)
+                    if (flags.enableBlend)
                     {
-                        textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissive2Filename, "_e_blend");
-                        AddToMaterialTextureDict(emissiveFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Emissive);
-                        Property.CreateString(outputSurface, $"BlendEmissive", emissive2Filename);
+                        if (materialInfo != null && materialInfo.Emissive2Color != null && texture.TextureUsageSimple == Texture.Usage.Diffuse)
+                        {
+                            textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissive2Filename, "_e_blend");
+                            AddToMaterialTextureDict(emissiveFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Emissive);
+                            Property.CreateString(outputSurface, $"BlendEmissive", emissive2Filename);
+                        }
                     }
                 }
 
@@ -118,10 +127,12 @@ namespace ZoneFbx.Processor
             return outputSurface;
         }
 
-        public void ExportTextureJson()
+        public void ExportJsonTextureMap()
         {
             var jsonExport = JsonConvert.SerializeObject(materialTextureDict, Formatting.Indented);
-            File.WriteAllText(Path.Combine(outputPath, "materialTextureMap.json"), jsonExport);
+            var jsonFolder = Path.Combine(outputPath, "json");
+            Directory.CreateDirectory(jsonFolder);
+            File.WriteAllText(Path.Combine(jsonFolder, "materialTextureMap.json"), jsonExport);
         }
 
         private void AddToMaterialTextureDict(string filename, Material material, MaterialTextureHelper.EffectiveTextureUsage usage)

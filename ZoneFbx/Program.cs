@@ -76,6 +76,8 @@ if (args.Length >= 4)
                     flags.enableJsonExport = true; break;
                 case 'i':
                     flags.enableLighting = true; break;
+                case 's':
+                    flags.enableBlend = true; break;    
                 default:
                     Console.WriteLine($"Unknown flag: {flag}");
                     break;

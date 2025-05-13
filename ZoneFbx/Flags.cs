@@ -8,6 +8,7 @@
             public bool enableLighting = false;
             public bool enableFestivals = false;
             public bool enableJsonExport = false;
+            public bool enableBlend = false;
 
             public bool disableBaking = false;
         }

@@ -28,7 +28,7 @@ namespace ZoneFbx.Processor
 
             readConstants(material);
 
-            if (diffuseOffset == -1 && specularOffset == -1 && emissiveOffset == -1 && diffuse2Offset == -1)
+            if (diffuseOffset == -1 && specularOffset == -1 && emissiveOffset == -1 && diffuse2Offset == -1 && emissive2Offset == -1)
                 return;
 
             var br = material.File.Reader;

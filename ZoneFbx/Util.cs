@@ -79,10 +79,7 @@ namespace ZoneFbx
             var jsonFolder = Path.Combine(output_path, "json");
             Directory.CreateDirectory(jsonFolder);
             var filepath = Path.Combine(jsonFolder, $"{filename}.json");
-            if (!File.Exists(filepath))
-            {
-                File.WriteAllText(Path.Combine(jsonFolder, $"{filename}.json"), layerJson);
-            }
+            File.WriteAllText(Path.Combine(jsonFolder, $"{filename}.json"), layerJson);
         }
 
         public static void InitChildNode(InstanceObject obj, IntPtr node)

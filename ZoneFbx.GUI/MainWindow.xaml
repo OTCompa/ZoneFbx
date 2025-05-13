@@ -6,9 +6,9 @@
         xmlns:local="clr-namespace:ZoneFbx.GUI"
         Background="#606060"
         mc:Ignorable="d"
-        MinHeight="550"
+        MinHeight="575"
         MinWidth="750"
-        Title="ZoneFbx.GUI" Height="550" Width="652">
+        Title="ZoneFbx.GUI" Height="575" Width="652">
     <Window.Resources>
         <Style TargetType="{x:Type ComboBoxItem}">
             <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -53,7 +53,7 @@
         </Grid.RowDefinitions>
         <TextBox Name="ConsoleTextBox"
                      Text="{Binding ConsoleString}"
-                     MinWidth="700" MinHeight="320"
+                     MinWidth="700" MinHeight="350"
                      IsReadOnly="True"
                      VerticalScrollBarVisibility="Visible"
                      HorizontalScrollBarVisibility="Auto" Margin="0,0,0,10"
@@ -113,8 +113,10 @@
                 <CheckBox IsChecked="{Binding EnableLightshaft, Mode=TwoWay}">Enable lightshaft models</CheckBox>
                 <CheckBox Grid.Column="1" IsChecked="{Binding EnableLighting, Mode=TwoWay}">Enable lighting</CheckBox>
                 <CheckBox Grid.Column="2" IsChecked="{Binding EnableFestival, Mode=TwoWay}">Enable festival models</CheckBox>
+                
                 <CheckBox Grid.Row="1" IsChecked="{Binding DisableBaking, Mode=TwoWay}">Disable baking textures</CheckBox>
-                <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding EnableJsonExport, Mode=TwoWay}">Enable LGB/SGB Json export</CheckBox>
+                <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding EnableBlend, Mode=TwoWay}">Enable blended textures</CheckBox>
+                <CheckBox Grid.Row="1" Grid.Column="2" IsChecked="{Binding EnableJsonExport, Mode=TwoWay}">Debug: Enable JSON export</CheckBox>
             </Grid>
             <LineBreak/>
             <LineBreak/>

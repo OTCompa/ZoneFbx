@@ -92,7 +92,7 @@ namespace ZoneFbx
                 return;
             }
 
-            materialProcessor.ExportTextureJson();
+            if (flags.enableJsonExport) materialProcessor.ExportJsonTextureMap();
 
             Console.WriteLine($"Done! Map exported to {Path.Combine(this.outputPath, $"{Path.GetFileName(zoneCode)}.fbx")}");
 
