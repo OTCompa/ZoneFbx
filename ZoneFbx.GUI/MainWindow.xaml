@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ZoneFbx.GUI"
         Background="#606060"
         mc:Ignorable="d"
-        MinHeight="575"
+        MinHeight="650"
         MinWidth="750"
         Title="ZoneFbx.GUI" Height="575" Width="652">
     <Window.Resources>
@@ -49,7 +49,7 @@
     <Grid Margin="10,25,10,-6">
         <Grid.RowDefinitions>
             <RowDefinition Height="1*" />
-            <RowDefinition Height="175" />
+            <RowDefinition Height="210" />
         </Grid.RowDefinitions>
         <TextBox Name="ConsoleTextBox"
                      Text="{Binding ConsoleString}"
@@ -103,6 +103,8 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1*" />
                     <RowDefinition Height="1*"/>
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
@@ -116,7 +118,9 @@
                 
                 <CheckBox Grid.Row="1" IsChecked="{Binding DisableBaking, Mode=TwoWay}">Disable baking textures</CheckBox>
                 <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding EnableBlend, Mode=TwoWay}">Enable blended textures</CheckBox>
-                <CheckBox Grid.Row="1" Grid.Column="2" IsChecked="{Binding EnableJsonExport, Mode=TwoWay}">Debug: Enable JSON export</CheckBox>
+                
+                <CheckBox Grid.Row="3" IsChecked="{Binding EnableJsonExport, Mode=TwoWay}">Debug: Enable JSON export</CheckBox>
+                <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding EnableMTMap, Mode=TwoWay}">Debug: Material texture map</CheckBox>
             </Grid>
             <LineBreak/>
             <LineBreak/>

@@ -160,6 +160,17 @@ namespace ZoneFbx.GUI
             }
         }
 
+        private bool _enableMTMap = false;
+        public bool EnableMTMap
+        {
+            get => _enableMTMap;
+            set
+            {
+                _enableMTMap = value;
+                OnPropertyChanged(nameof(EnableMTMap));
+            }
+        }
+
         private bool _disableBaking = false;
         public bool DisableBaking
         {
@@ -286,6 +297,7 @@ namespace ZoneFbx.GUI
                     EnableJsonExport ? "j" : "",
                     EnableLighting ? "i" : "",
                     EnableBlend ? "s" : "",
+                    EnableMTMap ? "m" : "",
                     }
                 ]);
 

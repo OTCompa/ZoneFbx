@@ -9,6 +9,7 @@
             public bool enableFestivals = false;
             public bool enableJsonExport = false;
             public bool enableBlend = false;
+            public bool enableMTMap = false;
 
             public bool disableBaking = false;
         }

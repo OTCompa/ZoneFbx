@@ -54,7 +54,7 @@ namespace ZoneFbx.Processor
                         {
                             Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple}", Path.GetFileName(outputFilePath));
                         }
-                        AddToMaterialTextureDict(outputFilePath, material, texture.TextureUsageRaw.ToString());
+                        addToMaterialTextureDict(Path.GetFileNameWithoutExtension(outputFilePath), material, $"Blend{texture.TextureUsageSimple}");
                     }
                     continue;
                 }
@@ -62,14 +62,14 @@ namespace ZoneFbx.Processor
                 textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out outputFilePath);
                 if (textureObject == IntPtr.Zero) return IntPtr.Zero;
 
-                AddToMaterialTextureDict(outputFilePath, material, texture.TextureUsageRaw.ToString());
+                addToMaterialTextureDict(Path.GetFileNameWithoutExtension(outputFilePath), material, texture.TextureUsageSimple.ToString());
                 if (texture.TextureUsageSimple == Texture.Usage.Diffuse)
                 {
                     var emissiveObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissiveFilename, "_e");
                     if (emissiveObject != IntPtr.Zero)
                     {
                         SurfacePhong.ConnectSrcObject(outputSurface, emissiveObject, 3);
-                        AddToMaterialTextureDict(emissiveFilename, material, "Emissive");
+                        addToMaterialTextureDict(Path.GetFileNameWithoutExtension(emissiveFilename), material, "Emissive");
 
                         // for materials that blend textures, if they contain an emissive, create a dummy texture for the emissive to blend with
                         // this may need to be researched more but it produces what looks to be the correct result for the maps i've tested so far?
@@ -79,7 +79,7 @@ namespace ZoneFbx.Processor
                             if (!string.IsNullOrEmpty(emissiveDummyPath) && !SurfacePhong.PropertyExists(outputSurface, "BlendEmissive"))
                             {
                                 Property.CreateString(outputSurface, "BlendEmissive", Path.GetFileName(emissiveDummyPath));
-                                AddToMaterialTextureDict(emissiveDummyPath, material, "BlendEmissive");
+                                addToMaterialTextureDict(Path.GetFileNameWithoutExtension(emissiveDummyPath), material, "BlendEmissive");
                             }
                         }
                     }
@@ -100,14 +100,31 @@ namespace ZoneFbx.Processor
             File.WriteAllText(Path.Combine(jsonFolder, "materialTextureMap.json"), jsonExport);
         }
 
-        private void AddToMaterialTextureDict(string filename, Material material, string usage)
+        private void addToMaterialTextureDict(string filename, Material material, string usage)
         {
-            if (!materialTextureDict.TryGetValue(material.MaterialPath, out var subdict))
+            var materialPath = material.MaterialPath;
+            if (flags.enableMTMap)
+            {
+                materialPath = Path.GetFileNameWithoutExtension(materialPath);
+            }
+
+            if (!materialTextureDict.TryGetValue(materialPath, out var subdict))
             {
                 subdict = new();
-                materialTextureDict.Add(material.MaterialPath, subdict);
+                materialTextureDict.Add(materialPath, subdict);
             }
-                subdict.TryAdd(filename, usage);
+            if (!subdict.TryAdd(usage, filename))
+            {
+                incrementAndTryAdd(subdict, $"Unused{usage}", filename);
+            }
+        }
+
+        private void incrementAndTryAdd(Dictionary<string, string> dict, string usage, string filename, int num = 0)
+        {
+            if (!dict.TryAdd($"{usage}num", filename))
+            {
+                incrementAndTryAdd(dict, usage, filename, num + 1);
+            }
         }
 
         private void connectSrcObjects(Texture.Usage type, IntPtr outputSurface, IntPtr texture)
