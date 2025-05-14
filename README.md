@@ -26,11 +26,36 @@ manually in the future.
 
 For all meshes:
 - Specular factor = 0.3
-- Emissive factor = 0.2 (Applied when baking textures since the FBX SDK's emissiveFactor didn't seem to be doing anything)
 - Normal factor = 0.2
 
 For all lighting:
 - Intensity factor = 1000
+
+## Blended textures
+Some of the textures ingame are blended with another texture, or with the same texture with a different tint.
+Since this would be more in shader territory, it's not possible (that I know of) to make this happen in just
+an FBX file. To make up for this, I've added the following custom properties to the materials where relevant when
+the blend textures flag is toggled:
+- `BlendDiffuse`
+- `BlendEmissive`
+- `BlendSpecular`
+- `BlendNormal`
+
+The values for these custom properties is just the file name of the secondary texture. You can then post-process
+the imported FBX file in whatever 3D modeling program you prefer. Since I use Blender, I made a simple plugin
+that automates the process of adding the requisite things to blend textures: https://github.com/OTCompa/ZoneFbxBlenderPlugin
+
+If custom properties aren't available in the program you use, the material texture map flag outputs
+a JSON file `materialTextureMap.json` that maps materials to their respective textures in this format:
+```
+{
+  "material_name_without_ext": {
+    "Diffuse": "file_name_without_ext",
+    "BlendDiffuse": "file2",
+    // same idea for the rest
+  },
+}
+```
 
 # Usage
 ## GUI
@@ -51,6 +76,7 @@ From top to bottom:
 - `-b`    Disables texture baking
 - `-j`    Exports all relevant LGB/SGB files as JSON for debugging purposes
 - `-i`    Allows light sources to be included in the final export
+- `-m`    Exports a material map for json
 
 https://streamable.com/tjg45n
 
