@@ -35,7 +35,7 @@ namespace ZoneFbx.Processor
             if (materialCache.TryGetValue(hash, out var res)) return res;
 
             var materialInfo = flags.disableBaking ? null : new MaterialInfo(material, outputPath, flags);
-            var outputSurface = SurfacePhong.Create(scene, Path.GetFileName(material.MaterialPath));
+            var outputSurface = SurfacePhong.Create(scene, Path.GetFileNameWithoutExtension(material.MaterialPath));
             SurfacePhong.SetFactor(outputSurface);
 
             HashSet<Texture.Usage> alreadySet = new HashSet<Texture.Usage>();
