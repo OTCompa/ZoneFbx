@@ -1,62 +1,65 @@
 ﻿using Lumina.Data;
+using Lumina.Excel.Sheets;
 using Lumina.Extensions;
 using Lumina.Models.Materials;
 using System.Numerics;
+using System.Reflection.Metadata;
+using System.Text;
 
 namespace ZoneFbx.Processor
 {
     internal class MaterialInfo
     {
-        public Vector3? DiffuseColor { get; set; } = null;
-        public Vector3? Diffuse2Color { get; set; } = null;
-        public Vector3? SpecularColor { get; set; } = null;
-        public Vector3? Specular2Color { get; set; } = null;
-        public Vector3? EmissiveColor { get; set; } = null;
-        public Vector3? Emissive2Color { get; set; } = null;
-        public bool BlendEnabled { get; set; } = false;
+        public Vector3? DiffuseFactor { get; set; } = null;
+        public Vector3? BlendDiffuseFactor { get; set; } = null;
+        public Vector3? SpecularFactor { get; set; } = null;
+        //public Vector3? BlendSpecularFactor { get; set; } = null;
+        public Vector3? EmissiveFactor { get; set; } = null;
+        //public Vector3? Emissive2Color { get; set; } = null;
+        public Vector3? NormalFactor { get; set; } = null;
+        public bool DiffuseBlendEnabled { get; set; } = false;
 
         private ushort? diffuseOffset = null;
-        private ushort? diffuse2Offset = null;
+        private ushort? blendDiffuseOffset = null;
+        private ushort? backupDiffuseOffset = null;
         private ushort? specularOffset = null;
-        private ushort? specular2Offset = null;
+        //private ushort? specular2Offset = null;
         private ushort? emissiveOffset = null;
-        private ushort? emissive2Offset = null;
+        //private ushort? emissive2Offset = null;
+        private ushort? normalOffset = null;
 
 
-        public MaterialInfo(Material material)
+        public MaterialInfo(Material material, string outputPath, ZoneExporter.Flags flags)
         {
             if (material.File == null) return;
 
             foreach (var key in material.File.ShaderKeys)
             {
+                // texture mode == blend?
+                // every material with 2 different textures or 2 different diffuse factors has this keyval combo
+                // removing this keyval combo also disables blending so this should be correct
                 if (key.Category == 0xB616DC5A && key.Value == 0x1DF2985C)
                 {
-                    BlendEnabled = true;
-                    break;
+                    DiffuseBlendEnabled = true;
                 }
             }
 
             readConstants(material);
 
-            if (diffuseOffset == -1 && specularOffset == -1 && emissiveOffset == -1 && diffuse2Offset == -1 && emissive2Offset == -1)
+            if (diffuseOffset == -1 && specularOffset == -1 && emissiveOffset == -1 && blendDiffuseOffset == -1)
                 return;
 
             var br = material.File.Reader;
             long baseOffset = getMaterialConstantBaseOffset(br);
 
             readColorConstants(br, baseOffset);
-            if ((EmissiveColor == Vector3.Zero || EmissiveColor == null) && (Emissive2Color == Vector3.Zero || Emissive2Color == null))
+
+            if (!DiffuseBlendEnabled)
             {
-                EmissiveColor = null;
-                Emissive2Color = null;
+                BlendDiffuseFactor = null;
             }
 
-            if (!BlendEnabled)
-            {
-                diffuse2Offset = null;
-                specular2Offset = null;
-                emissive2Offset = null;
-            }
+            if (flags.enableJsonExport) exportShaderConstants(material, outputPath, br, baseOffset);
         }
 
         private void readConstants(Material material)
@@ -88,19 +91,35 @@ namespace ZoneFbx.Processor
                         emissiveOffset = constant.ValueOffset;
                         break;
                     case 0xAA676D0F:
+                        // diffuse blend color
                         if (constant.ValueSize != 12)
                         {
                             Console.WriteLine("Unexpected size for diffuse color. May cause unexpected results.");
                         }
-                        diffuse2Offset = constant.ValueOffset;
+                        blendDiffuseOffset = constant.ValueOffset;
                         break;
                     case 0x3F8AC211:
+                        // secondary entry for diffuses?
+                        // if both primary and blend diffuses exist,
+                        // whichever component is larger among this and the primary vector is the value for the final DiffuseColor vector
+                        // if the blend diffuse doesn't exist, then this seems to be used as the blend diffuse
+                        // see: n4g8 (E8S) crystals, n4gw (FRU) crystals, x6r7 (M8S) P1/P2 floor
                         if (constant.ValueSize != 12)
                         {
-                            Console.WriteLine("Unexpected size for emmisive color. May cause unexpected results.");
+                            Console.WriteLine("Unexpected size for diffuse color. May cause unexpected results.");
                         }
-                        emissive2Offset = constant.ValueOffset;
+                        backupDiffuseOffset = constant.ValueOffset;
                         break;
+                    case 0xB5545FBB:
+                        // TODO: actually implement this
+                        if (constant.ValueSize != 4)
+                        {
+                            Console.WriteLine("Unexpected size for normal factor. May cause unexpected results.");
+                        }
+                        normalOffset = constant.ValueOffset;
+                        break;
+                    //case 0x793AC5A3:
+                    // normal blend?
                 }
             }
         }
@@ -145,24 +164,49 @@ namespace ZoneFbx.Processor
             // get all the relevant information
             if (diffuseOffset.HasValue)
             {
-                DiffuseColor = readVector3Constant(br, baseOffset + diffuseOffset.Value, false, true);
+                DiffuseFactor = readVector3Constant(br, baseOffset + diffuseOffset.Value, false, true);
             }
-            if (diffuse2Offset.HasValue)
+
+            if (blendDiffuseOffset.HasValue)
             {
-                Diffuse2Color = readVector3Constant(br, baseOffset + diffuse2Offset.Value, true, true);
+                BlendDiffuseFactor = readVector3Constant(br, baseOffset + blendDiffuseOffset.Value, true, true);
             }
             if (specularOffset.HasValue)
             {
-                SpecularColor = readVector3Constant(br, baseOffset + specularOffset.Value, false, true);
+                SpecularFactor = readVector3Constant(br, baseOffset + specularOffset.Value, false, true);
             }
             if (emissiveOffset.HasValue)
             {
-                EmissiveColor = readVector3Constant(br, baseOffset + emissiveOffset.Value, false, false);
+                EmissiveFactor = readVector3Constant(br, baseOffset + emissiveOffset.Value, false, false);
             }
-            if (emissive2Offset.HasValue)
+            if (normalOffset.HasValue)
             {
-                Emissive2Color = readVector3Constant(br, baseOffset + emissive2Offset.Value, false, false);
+                NormalFactor = readVector3Constant(br, baseOffset + normalOffset.Value, false, false);
             }
+
+            // for notes on this: see the comment around where this is set
+            if (backupDiffuseOffset.HasValue)
+            {
+                var temp = readVector3Constant(br, baseOffset + backupDiffuseOffset.Value, true, true);
+                if (DiffuseFactor == null)
+                {
+                    DiffuseFactor = temp;
+                } else if (BlendDiffuseFactor != null)
+                {
+                    if (temp != null)
+                    {
+                        DiffuseFactor = new Vector3(
+                            Math.Max(temp.Value.X, DiffuseFactor.Value.X),
+                            Math.Max(temp.Value.Y, DiffuseFactor.Value.Y),
+                            Math.Max(temp.Value.Z, DiffuseFactor.Value.Z)
+                        );
+                    }
+                } else
+                {
+                    BlendDiffuseFactor = temp;
+                }
+            }
+
         }
 
         private Vector3? readVector3Constant(LuminaBinaryReader br, long offset, bool filterZero = false, bool filterOne = false)
@@ -173,6 +217,31 @@ namespace ZoneFbx.Processor
             if (filterZero && v == Vector3.Zero || filterOne && v == Vector3.One) return null;
 
             return v;
+        }
+
+        private void exportShaderConstants(Material material, string outputPath, LuminaBinaryReader br, long baseOffset)
+        {
+            var sb = new StringBuilder();
+            sb.Append("ConstantId,0,1,2,3\n");
+            foreach (var constant in material.File!.Constants)
+            {
+                br.Seek(baseOffset + constant.ValueOffset);
+                var shaderConstantValues = br.ReadSingleArray(constant.ValueSize / 4);
+                sb.Append($"{constant.ConstantId:X}");
+                foreach (var value in shaderConstantValues)
+                {
+                    sb.Append($",{value.ToString()}");
+                }
+                for (int i = 0; i < 4 - shaderConstantValues.Length; i++)
+                {
+                    sb.Append(",");
+                }
+                sb.Append("\n");
+            }
+            var folder = Path.Combine(outputPath, "constants");
+            Directory.CreateDirectory(folder);
+            File.WriteAllText(Path.Combine(folder, $"{Path.GetFileNameWithoutExtension(material.MaterialPath)}.csv"), sb.ToString());
+
         }
     }
 }

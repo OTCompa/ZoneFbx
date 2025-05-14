@@ -16,30 +16,6 @@ namespace ZoneFbx.Processor
 
         private readonly Dictionary<ulong, IntPtr> materialCache = [];
 
-        internal class MaterialTextureHelper
-        {
-            [JsonConverter(typeof(StringEnumConverter))]
-            public enum EffectiveTextureUsage
-            {
-                Unused,
-                Diffuse,
-                Specular,
-                Normal,
-                Emissive,
-                Unknown,
-            }
-
-            public string filename;
-            public EffectiveTextureUsage effectiveUse;
-
-            public MaterialTextureHelper(string filename, EffectiveTextureUsage effectiveUse)
-            {
-                this.filename = filename;
-                this.effectiveUse = effectiveUse;
-            }
-        }
-
-        //private readonly Dictionary<string, List<MaterialTextureHelper>> materialTextureDict = [];
         private readonly Dictionary<string, Dictionary<string, string>> materialTextureDict = [];
         public MaterialProcessor(Lumina.GameData data, TextureProcessor textureProcessor, IntPtr scene, ZoneExporter.Flags flags, string outputPath)
         {
@@ -58,7 +34,7 @@ namespace ZoneFbx.Processor
             var hash = material.File.FilePath.IndexHash;
             if (materialCache.TryGetValue(hash, out var res)) return res;
 
-            var materialInfo = flags.disableBaking ? null : new MaterialInfo(material);
+            var materialInfo = flags.disableBaking ? null : new MaterialInfo(material, outputPath, flags);
             var outputSurface = SurfacePhong.Create(scene, Path.GetFileName(material.MaterialPath));
             SurfacePhong.SetFactor(outputSurface);
 
@@ -73,7 +49,7 @@ namespace ZoneFbx.Processor
                 {
                     if (flags.enableBlend)
                     {
-                        if (flags.disableBaking || (materialInfo != null && materialInfo.BlendEnabled))
+                        if (flags.disableBaking || (materialInfo != null && materialInfo.DiffuseBlendEnabled))
                         {
                             textureProcessor.PrepareTexture(material, texture, materialInfo, out filename, "_blend");
                             if (!string.IsNullOrEmpty(filename) && !SurfacePhong.PropertyExists(outputSurface, $"Blend{texture.TextureUsageSimple}"))
@@ -84,17 +60,6 @@ namespace ZoneFbx.Processor
                         }
                     }
                     continue;
-                    //if (flags.enableBlend)
-                    //{
-                    //    textureProcessor.PrepareTexture(material, texture, materialInfo, out filename, "_blend");
-                    //    if (!string.IsNullOrEmpty(filename) && !SurfacePhong.PropertyExists(outputSurface, texture.TextureUsageSimple.ToString()))
-                    //    {
-                    //        Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple}", filename);
-                    //        alreadyRecorded.Add(filename);
-                    //    }
-                    //    AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
-                    //}
-                    //continue;
                 }
                 alreadySet.Add(texture.TextureUsageSimple);
                 textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out filename);
@@ -108,51 +73,20 @@ namespace ZoneFbx.Processor
                     {
                         SurfacePhong.ConnectSrcObject(outputSurface, emissiveObject, 3);
                         AddToMaterialTextureDict(emissiveFilename, material, "Emissive");
-                        if (flags.enableBlend)
+
+                        // for materials that blend textures, if they contain an emissive, create a dummy texture for the emissive to blend with
+                        // this may need to be researched more but it produces what looks to be the correct result for the maps i've tested so far?
+                        if (flags.enableBlend && materialInfo != null && materialInfo.DiffuseBlendEnabled)
                         {
-                            textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissiveBlendFilename, "_e_blend");
-                            if (!string.IsNullOrEmpty(emissiveBlendFilename) && !SurfacePhong.PropertyExists(outputSurface, "BlendEmissive"))
+                            var emissiveDummy = textureProcessor.CreateEmissiveDummy();
+                            if (!string.IsNullOrEmpty(emissiveDummy) && !SurfacePhong.PropertyExists(outputSurface, "BlendEmissive"))
                             {
-                                Property.CreateString(outputSurface, $"BlendEmissive", emissiveBlendFilename);
-                                AddToMaterialTextureDict(emissiveBlendFilename, material, "BlendEmissive");
+                                Property.CreateString(outputSurface, "BlendEmissive", emissiveDummy);
+                                AddToMaterialTextureDict(emissiveDummy, material, "BlendEmissive");
                             }
                         }
                     }
                 }
-
-                //textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out filename);
-                //var emissiveObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissiveFilename, "_e");
-
-                //if (textureObject != IntPtr.Zero)
-                //{
-                //    AddToMaterialTextureDict(filename, material, getUsage(texture.TextureUsageSimple));
-                //    alreadyRecorded.Add(filename);
-
-                //    if (flags.enableBlend)
-                //    {
-                //        if (materialInfo != null && materialInfo.BlendEnabled && materialInfo.Diffuse2Color != null)
-                //        {
-                //            textureProcessor.PrepareTexture(material, texture, materialInfo, out var diffuse2Filename, "_blend");
-                //            AddToMaterialTextureDict(diffuse2Filename, material, MaterialTextureHelper.EffectiveTextureUsage.Diffuse);
-                //            Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple.ToString()}", diffuse2Filename);
-                //        }
-                //    }
-                //}
-                //if (emissiveObject != IntPtr.Zero)
-                //{
-                //    alreadyRecorded.Add(filename);
-                //    AddToMaterialTextureDict(emissiveFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Emissive);
-
-                //    //if (flags.enableBlend)
-                //    //{
-                //    //    if (materialInfo != null && materialInfo.Emissive2Color != null && texture.TextureUsageSimple == Texture.Usage.Diffuse)
-                //    //    {
-                //    //        textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissive2Filename, "_e_blend");
-                //    //        AddToMaterialTextureDict(emissiveFilename, material, MaterialTextureHelper.EffectiveTextureUsage.Emissive);
-                //    //        Property.CreateString(outputSurface, $"BlendEmissive", emissive2Filename);
-                //    //    }
-                //    //}
-                //}
 
                 connectSrcObjects(texture.TextureUsageSimple, outputSurface, textureObject);
             }
@@ -179,20 +113,6 @@ namespace ZoneFbx.Processor
                 subdict.TryAdd(filename, usage);
         }
 
-        private MaterialTextureHelper.EffectiveTextureUsage getUsage(Texture.Usage usage)
-        {
-            switch (usage)
-            {
-                case Texture.Usage.Diffuse:
-                    return MaterialTextureHelper.EffectiveTextureUsage.Diffuse;
-                case Texture.Usage.Specular:
-                    return MaterialTextureHelper.EffectiveTextureUsage.Specular;
-                case Texture.Usage.Normal:
-                    return MaterialTextureHelper.EffectiveTextureUsage.Normal;
-                default:
-                    return MaterialTextureHelper.EffectiveTextureUsage.Unknown;
-            }
-        }
         private void connectSrcObjects(Texture.Usage type, IntPtr outputSurface, IntPtr texture)
         {
             switch (type)
