@@ -39,7 +39,7 @@ namespace ZoneFbx.Processor
             SurfacePhong.SetFactor(outputSurface);
 
             HashSet<Texture.Usage> alreadySet = new HashSet<Texture.Usage>();
-            string filename;
+            string outputFilePath;
             for (int i = 0; i < material.Textures.Length; i++)
             {
                 var texture = material.Textures[i];
@@ -47,25 +47,22 @@ namespace ZoneFbx.Processor
                 if (texture == null || texture.TexturePath.Contains("dummy")) continue;
                 if (alreadySet.Contains(texture.TextureUsageSimple))
                 {
-                    if (flags.enableBlend)
+                    if (flags.enableBlend && (flags.disableBaking || (materialInfo != null && materialInfo.DiffuseBlendEnabled)))
                     {
-                        if (flags.disableBaking || (materialInfo != null && materialInfo.DiffuseBlendEnabled))
+                        textureProcessor.PrepareTexture(material, texture, materialInfo, out outputFilePath, "_blend");
+                        if (!string.IsNullOrEmpty(outputFilePath) && !SurfacePhong.PropertyExists(outputSurface, $"Blend{texture.TextureUsageSimple}"))
                         {
-                            textureProcessor.PrepareTexture(material, texture, materialInfo, out filename, "_blend");
-                            if (!string.IsNullOrEmpty(filename) && !SurfacePhong.PropertyExists(outputSurface, $"Blend{texture.TextureUsageSimple}"))
-                            {
-                                Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple}", filename);
-                            }
-                            AddToMaterialTextureDict(filename, material, texture.TextureUsageRaw.ToString());
+                            Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple}", Path.GetFileName(outputFilePath));
                         }
+                        AddToMaterialTextureDict(outputFilePath, material, texture.TextureUsageRaw.ToString());
                     }
                     continue;
                 }
                 alreadySet.Add(texture.TextureUsageSimple);
-                textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out filename);
+                textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out outputFilePath);
                 if (textureObject == IntPtr.Zero) return IntPtr.Zero;
 
-                AddToMaterialTextureDict(filename, material, texture.TextureUsageRaw.ToString());
+                AddToMaterialTextureDict(outputFilePath, material, texture.TextureUsageRaw.ToString());
                 if (texture.TextureUsageSimple == Texture.Usage.Diffuse)
                 {
                     var emissiveObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissiveFilename, "_e");
@@ -78,11 +75,11 @@ namespace ZoneFbx.Processor
                         // this may need to be researched more but it produces what looks to be the correct result for the maps i've tested so far?
                         if (flags.enableBlend && materialInfo != null && materialInfo.DiffuseBlendEnabled)
                         {
-                            var emissiveDummy = textureProcessor.CreateEmissiveDummy();
-                            if (!string.IsNullOrEmpty(emissiveDummy) && !SurfacePhong.PropertyExists(outputSurface, "BlendEmissive"))
+                            var emissiveDummyPath = textureProcessor.CreateEmissiveDummy();
+                            if (!string.IsNullOrEmpty(emissiveDummyPath) && !SurfacePhong.PropertyExists(outputSurface, "BlendEmissive"))
                             {
-                                Property.CreateString(outputSurface, "BlendEmissive", emissiveDummy);
-                                AddToMaterialTextureDict(emissiveDummy, material, "BlendEmissive");
+                                Property.CreateString(outputSurface, "BlendEmissive", Path.GetFileName(emissiveDummyPath));
+                                AddToMaterialTextureDict(emissiveDummyPath, material, "BlendEmissive");
                             }
                         }
                     }
