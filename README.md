@@ -33,9 +33,14 @@ For all lighting:
 
 ## Blended textures
 Some of the textures ingame are blended with another texture, or with the same texture with a different tint.
-Since this would be more in shader territory, it's not possible (that I know of) to make this happen in just
-an FBX file. To make up for this, I've added the following custom properties to the materials where relevant when
-the blend textures flag is toggled:
+
+The alpha channel of the vertex color dictates how much of each texture should show  
+0 -> only original texture shows  
+1 -> only secondary texture shows  
+
+Since blending textures is more in shader territory, it's not possible (that I know of) to make this happen in just
+an FBX file without a proprietary solution. To make up for this, I've added the following custom properties to the
+materials where relevant when the blend textures flag is toggled:
 - `BlendDiffuse`
 - `BlendEmissive`
 - `BlendSpecular`
@@ -56,6 +61,7 @@ a JSON file `materialTextureMap.json` that maps materials to their respective te
   },
 }
 ```
+
 
 # Usage
 ## GUI
@@ -105,3 +111,4 @@ I'd like to thank the people behind these projects for the amount of information
 - [TexTools](https://github.com/TexTools)
 - [Takhlaq](https://github.com/takhlaq/ZoneFbx)
 - [AzureRain1](https://github.com/AzureRain1/ZoneFbx)
+- Sapphire discord for giving me a lot of useful info
