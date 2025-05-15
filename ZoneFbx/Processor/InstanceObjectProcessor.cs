@@ -9,12 +9,9 @@ namespace ZoneFbx.Processor
         private readonly Lumina.GameData data;
         private readonly ModelProcessor modelProcessor;
         private readonly IntPtr scene;
-        private readonly ZoneExporter.Flags flags;
+        private readonly ZoneExporter.Options options;
 
         private Dictionary<int, IntPtr> lightCache = new();
-
-        private const float LightIntensityFactor = 10000;
-
 
         private Dictionary<LightType, Light.EType> lightTypeDict = new()
         {
@@ -31,11 +28,11 @@ namespace ZoneFbx.Processor
             {3, Light.EDecayType.eCubic },
         };
 
-        public InstanceObjectProcessor(Lumina.GameData data, ModelProcessor modelProcessor, IntPtr scene, ZoneExporter.Flags flags) { 
+        public InstanceObjectProcessor(Lumina.GameData data, ModelProcessor modelProcessor, IntPtr scene, ZoneExporter.Options options) { 
             this.data = data;
             this.modelProcessor = modelProcessor;
             this.scene = scene;
-            this.flags = flags;
+            this.options = options;
         }
 
         public IntPtr ProcessInstanceObjectBG(LayerCommon.InstanceObject obj)
@@ -96,7 +93,7 @@ namespace ZoneFbx.Processor
 
         public IntPtr ProcessInstanceObjectLayLight(LayerCommon.InstanceObject obj)
         {
-            if (!flags.enableLighting) return IntPtr.Zero;
+            if (!options.enableLighting) return IntPtr.Zero;
 
 
             var lightObj = (LightInstanceObject)obj.Object;
@@ -116,7 +113,7 @@ namespace ZoneFbx.Processor
             light = Light.Create(scene, $"light_{obj.InstanceId}");
 
 
-            Light.SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity * LightIntensityFactor);
+            Light.SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity * options.lightIntensityFactor);
             Light.SetColor(light, lightObj.DiffuseColorHDRI.Red / 255f, lightObj.DiffuseColorHDRI.Green / 255f, lightObj.DiffuseColorHDRI.Blue / 255f);
             Light.SetLightType(light, lightTypeDict.GetValueOrDefault(lightObj.LightType, Light.EType.ePoint));
             Light.SetDecay(light, lightDecayTypeDict.GetValueOrDefault(lightObj.Attenuation, Light.EDecayType.eNone));

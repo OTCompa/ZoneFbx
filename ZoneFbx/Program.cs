@@ -55,7 +55,7 @@ if (!args[2].EndsWith("\\"))
     return;
 }
 
-var flags = new ZoneExporter.Flags();
+var options = new ZoneExporter.Options();
 
 if (args.Length >= 4)
 {
@@ -67,19 +67,19 @@ if (args.Length >= 4)
             switch(flag)
             {
                 case 'l':
-                    flags.enableLightshaftModels = true; break;
+                    options.enableLightshaftModels = true; break;
                 case 'f':
-                    flags.enableFestivals = true; break;
+                    options.enableFestivals = true; break;
                 case 'b':
-                    flags.disableBaking = true; break;
+                    options.disableBaking = true; break;
                 case 'j':
-                    flags.enableJsonExport = true; break;
+                    options.enableJsonExport = true; break;
                 case 'i':
-                    flags.enableLighting = true; break;
+                    options.enableLighting = true; break;
                 case 's':
-                    flags.enableBlend = true; break;
+                    options.enableBlend = true; break;
                 case 'm':
-                    flags.enableMTMap = true; break;
+                    options.enableMTMap = true; break;
                 default:
                     Console.WriteLine($"Unknown flag: {flag}");
                     break;
@@ -88,4 +88,4 @@ if (args.Length >= 4)
     }
 }
 
-var zoneExporter = new ZoneExporter(args[0], args[1], args[2], flags);
+var zoneExporter = new ZoneExporter(args[0], args[1], args[2], options);

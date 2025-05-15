@@ -15,7 +15,7 @@ namespace ZoneFbx.Fbx
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxSurfacePhong_SetFactor")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial void SetFactor(IntPtr surfacePhong);
+        public static partial void SetFactor(IntPtr surfacePhong, double specularFactor, double normalFactor);
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxSurfacePhong_ConnectSrcObject")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]

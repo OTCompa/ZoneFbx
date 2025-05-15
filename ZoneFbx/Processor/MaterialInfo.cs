@@ -29,7 +29,7 @@ namespace ZoneFbx.Processor
         private ushort? normalOffset = null;
 
 
-        public MaterialInfo(Material material, string outputPath, ZoneExporter.Flags flags)
+        public MaterialInfo(Material material, string outputPath, ZoneExporter.Options options)
         {
             if (material.File == null) return;
 
@@ -59,7 +59,7 @@ namespace ZoneFbx.Processor
                 BlendDiffuseFactor = null;
             }
 
-            if (flags.enableJsonExport) exportShaderConstants(material, outputPath, br, baseOffset);
+            if (options.enableJsonExport) exportShaderConstants(material, outputPath, br, baseOffset);
         }
 
         private void readConstants(Material material)

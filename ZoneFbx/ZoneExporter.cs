@@ -24,7 +24,7 @@ namespace ZoneFbx
         private readonly string outputPath;
         private readonly string zoneCode;
         private readonly Lumina.GameData data;
-        private readonly Flags flags;
+        private readonly Options options;
 
         private readonly TextureProcessor textureProcessor;
         private readonly MaterialProcessor materialProcessor;
@@ -37,12 +37,12 @@ namespace ZoneFbx
         IntPtr manager;
         IntPtr scene;
 
-        public ZoneExporter(string gamePath, string zonePath, string outputPath, Flags flags)
+        public ZoneExporter(string gamePath, string zonePath, string outputPath, Options options)
         {
             this.zonePath = zonePath;
             zoneCode = Path.GetFileName(zonePath);
             this.outputPath = Path.Combine(outputPath, zoneCode) + Path.DirectorySeparatorChar;
-            this.flags = flags;
+            this.options = options;
 
             Directory.CreateDirectory(this.outputPath);
 
@@ -64,10 +64,10 @@ namespace ZoneFbx
             }
 
             textureProcessor = new(data, this.outputPath, zoneCode, scene);
-            materialProcessor = new(data, textureProcessor, scene, flags, this.outputPath);
+            materialProcessor = new(data, textureProcessor, scene, options, this.outputPath);
             modelProcessor = new(data, materialProcessor, manager, scene);
-            instanceObjectProcessor = new(data, modelProcessor, scene, flags);
-            layerProcessor = new(data, instanceObjectProcessor, scene, zonePath, this.outputPath, flags);
+            instanceObjectProcessor = new(data, modelProcessor, scene, options);
+            layerProcessor = new(data, instanceObjectProcessor, scene, zonePath, this.outputPath, options);
             terrainProcessor = new(data, modelProcessor, this.zonePath, manager, scene);
 
             Console.WriteLine("Processing models and textures...");
@@ -92,7 +92,7 @@ namespace ZoneFbx
                 return;
             }
 
-            if (flags.enableJsonExport || flags.enableMTMap) materialProcessor.ExportJsonTextureMap();
+            if (options.enableJsonExport || options.enableMTMap) materialProcessor.ExportJsonTextureMap();
 
             Console.WriteLine($"Done! Map exported to {Path.Combine(this.outputPath, $"{Path.GetFileName(zoneCode)}.fbx")}");
 

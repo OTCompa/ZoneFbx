@@ -14,18 +14,18 @@ namespace ZoneFbx.Processor
         private readonly IntPtr scene;
         private readonly string zone_path;
         private readonly string output_path;
-        private readonly ZoneExporter.Flags flags;
+        private readonly ZoneExporter.Options options;
 
         private readonly ExcelSheet<EObj> EObjSheet;
 
-        public LayerProcessor(Lumina.GameData data, InstanceObjectProcessor instanceObjectProcessor, IntPtr scene, string zone_path, string output_path, ZoneExporter.Flags flags)
+        public LayerProcessor(Lumina.GameData data, InstanceObjectProcessor instanceObjectProcessor, IntPtr scene, string zone_path, string output_path, ZoneExporter.Options options)
         {
             this.data = data;
             this.instanceObjectProcessor = instanceObjectProcessor;
             this.scene = scene;
             this.zone_path = zone_path;
             this.output_path = output_path;
-            this.flags = flags;
+            this.options = options;
 
             try
             {
@@ -64,7 +64,7 @@ namespace ZoneFbx.Processor
 
             var ret = processLayers(file.Layers, root_node);
 
-            if (flags.enableJsonExport)
+            if (options.enableJsonExport)
             {
                 Util.SaveJson(Path.GetFileNameWithoutExtension(lgbPath), file.Layers, output_path);
             }
@@ -127,7 +127,7 @@ namespace ZoneFbx.Processor
                     hasChild = true;
                 }
 
-                if (flags.enableJsonExport)
+                if (options.enableJsonExport)
                 {
                     Util.SaveJson(Path.GetFileNameWithoutExtension(sgbPath), layerGroup.Layers, output_path);
                 }
@@ -142,7 +142,7 @@ namespace ZoneFbx.Processor
             for (int i = 0; i < layers.Length; i++)
             {
                 var layer = layers[i];
-                if (!flags.enableFestivals && layer.FestivalID != 0)
+                if (!options.enableFestivals && layer.FestivalID != 0)
                 {
                     Console.WriteLine($"Skipping festival {layer.FestivalID}");
                     continue;

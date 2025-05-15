@@ -6,12 +6,12 @@ extern "C" {
         return FbxSurfacePhong::Create(scene, name);
     }
 
-    __declspec(dllexport) void FbxSurfacePhong_SetFactor(FbxSurfacePhong* surfacePhong) {
+    __declspec(dllexport) void FbxSurfacePhong_SetFactor(FbxSurfacePhong* surfacePhong, double specularFactor, double bumpFactor) {
         surfacePhong->AmbientFactor.Set(1.);
         surfacePhong->DiffuseFactor.Set(1.);
-        surfacePhong->SpecularFactor.Set(0.3);
+        surfacePhong->SpecularFactor.Set(specularFactor);
         //surfacePhong->EmissiveFactor.Set(0.3);  // doesn't seem to do anything?
-        surfacePhong->BumpFactor.Set(0.2);  // global normal strength, unsure if mtrl files contain this info
+        surfacePhong->BumpFactor.Set(bumpFactor);  // global normal strength, unsure if mtrl files contain this info
         surfacePhong->ShadingModel.Set("Phong");
     }
 

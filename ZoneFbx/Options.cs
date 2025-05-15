@@ -2,7 +2,7 @@
 {
     internal partial class ZoneExporter
     {
-        public class Flags
+        public class Options
         {
             public bool enableLightshaftModels = false;
             public bool enableLighting = false;
@@ -12,6 +12,10 @@
             public bool enableMTMap = false;
 
             public bool disableBaking = false;
+
+            public double specularFactor = 0.3;
+            public double normalFactor = 0.2;
+            public int lightIntensityFactor = 10000;
         }
     }
 }

@@ -9,7 +9,7 @@ namespace ZoneFbx.Processor
     {
         private readonly Lumina.GameData data;
         private readonly TextureProcessor textureProcessor;
-        private readonly ZoneExporter.Flags flags;
+        private readonly ZoneExporter.Options options;
         private readonly IntPtr scene;
 
         private readonly string outputPath;
@@ -17,26 +17,26 @@ namespace ZoneFbx.Processor
         private readonly Dictionary<ulong, IntPtr> materialCache = [];
 
         private readonly Dictionary<string, Dictionary<string, string>> materialTextureDict = [];
-        public MaterialProcessor(Lumina.GameData data, TextureProcessor textureProcessor, IntPtr scene, ZoneExporter.Flags flags, string outputPath)
+        public MaterialProcessor(Lumina.GameData data, TextureProcessor textureProcessor, IntPtr scene, ZoneExporter.Options options, string outputPath)
         {
             this.data = data;
             this.textureProcessor = textureProcessor;
             this.scene = scene;
-            this.flags = flags;
+            this.options = options;
             this.outputPath = outputPath;
         }
 
         public IntPtr CreateMaterial(Material material)
         {
-            if (!flags.enableLightshaftModels && material.ShaderPack == "lightshaft.shpk") return IntPtr.Zero;
+            if (!options.enableLightshaftModels && material.ShaderPack == "lightshaft.shpk") return IntPtr.Zero;
 
             if (material.File == null) return IntPtr.Zero;
             var hash = material.File.FilePath.IndexHash;
             if (materialCache.TryGetValue(hash, out var res)) return res;
 
-            var materialInfo = flags.disableBaking ? null : new MaterialInfo(material, outputPath, flags);
+            var materialInfo = options.disableBaking ? null : new MaterialInfo(material, outputPath, options);
             var outputSurface = SurfacePhong.Create(scene, Path.GetFileNameWithoutExtension(material.MaterialPath));
-            SurfacePhong.SetFactor(outputSurface);
+            SurfacePhong.SetFactor(outputSurface, options.specularFactor, options.normalFactor);
 
             HashSet<Texture.Usage> alreadySet = new HashSet<Texture.Usage>();
             string outputFilePath;
@@ -47,7 +47,7 @@ namespace ZoneFbx.Processor
                 if (texture == null || texture.TexturePath.Contains("dummy")) continue;
                 if (alreadySet.Contains(texture.TextureUsageSimple))
                 {
-                    if (flags.enableBlend && (flags.disableBaking || (materialInfo != null && materialInfo.DiffuseBlendEnabled)))
+                    if (options.enableBlend && (options.disableBaking || (materialInfo != null && materialInfo.DiffuseBlendEnabled)))
                     {
                         textureProcessor.PrepareTexture(material, texture, materialInfo, out outputFilePath, "_blend");
                         if (!string.IsNullOrEmpty(outputFilePath) && !SurfacePhong.PropertyExists(outputSurface, $"Blend{texture.TextureUsageSimple}"))
@@ -73,7 +73,7 @@ namespace ZoneFbx.Processor
 
                         // for materials that blend textures, if they contain an emissive, create a dummy texture for the emissive to blend with
                         // this may need to be researched more but it produces what looks to be the correct result for the maps i've tested so far?
-                        if (flags.enableBlend && materialInfo != null && materialInfo.DiffuseBlendEnabled)
+                        if (options.enableBlend && materialInfo != null && materialInfo.DiffuseBlendEnabled)
                         {
                             var emissiveDummyPath = textureProcessor.CreateEmissiveDummy();
                             if (!string.IsNullOrEmpty(emissiveDummyPath) && !SurfacePhong.PropertyExists(outputSurface, "BlendEmissive"))
@@ -103,7 +103,7 @@ namespace ZoneFbx.Processor
         private void addToMaterialTextureDict(string filename, Material material, string usage)
         {
             var materialPath = material.MaterialPath;
-            if (flags.enableMTMap)
+            if (options.enableMTMap)
             {
                 materialPath = Path.GetFileNameWithoutExtension(materialPath);
             }
