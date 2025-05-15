@@ -61,7 +61,15 @@ namespace ZoneFbx.Processor
             if (file == null) return false;
 
             var root_node = Scene.GetRootNode(scene);
-            return processLayers(file.Layers, root_node);
+
+            var ret = processLayers(file.Layers, root_node);
+
+            if (flags.enableJsonExport)
+            {
+                Util.SaveJson(Path.GetFileNameWithoutExtension(lgbPath), file.Layers, output_path);
+            }
+
+            return ret;
         }
 
         private IntPtr processInstanceObject(LayerCommon.InstanceObject obj)
