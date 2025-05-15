@@ -1,5 +1,6 @@
 ﻿using JeremyAnsel.BcnSharp;
 using Lumina.Data.Files;
+using Lumina.Data.Parsing.Tex.Buffers;
 using Lumina.Models.Materials;
 using System.IO.Enumeration;
 using System.Numerics;
@@ -115,13 +116,14 @@ namespace ZoneFbx.Processor
         private void decodeTexture(TexFile texfile, string outputPath, Vector3? color, out byte[] decodedData)
         {
             decodedData = new byte[texfile.Header.Width * texfile.Header.Height * 4];
+            var rawData = TextureBuffer.FromStream(texfile.Header, texfile.Reader).RawData;
             switch (texfile.Header.Format)
             {
                 case TexFile.TextureFormat.BC5:
-                    Bc5Sharp.Decode(texfile.Data, decodedData, texfile.Header.Width, texfile.Header.Height);
+                    Bc5Sharp.Decode(rawData, decodedData, texfile.Header.Width, texfile.Header.Height);
                     break;
                 case TexFile.TextureFormat.BC7:
-                    Bc7Sharp.Decode(texfile.Data, decodedData, texfile.Header.Width, texfile.Header.Height);
+                    Bc7Sharp.Decode(rawData, decodedData, texfile.Header.Width, texfile.Header.Height);
                     break;
                 default:
                     Console.WriteLine($"Format {texfile.Header.Format} not supported: {texfile.FilePath}");
