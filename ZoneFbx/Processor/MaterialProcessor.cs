@@ -121,7 +121,7 @@ namespace ZoneFbx.Processor
 
         private void incrementAndTryAdd(Dictionary<string, string> dict, string usage, string filename, int num = 0)
         {
-            if (!dict.TryAdd($"{usage}num", filename))
+            if (!dict.TryAdd($"{usage}{num}", filename))
             {
                 incrementAndTryAdd(dict, usage, filename, num + 1);
             }
