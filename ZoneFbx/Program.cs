@@ -162,7 +162,6 @@ namespace ZoneFbx
                         ColorMessage($"Invalid value for {arg}: {value}");
                         return false;
                     }
-                    Console.WriteLine($"Debug: Specular {doubleValue}");
                     options.specularFactor = doubleValue;
                     break;
                 case "normal":
@@ -171,7 +170,6 @@ namespace ZoneFbx
                         ColorMessage($"Invalid value for {arg}: {value}");
                         return false;
                     }
-                    Console.WriteLine($"Debug: Normal {doubleValue}");
                     options.normalFactor = doubleValue;
                     break;
                 case "lightintensity":
@@ -180,7 +178,6 @@ namespace ZoneFbx
                         ColorMessage($"Invalid value for {arg}: {value}");
                         return false;
                     }
-                    Console.WriteLine($"Debug: Light intensity {doubleValue}");
                     options.lightIntensityFactor = doubleValue;
                     break;
                 default:

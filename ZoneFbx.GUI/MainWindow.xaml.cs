@@ -10,6 +10,7 @@ using System.IO;
 using System.Configuration;
 using Action = System.Action;
 using System.Collections.Specialized;
+using System.Text;
 
 namespace ZoneFbx.GUI
 {
@@ -182,6 +183,8 @@ namespace ZoneFbx.GUI
         private void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
+        private ConfigWindow configWindow = null!;
+
         public MainWindow()
         {
             if (Config.GetSection("ExportConfig") is null)
@@ -189,8 +192,8 @@ namespace ZoneFbx.GUI
                 Config.Sections.Add("ExportConfig", new Config());
                 Config.Save();
             }
-
             ExportConfig = (Config)Config.GetSection("ExportConfig");
+
 
             InitializeComponent();
 
@@ -202,6 +205,12 @@ namespace ZoneFbx.GUI
             {
                 GamePath = defaultDir;
             }
+        }
+
+        private void OpenConfigWindow(object sender, RoutedEventArgs e)
+        {
+            configWindow = new(Config, ExportConfig);
+            configWindow.ShowDialog();
         }
 
         private async void TryResolvingLumina()
@@ -308,12 +317,39 @@ namespace ZoneFbx.GUI
 
             if (argFlags == "-") argFlags = "";
 
+            // there's probably a better way to do this...
+            var argVars = new List<string>();
+            
+            if (!string.IsNullOrEmpty(ExportConfig.SpecularFactor))
+            {
+                argVars.Add("--specular");
+                argVars.Add(ExportConfig.SpecularFactor);
+            }
+
+            if (!string.IsNullOrEmpty(ExportConfig.NormalFactor))
+            {
+                argVars.Add("--normal");
+                argVars.Add(ExportConfig.NormalFactor);
+            }
+
+            if (!string.IsNullOrEmpty(ExportConfig.LightIntensityFactor))
+            {
+                argVars.Add("--lightIntensity");
+                argVars.Add(ExportConfig.LightIntensityFactor);
+            }
+
+            var extraArgs = string.Join(" ", [argFlags, string.Join(" ", argVars)]);
+
             ConsoleString = "";
-            ConsoleString += $"ZoneFbx \"{GamePath}\" {argLevel} \"{argOutput}\\\" {argFlags}\n";
+            ConsoleString += $"ZoneFbx \"{GamePath}\" {argLevel} \"{argOutput}\\\" {extraArgs}\n";
+
+            var finalArgs = new List<string>{ GamePath, argLevel, argOutput, argFlags};
+            finalArgs.AddRange(argVars);
+
             try
             {
-                var result = await CliWrap.Cli.Wrap("ZoneFbx")
-                    .WithArguments([GamePath, argLevel, argOutput, argFlags])
+                var result = await Cli.Wrap("ZoneFbx")
+                    .WithArguments(finalArgs)
                     .WithStandardOutputPipe(PipeTarget.ToDelegate(AppendConsole))
                     .WithStandardErrorPipe(PipeTarget.ToDelegate(AppendConsole))
                     .ExecuteAsync();

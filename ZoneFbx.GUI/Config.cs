@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Lumina.Excel.Sheets;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ZoneFbx.GUI
 {
-    internal class Config : ConfigurationSection
+    public class Config : ConfigurationSection
     {
         [ConfigurationProperty("gamePath", DefaultValue = "C:\\Program Files (x86)\\SquareEnix\\FINAL FANTASY XIV - A Realm Reborn\\game\\sqpack")]
         public string GamePath
@@ -73,5 +74,26 @@ namespace ZoneFbx.GUI
             set { this["disableBaking"] = value; }
         }
 
+
+        [ConfigurationProperty("specularFactor", DefaultValue = "0.3")]
+        public string SpecularFactor
+        {
+            get => (string)this["specularFactor"];
+            set { this["specularFactor"] = value; }
+        }
+
+        [ConfigurationProperty("normalFactor", DefaultValue = "0.2")]
+        public string NormalFactor
+        {
+            get => (string)this["normalFactor"];
+            set { this["normalFactor"] = value.ToString(); }
+        }
+
+        [ConfigurationProperty("lightIntensityFactor", DefaultValue = "10000")]
+        public string LightIntensityFactor
+        {
+            get => (string)this["lightIntensityFactor"];
+            set { this["lightIntensityFactor"] = value.ToString(); }
+        }
     }
 }

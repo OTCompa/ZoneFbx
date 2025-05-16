@@ -101,10 +101,9 @@
             <LineBreak/>
             <Grid Width="600">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="1*" />
-                    <RowDefinition Height="1*"/>
-                    <RowDefinition Height="16"/>
-                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="20"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
@@ -118,9 +117,10 @@
                 
                 <CheckBox Grid.Row="1" IsChecked="{Binding DisableBaking, Mode=TwoWay}">Disable baking textures</CheckBox>
                 <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding EnableBlend, Mode=TwoWay}">Enable blended textures</CheckBox>
+                <Button Grid.Row="1" Grid.Column="2" Grid.RowSpan="2" Margin="0 0 60 0" Click="OpenConfigWindow">Additional Settings</Button>
                 
-                <CheckBox Grid.Row="3" IsChecked="{Binding EnableJsonExport, Mode=TwoWay}">Debug: Enable JSON export</CheckBox>
-                <CheckBox Grid.Row="3" Grid.Column="1" IsChecked="{Binding EnableMTMap, Mode=TwoWay}">Debug: Material texture map</CheckBox>
+                <CheckBox Grid.Row="2" IsChecked="{Binding EnableJsonExport, Mode=TwoWay}">Debug: Enable JSON export</CheckBox>
+                <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding EnableMTMap, Mode=TwoWay}">Debug: Material texture map</CheckBox>
             </Grid>
             <LineBreak/>
             <LineBreak/>
