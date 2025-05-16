@@ -15,7 +15,7 @@
 
             public double specularFactor = 0.3;
             public double normalFactor = 0.2;
-            public int lightIntensityFactor = 10000;
+            public double lightIntensityFactor = 10000;
         }
     }
 }
