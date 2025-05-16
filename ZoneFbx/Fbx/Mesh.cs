@@ -32,5 +32,9 @@ namespace ZoneFbx.Fbx
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_EndPolygon")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial void EndPolygon(IntPtr mesh);
+
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_GetLayer")]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        public static partial IntPtr GetLayer(IntPtr mesh, int num);
     }
 }

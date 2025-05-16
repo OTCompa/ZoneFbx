@@ -1,4 +1,5 @@
 ﻿using Lumina.Data.Files;
+using Lumina.Models.Materials;
 using Lumina.Models.Models;
 using ZoneFbx.Fbx;
 
@@ -53,12 +54,23 @@ namespace ZoneFbx.Processor
                 if (!mesh_cache.TryGetValue(name, out var mesh))
                 {
                     mesh = createMesh(model.Meshes[i], name);
-                    IntPtr material = materialProcessor.CreateMaterial(model.Meshes[i].Material);
-                    if (material == IntPtr.Zero) continue;
 
-                    Node.AddMaterial(meshNode, material);
+                    var layer = Fbx.Mesh.GetLayer(mesh, 0);
+                    var layerElementMaterial = Layer.ElementMaterial.Create(mesh, "elementMaterial");
+                    Layer.ElementMaterial.SetMappingMode(layerElementMaterial);
+                    Layer.ElementMaterial.SetReferenceMode(layerElementMaterial);
+                    Layer.SetMaterials(layer, layerElementMaterial);
+                    var layerMaterialIndexArray = Layer.ElementMaterial.GetIndexArray(layerElementMaterial);
+                    Layer.Material_Add(layerMaterialIndexArray, 0);
+
                     mesh_cache[name] = mesh;
                 }
+
+                IntPtr material = materialProcessor.CreateMaterial(model.Meshes[i].Material);
+                if (material == IntPtr.Zero) continue;
+
+                Node.AddMaterial(meshNode, material);
+
 
                 Node.SetNodeAttribute(meshNode, mesh);
                 Node.AddChild(node, meshNode);

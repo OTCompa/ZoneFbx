@@ -26,4 +26,8 @@ extern "C" {
     __declspec(dllexport) void FbxMesh_EndPolygon(FbxMesh* mesh) {
         mesh->EndPolygon();
     }
+
+    __declspec(dllexport) FbxLayer* FbxMesh_GetLayer(FbxMesh* mesh, int num) {
+        return mesh->GetLayer(num);
+    }
 }
