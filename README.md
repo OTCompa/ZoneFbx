@@ -16,20 +16,18 @@ in Blender so I'm not sure how to handle this.
 
 For any other errors, please open an issue.
 
-## Arbitrary constants
+## Notes
 In this program, there are some arbitrary constant multipliers used
 to make the preview in Blender look closer to what it does in-game
-by default. I'm not really sure what's the best way to go about this,
-so I'm just doing what I think is reasonable. Feel free to suggest
-what I should do. I may add an option to set specify these factors
-manually in the future.
+by default. You are able to set these constants manually if you desire
+but here are the defaults:
 
 For all meshes:
 - Specular factor = 0.3
 - Normal factor = 0.2
 
 For all lighting:
-- Intensity factor = 1000
+- Intensity factor = 10000
 
 ## Blended textures
 Some of the textures ingame are blended with another texture, or with the same texture with a different tint.
@@ -65,14 +63,15 @@ a JSON file `materialTextureMap.json` that maps materials to their respective te
 
 # Usage
 ## GUI
-![image](https://github.com/user-attachments/assets/8c20a2e2-1b1f-4791-95ce-f318f1cbcfa4)
+![image](https://github.com/user-attachments/assets/f71bb76f-6fc5-46d6-b30f-134028348e99)
+
 
 The GUI is a wrapper for the CLI that makes it easier to input in the correct arguments.
 From top to bottom:
 1. Path to the `sqpack` folder
 2. Desired output directory
 3. Level/map that you want to extract (Options are populated upon selecting a valid `sqpack` folder)
-4. Miscellaneous flags, described in the following section
+4. Miscellaneous flags and variables, described in the following section
 5. Execute button, disabled until the level/map text box has a value
 
 ## CLI
@@ -83,6 +82,11 @@ From top to bottom:
 - `-j`    Exports all relevant LGB/SGB files as JSON for debugging purposes
 - `-i`    Allows light sources to be included in the final export
 - `-m`    Exports a material map for json
+
+### Variables
+- `--specular`      Sets the specular factor. Range: [0, 1]
+- `--normal`        Sets the normal factor. Range: [0, 1]
+- `lightIntensity`  Sets the light intensity factor. Range: [0, Int32.Max]
 
 https://streamable.com/tjg45n
 
