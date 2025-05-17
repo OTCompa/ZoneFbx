@@ -43,7 +43,7 @@ namespace ZoneFbx.Processor
         {
             if (model.File == null) return false;
 
-            var path = Path.GetFileName(model.File.FilePath.Path);
+            var path = Path.GetFileNameWithoutExtension(model.File.FilePath.Path);
 
             var hasChildren = false;
             for (int i = 0; i < model.Meshes.Length; i++)

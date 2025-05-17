@@ -83,7 +83,7 @@ namespace ZoneFbx.Processor
                     var sharedGroupObj = (SharedGroupInstanceObject)obj.Object;
                     sgbPath = sharedGroupObj.AssetPath;
 
-                    objNode = Node.Create(scene, Path.GetFileName(sgbPath));
+                    objNode = Node.Create(scene, Path.GetFileNameWithoutExtension(sgbPath));
                     Util.InitChildNode(obj, objNode);
 
                     if (processSharedGroupBinary(sgbPath, objNode)) return objNode;
