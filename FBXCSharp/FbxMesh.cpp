@@ -11,6 +11,14 @@ extern "C" {
         mesh->InitNormals(length);
     }
 
+    __declspec(dllexport) void FbxMesh_InitControlPoints(FbxMesh* mesh, int length) {
+        mesh->InitControlPoints(length);
+    }
+
+    __declspec(dllexport) void FbxMesh_SetControlPointAtNn(FbxMesh* mesh, FbxVector4* a, int i) {
+        mesh->SetControlPointAt(*a, i);
+    }
+
     __declspec(dllexport) void FbxMesh_SetControlPointAt(FbxMesh* mesh, FbxVector4* a, FbxVector4* b, int i) {
         mesh->SetControlPointAt(*a, *b, i);
     }

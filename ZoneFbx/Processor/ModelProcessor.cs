@@ -79,6 +79,30 @@ namespace ZoneFbx.Processor
             return hasChildren;
         }
 
+        public bool ProcessModelWithoutTexture(Model model, IntPtr node)
+        {
+            if (model.File == null) return false;
+
+            var path = Path.GetFileNameWithoutExtension(model.File.FilePath.Path);
+
+            var hasChildren = false;
+            for (int i = 0; i < model.Meshes.Length; i++)
+            {
+                string name = $"{path}_{i}";
+                var meshNode = Node.Create(manager, name);
+
+                if (!mesh_cache.TryGetValue(name, out var mesh))
+                {
+                    mesh = createMesh(model.Meshes[i], name);
+                    mesh_cache[name] = mesh;
+                }
+                Node.SetNodeAttribute(meshNode, mesh);
+                Node.AddChild(node, meshNode);
+                hasChildren = true;
+            }
+            return hasChildren;
+        }
+
         private IntPtr createMesh(Lumina.Models.Models.Mesh gameMesh, string name)
         {
             var mesh = Fbx.Mesh.Create(scene, name);

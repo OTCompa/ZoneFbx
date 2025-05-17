@@ -26,6 +26,7 @@ namespace ZoneFbx
         private readonly Lumina.GameData data;
         private readonly Options options;
 
+        private readonly CollisionProcessor collisionProcessor;
         private readonly TextureProcessor textureProcessor;
         private readonly MaterialProcessor materialProcessor;
         private readonly ModelProcessor modelProcessor;
@@ -63,10 +64,11 @@ namespace ZoneFbx
                 throw new Exception("game path directory is not valid");
             }
 
+            collisionProcessor = new(data, zonePath, manager, scene);
             textureProcessor = new(data, this.outputPath, zoneCode, scene);
             materialProcessor = new(data, textureProcessor, scene, options, this.outputPath);
             modelProcessor = new(data, materialProcessor, manager, scene);
-            instanceObjectProcessor = new(data, modelProcessor, scene, options);
+            instanceObjectProcessor = new(data, modelProcessor, collisionProcessor, scene, options);
             layerProcessor = new(data, instanceObjectProcessor, scene, zonePath, this.outputPath, options);
             terrainProcessor = new(data, modelProcessor, this.zonePath, manager, scene);
 

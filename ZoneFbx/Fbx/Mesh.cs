@@ -16,6 +16,13 @@ namespace ZoneFbx.Fbx
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_Init")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial void Init(IntPtr mesh, int length);
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_InitControlPoints")]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        public static partial void InitControlPoints(IntPtr mesh, int length);
+
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_SetControlPointAtNn")]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        public static partial void SetControlPointAt(IntPtr mesh, IntPtr a, int i);
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_SetControlPointAt")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
