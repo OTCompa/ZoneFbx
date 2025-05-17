@@ -1,25 +1,15 @@
 ﻿using Lumina.Data.Files;
-using Lumina.Models.Materials;
 using Lumina.Models.Models;
 using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal class ModelProcessor
+    internal class ModelProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, MaterialProcessor materialProcessor) : Processor(data, manager, scene, options)
     {
-        private readonly Lumina.GameData data;
-        private readonly MaterialProcessor materialProcessor;
-        private readonly Dictionary<string, IntPtr> mesh_cache = [];
-        private readonly IntPtr manager;
-        private readonly IntPtr scene;
+        private readonly MaterialProcessor materialProcessor = materialProcessor;
+        private readonly Dictionary<string, IntPtr> meshCache = [];
 
-        public ModelProcessor(Lumina.GameData data, MaterialProcessor materialProcessor, IntPtr manager, IntPtr scene)
-        {
-            this.data = data;
-            this.materialProcessor = materialProcessor;
-            this.manager = manager;
-            this.scene = scene;
-        }
+        public void ResetCache() => meshCache.Clear();
 
         public Model? LoadModel(string modelPath)
         {
@@ -51,7 +41,7 @@ namespace ZoneFbx.Processor
                 string name = $"{path}_{i}";
                 var meshNode = Node.Create(manager, name);
 
-                if (!mesh_cache.TryGetValue(name, out var mesh))
+                if (!meshCache.TryGetValue(name, out var mesh))
                 {
                     mesh = createMesh(model.Meshes[i], name);
 
@@ -63,7 +53,7 @@ namespace ZoneFbx.Processor
                     var layerMaterialIndexArray = Layer.ElementMaterial.GetIndexArray(layerElementMaterial);
                     Layer.Material_Add(layerMaterialIndexArray, 0);
 
-                    mesh_cache[name] = mesh;
+                    meshCache[name] = mesh;
                 }
 
                 IntPtr material = materialProcessor.CreateMaterial(model.Meshes[i].Material);
@@ -91,10 +81,10 @@ namespace ZoneFbx.Processor
                 string name = $"{path}_{i}";
                 var meshNode = Node.Create(manager, name);
 
-                if (!mesh_cache.TryGetValue(name, out var mesh))
+                if (!meshCache.TryGetValue(name, out var mesh))
                 {
                     mesh = createMesh(model.Meshes[i], name);
-                    mesh_cache[name] = mesh;
+                    meshCache[name] = mesh;
                 }
                 Node.SetNodeAttribute(meshNode, mesh);
                 Node.AddChild(node, meshNode);

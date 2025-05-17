@@ -75,10 +75,11 @@ namespace ZoneFbx
 
         public static void SaveJson(string filename, LayerCommon.Layer[] layers, string output_path)
         {
-            var layerJson = JsonConvert.SerializeObject(layers, Formatting.Indented);
             var jsonFolder = Path.Combine(output_path, "json");
             Directory.CreateDirectory(jsonFolder);
             var filepath = Path.Combine(jsonFolder, $"{filename}.json");
+            if (File.Exists(filepath)) return;
+            var layerJson = JsonConvert.SerializeObject(layers, Formatting.Indented);
             File.WriteAllText(Path.Combine(jsonFolder, $"{filename}.json"), layerJson);
         }
 

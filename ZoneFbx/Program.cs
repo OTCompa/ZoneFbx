@@ -39,6 +39,13 @@ namespace ZoneFbx
 
             if (args.Length >= 4 && !ProcessArgs(args, ref options)) Environment.Exit(1);
 
+            test(args, options);
+            //var zoneExporter = new ZoneExporter(args[0], args[1], args[2], options);
+        }
+
+        static void test(string[] args, ZoneExporter.Options options)
+        {
+
             var zoneExporter = new ZoneExporter(args[0], args[1], args[2], options);
         }
 
@@ -143,6 +150,8 @@ namespace ZoneFbx
                         options.enableBlend = true; break;
                     case 'm':
                         options.enableMTMap = true; break;
+                    case 'c':
+                        options.enableCollisions = true; break;
                     default:
                         ColorMessage($"Unknown flag \"{flag}\", ignoring...", ConsoleColor.Yellow);
                         Console.WriteLine(usage);

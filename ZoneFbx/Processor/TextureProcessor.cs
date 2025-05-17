@@ -2,25 +2,15 @@
 using Lumina.Data.Files;
 using Lumina.Data.Parsing.Tex.Buffers;
 using Lumina.Models.Materials;
-using System.IO.Enumeration;
 using System.Numerics;
 using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal class TextureProcessor
+    internal class TextureProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, string outputPath, string zoneCode) : Processor(data, manager, scene, options)
     {
-        private readonly Lumina.GameData data;
-        private readonly string outputPath;
-        private readonly string zoneCode;
-        private readonly IntPtr scene;
-        public TextureProcessor(Lumina.GameData data, string outputPath, string zoneCode, IntPtr scene)
-        {
-            this.data = data;
-            this.outputPath = outputPath;
-            this.zoneCode = zoneCode;
-            this.scene = scene;
-        }
+        private readonly string outputPath = outputPath;
+        private readonly string zoneCode = zoneCode;
 
         public IntPtr PrepareTexture(Material material, Texture tex, MaterialInfo? materialInfo, out string filename, string suffix = "")
         {

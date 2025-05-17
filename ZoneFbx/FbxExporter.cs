@@ -26,5 +26,15 @@ namespace ZoneFbx
             Exporter.Destroy(exporter);
             return result;
         }
+        
+        public void UpdateScene(IntPtr scene)
+        {
+            this.scene = scene;
+        }
+
+        public void UpdateManager(IntPtr manager)
+        {
+            this.manager = manager;
+        }
     }
 }

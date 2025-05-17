@@ -1,22 +1,11 @@
 ﻿using Lumina.Data.Files.Pcb;
-using Lumina.Data.Parsing.Layer;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Lumina.Data.Parsing.Layer.LayerCommon;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal class CollisionProcessor(Lumina.GameData data, string zonePath, IntPtr manager, IntPtr scene)
+    internal class CollisionProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, string zonePath) : Processor(data, manager, scene, options)
     {
-        private readonly Lumina.GameData data = data;
         private readonly string zonePath = zonePath;
-        private readonly IntPtr manager = manager;
-        private readonly IntPtr scene = scene;
 
         public void ProcessList()
         {

@@ -1,30 +1,18 @@
 ﻿using Lumina.Models.Materials;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal class MaterialProcessor
+    internal class MaterialProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, TextureProcessor textureProcessor, string outputPath) : Processor(data, manager, scene, options)
     {
-        private readonly Lumina.GameData data;
-        private readonly TextureProcessor textureProcessor;
-        private readonly ZoneExporter.Options options;
-        private readonly IntPtr scene;
+        private readonly TextureProcessor textureProcessor = textureProcessor;
 
-        private readonly string outputPath;
+        private readonly string outputPath = outputPath;
 
         private readonly Dictionary<ulong, IntPtr> materialCache = [];
 
         private readonly Dictionary<string, Dictionary<string, string>> materialTextureDict = [];
-        public MaterialProcessor(Lumina.GameData data, TextureProcessor textureProcessor, IntPtr scene, ZoneExporter.Options options, string outputPath)
-        {
-            this.data = data;
-            this.textureProcessor = textureProcessor;
-            this.scene = scene;
-            this.options = options;
-            this.outputPath = outputPath;
-        }
 
         public IntPtr CreateMaterial(Material material)
         {

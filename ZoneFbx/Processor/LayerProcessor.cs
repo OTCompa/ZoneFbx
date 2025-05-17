@@ -7,25 +7,19 @@ using Lumina.Excel;
 
 namespace ZoneFbx.Processor
 {
-    internal class LayerProcessor
+    internal class LayerProcessor : Processor
     {
-        private readonly Lumina.GameData data;
         private readonly InstanceObjectProcessor instanceObjectProcessor;
-        private readonly IntPtr scene;
         private readonly string zone_path;
         private readonly string output_path;
-        private readonly ZoneExporter.Options options;
 
         private readonly ExcelSheet<EObj> EObjSheet;
 
-        public LayerProcessor(Lumina.GameData data, InstanceObjectProcessor instanceObjectProcessor, IntPtr scene, string zone_path, string output_path, ZoneExporter.Options options)
+        public LayerProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, InstanceObjectProcessor instanceObjectProcessor, string zone_path, string output_path) : base(data, manager, scene, options)
         {
-            this.data = data;
             this.instanceObjectProcessor = instanceObjectProcessor;
-            this.scene = scene;
             this.zone_path = zone_path;
             this.output_path = output_path;
-            this.options = options;
 
             try
             {
@@ -36,6 +30,7 @@ namespace ZoneFbx.Processor
                 throw new Exception("unable to get EObj sheet");
             }
         }
+
         public bool ProcessLayerGroupBinaries()
         {
             string[] lgbs = { "bg", "planevent", "planlive", "planmap" }; //, "planner"};
@@ -103,7 +98,9 @@ namespace ZoneFbx.Processor
 
                     break;
                 case LayerEntryType.LayLight:
-                    return instanceObjectProcessor.ProcessInstanceObjectLayLight(obj);
+                    if (options.mode == ZoneExporter.Mode.Default)
+                        return instanceObjectProcessor.ProcessInstanceObjectLayLight(obj);
+                    break;
                 case LayerEntryType.BG:
                     return instanceObjectProcessor.ProcessInstanceObjectBG(obj);
             }

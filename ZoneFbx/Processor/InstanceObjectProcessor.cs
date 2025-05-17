@@ -1,17 +1,12 @@
-﻿using Lumina.Data.Files;
-using Lumina.Data.Parsing.Layer;
+﻿using Lumina.Data.Parsing.Layer;
 using static Lumina.Data.Parsing.Layer.LayerCommon;
 using ZoneFbx.Fbx;
-using Lumina.Data.Files.Pcb;
 namespace ZoneFbx.Processor
 {
-    internal class InstanceObjectProcessor
+    internal class InstanceObjectProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, ModelProcessor modelProcessor, CollisionProcessor collisionProcessor) : Processor(data, manager, scene, options)
     {
-        private readonly Lumina.GameData data;
-        private readonly ModelProcessor modelProcessor;
-        private readonly CollisionProcessor collisionProcessor;
-        private readonly IntPtr scene;
-        private readonly ZoneExporter.Options options;
+        private readonly ModelProcessor modelProcessor = modelProcessor;
+        private readonly CollisionProcessor collisionProcessor = collisionProcessor;
 
         private Dictionary<int, IntPtr> lightCache = new();
 
@@ -30,56 +25,44 @@ namespace ZoneFbx.Processor
             {3, Light.EDecayType.eCubic },
         };
 
-        public InstanceObjectProcessor(Lumina.GameData data, ModelProcessor modelProcessor, CollisionProcessor collisionProcessor, IntPtr scene, ZoneExporter.Options options) { 
-            this.data = data;
-            this.modelProcessor = modelProcessor;
-            this.collisionProcessor = collisionProcessor;
-            this.scene = scene;
-            this.options = options;
-        }
-
         public IntPtr ProcessInstanceObjectBG(LayerCommon.InstanceObject obj)
         {
             var bgObj = (BGInstanceObject) obj.Object;
-            var objectFilePath = ((BGInstanceObject)obj.Object).AssetPath;
-            var collisionFilePath = bgObj.CollisionAssetPath;
+            IntPtr modelNode;
 
-
-
-            var modelNode = Node.Create(scene, objectFilePath.Substring(objectFilePath.LastIndexOf("/") + 1));
-            Util.InitChildNode(obj, modelNode);
-
-            if (bgObj.CollisionType == ModelCollisionType.Replace && collisionProcessor.ProcessCollisionAsset(collisionFilePath, modelNode))
+            if (options.mode == ZoneExporter.Mode.Default)
             {
-                return modelNode;
-            } else if (bgObj.CollisionType == ModelCollisionType.Box)
-            {
-                // not 100% accurate. some models with this CollisionType aren't solid. 
-                // however, anything with this CollisionType that isn't actually solid is usually out of bounds
-                // would rather be slightly inaccurate out of bounds than in bounds
-                var model = modelProcessor.LoadModel(objectFilePath);
+                var modelFilePath = bgObj.AssetPath;
+                var model = modelProcessor.LoadModel(modelFilePath);
                 if (model == null) return IntPtr.Zero;
-                modelProcessor.ProcessModelWithoutTexture(model, modelNode);
 
-                return modelNode;
-            } else
+                modelNode = Node.Create(scene, Path.GetFileNameWithoutExtension(modelFilePath));
+                Util.InitChildNode(obj, modelNode);
+
+                if (modelProcessor.ProcessModel(model, modelNode)) return modelNode;
+            } else if (options.mode == ZoneExporter.Mode.Collision)
             {
-                return IntPtr.Zero;
+                var collisionFilePath = bgObj.CollisionAssetPath;
+                
+                modelNode = Node.Create(scene, Path.GetFileNameWithoutExtension(collisionFilePath));
+                Util.InitChildNode(obj, modelNode);
+
+                if (bgObj.CollisionType == ModelCollisionType.Replace && collisionProcessor.ProcessCollisionAsset(collisionFilePath, modelNode))
+                {
+                    return modelNode;
+                } else if (bgObj.CollisionType == ModelCollisionType.Box)
+                {
+                    // not 100% accurate. some models with this CollisionType aren't solid. 
+                    // however, anything with this CollisionType that isn't actually solid is usually out of bounds
+                    // would rather be slightly inaccurate out of bounds than in bounds
+                    var objectFilePath = bgObj.AssetPath;
+                    var model = modelProcessor.LoadModel(objectFilePath);
+                    if (model == null) return IntPtr.Zero;
+                    if (modelProcessor.ProcessModelWithoutTexture(model, modelNode)) return modelNode;
+                }
             }
 
-            //var model = modelProcessor.LoadModel(objectFilePath);
-            //if (model == null) return IntPtr.Zero;
-
-            //var modelNode = Node.Create(scene, objectFilePath.Substring(objectFilePath.LastIndexOf("/") + 1));
-            //Util.InitChildNode(obj, modelNode);
-
-            //if (modelProcessor.ProcessModel(model, modelNode))
-            //{
-            //    return modelNode;
-            //} else
-            //{
-            //    return IntPtr.Zero;
-            //}
+            return IntPtr.Zero;
         }
 
         private class FbxLightObject

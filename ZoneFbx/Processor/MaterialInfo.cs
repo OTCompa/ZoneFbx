@@ -1,9 +1,7 @@
 ﻿using Lumina.Data;
-using Lumina.Excel.Sheets;
 using Lumina.Extensions;
 using Lumina.Models.Materials;
 using System.Numerics;
-using System.Reflection.Metadata;
 using System.Text;
 
 namespace ZoneFbx.Processor

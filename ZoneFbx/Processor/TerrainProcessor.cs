@@ -1,28 +1,12 @@
 ﻿using Lumina.Data.Files;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal class TerrainProcessor
+    internal class TerrainProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, ModelProcessor modelProcessor, string zone_path) : Processor(data, manager, scene, options)
     {
-        private readonly Lumina.GameData data;
-        private readonly ModelProcessor modelProcessor;
-        private readonly string zonePath;
-        private readonly IntPtr scene;
-        private readonly IntPtr manager;
-        public TerrainProcessor(Lumina.GameData data, ModelProcessor modelProcessor, string zone_path, IntPtr manager, IntPtr scene) {
-            this.data = data;
-            this.modelProcessor = modelProcessor;
-            this.zonePath = zone_path;
-            this.scene = scene;
-            this.manager = manager;
-        }
+        private readonly ModelProcessor modelProcessor = modelProcessor;
+        private readonly string zonePath = zone_path;
 
         public bool ProcessTerrain()
         {

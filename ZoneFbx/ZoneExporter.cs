@@ -35,8 +35,9 @@ namespace ZoneFbx
         private readonly TerrainProcessor terrainProcessor;
         private readonly FbxExporter fbxExporter;
 
-        IntPtr manager;
-        IntPtr scene;
+        internal IntPtr manager {  get; private set; }
+        internal IntPtr scene { get; private set; }
+        private readonly List<Processor.Processor> processors = [];
 
         public ZoneExporter(string gamePath, string zonePath, string outputPath, Options options)
         {
@@ -48,10 +49,8 @@ namespace ZoneFbx
             Directory.CreateDirectory(this.outputPath);
 
             Console.WriteLine("Initializing...");
-
             manager = Manager.Create();
-            scene = Scene.Create(manager, zoneCode);
-            Scene.SetSystemUnit(scene);
+            scene = InitScene(zoneCode);
 
             fbxExporter = new(manager, scene);
 
@@ -64,40 +63,115 @@ namespace ZoneFbx
                 throw new Exception("game path directory is not valid");
             }
 
-            collisionProcessor = new(data, zonePath, manager, scene);
-            textureProcessor = new(data, this.outputPath, zoneCode, scene);
-            materialProcessor = new(data, textureProcessor, scene, options, this.outputPath);
-            modelProcessor = new(data, materialProcessor, manager, scene);
-            instanceObjectProcessor = new(data, modelProcessor, collisionProcessor, scene, options);
-            layerProcessor = new(data, instanceObjectProcessor, scene, zonePath, this.outputPath, options);
-            terrainProcessor = new(data, modelProcessor, this.zonePath, manager, scene);
+            collisionProcessor = new(data, manager, scene, options, zonePath);
+            textureProcessor = new(data, manager, scene, options, this.outputPath, zoneCode);
+            materialProcessor = new(data, manager, scene, options, textureProcessor, this.outputPath);
+            modelProcessor = new(data, manager, scene, options, materialProcessor);
+            instanceObjectProcessor = new(data, manager, scene, options, modelProcessor, collisionProcessor);
+            layerProcessor = new(data, manager, scene, options, instanceObjectProcessor, zonePath, this.outputPath);
+            terrainProcessor = new(data, manager, scene, options, modelProcessor, this.zonePath);
 
+            // 0 idea how to structure this program atp
+            processors.AddRange([collisionProcessor, textureProcessor, materialProcessor, modelProcessor, instanceObjectProcessor, layerProcessor, terrainProcessor]);
+
+            if (!exportZone())
+            {
+                Console.WriteLine("ZoneFbx has run into an error. Please open an issue on the GitHub repo with details about this error.");
+                return;
+            }
+            Console.WriteLine("Zone export finished.");
+
+            if (options.enableCollisions)
+            {
+                ReinitializeFbx($"{zoneCode}_collision");
+                if (!exportCollision())
+                {
+                    Console.WriteLine("ZoneFbx has run into an error. Please open an issue on the GitHub repo with details about this error.");
+                    return;
+                }
+                Console.WriteLine("Collision export finished.");
+            }
+        }
+
+        private void ReinitializeFbx(string sceneName)
+        {
+            // attempting to destroy the pre-existing manager (or any object allocated through PInvoke) causes a fatal error wrt memory :(
+            // how do i fix this?
+            // Manager.Destroy(manager);
+            scene = InitScene(sceneName);
+            options.mode = Mode.Collision;
+
+            foreach (var processor in processors)
+            {
+                processor.UpdateScene(scene);
+                processor.UpdateManager(manager);
+                processor.UpdateOptions(options);
+            }
+            modelProcessor.ResetCache();
+            fbxExporter.UpdateScene(scene);
+            fbxExporter.UpdateManager(manager);
+        }
+
+        private IntPtr InitScene(string name)
+        {
+            var scene = Scene.Create(manager, name);
+            Scene.SetSystemUnit(scene);
+            return scene;
+        }
+
+        private bool exportZone()
+        {
             Console.WriteLine("Processing models and textures...");
             Console.WriteLine("Processing zone terrain");
             if (!terrainProcessor.ProcessTerrain())
             {
                 Console.WriteLine("Failed to process zone terrain.");
-                return;
+                return false;
             }
 
             Console.WriteLine("Processing lgb files...");
             if (!layerProcessor.ProcessLayerGroupBinaries())
             {
                 Console.WriteLine("Failed to process bg.lgb.");
-                return;
+                return false;
             }
 
             Console.WriteLine("Saving scene...");
-            if (!fbxExporter.Export($"{this.outputPath}{zoneCode}.fbx"))
+            var outputFilePath = $"{this.outputPath}{zoneCode}.fbx";
+            if (!fbxExporter.Export(outputFilePath))
             {
                 Console.WriteLine("Failed to save scene.");
-                return;
+                return false;
             }
 
             if (options.enableJsonExport || options.enableMTMap) materialProcessor.ExportJsonTextureMap();
 
-            Console.WriteLine($"Done! Map exported to {Path.Combine(this.outputPath, $"{Path.GetFileName(zoneCode)}.fbx")}");
+            Console.WriteLine($"Done! Map exported to {outputFilePath}");
+            return true;
+        }
 
+        private bool exportCollision()
+        {
+            Console.WriteLine("Processing list.pcb...");
+            collisionProcessor.ProcessList();
+
+            Console.WriteLine("Processing lgb files...");
+            if (!layerProcessor.ProcessLayerGroupBinaries())
+            {
+                Console.WriteLine("Failed to process bg.lgb.");
+                return false;
+            }
+
+            Console.WriteLine("Saving scene...");
+            var outputFilePath = $"{this.outputPath}{zoneCode}_collision.fbx";
+            if (!fbxExporter.Export(outputFilePath))
+            {
+                Console.WriteLine("Failed to save scene.");
+                return false;
+            }
+
+            Console.WriteLine($"Done! Collisions exported to {outputFilePath}");
+            return true;
         }
 
         ~ZoneExporter()
