@@ -81,8 +81,11 @@ namespace ZoneFbx
             }
             Console.WriteLine("Zone export finished.");
 
+            // starting different modes from scratch because keeping track of all 3 at the same time would
+            // add complexity that i probably wouldn't be able to reasonably manage
             if (options.enableCollisions)
             {
+                options.mode = Mode.Collision;
                 ReinitializeFbx($"{zoneCode}_collision");
                 if (!exportCollision())
                 {
@@ -90,6 +93,17 @@ namespace ZoneFbx
                     return;
                 }
                 Console.WriteLine("Collision export finished.");
+            }
+
+            if (options.enableFestivals)
+            {
+                options.mode = Mode.Festival;
+                ReinitializeFbx($"{zoneCode}_festival");
+                if (!exportFestivals())
+                {
+                    Console.WriteLine("ZoneFbx has run into an error. Please open an issue on the GitHub repo with details about this error.");
+                    return;
+                }
             }
         }
 
@@ -99,7 +113,6 @@ namespace ZoneFbx
             // how do i fix this?
             // Manager.Destroy(manager);
             scene = InitScene(sceneName);
-            options.mode = Mode.Collision;
 
             foreach (var processor in processors)
             {
@@ -107,9 +120,13 @@ namespace ZoneFbx
                 processor.UpdateManager(manager);
                 processor.UpdateOptions(options);
             }
-            modelProcessor.ResetCache();
             fbxExporter.UpdateScene(scene);
             fbxExporter.UpdateManager(manager);
+
+            modelProcessor.ResetCache();
+            materialProcessor.ResetCache();
+            instanceObjectProcessor.ResetCache();
+
         }
 
         private IntPtr InitScene(string name)
@@ -177,6 +194,25 @@ namespace ZoneFbx
         ~ZoneExporter()
         {
             if (manager != IntPtr.Zero) Manager.Destroy(manager);
+        }
+
+        private bool exportFestivals()
+        {
+            Console.WriteLine("Processing lgb files...");
+            layerProcessor.ProcessLayerGroupBinaries(true);
+
+            Console.WriteLine("Saving scene...");
+            var outputFilePath = $"{this.outputPath}{zoneCode}_festival.fbx";
+            if (!fbxExporter.Export(outputFilePath))
+            {
+                Console.WriteLine("Failed to save scene.");
+                return false;
+            }
+
+            if (options.enableJsonExport || options.enableMTMap) materialProcessor.ExportJsonTextureMap();
+
+            Console.WriteLine($"Done! Festival objects exported to {outputFilePath}");
+            return true;
         }
     }
 }

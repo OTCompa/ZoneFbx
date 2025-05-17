@@ -25,12 +25,14 @@ namespace ZoneFbx.Processor
             {3, Light.EDecayType.eCubic },
         };
 
+        public void ResetCache() => lightCache.Clear();
+
         public IntPtr ProcessInstanceObjectBG(LayerCommon.InstanceObject obj)
         {
             var bgObj = (BGInstanceObject) obj.Object;
             IntPtr modelNode;
 
-            if (options.mode == ZoneExporter.Mode.Default)
+            if (options.mode != ZoneExporter.Mode.Collision)
             {
                 var modelFilePath = bgObj.AssetPath;
                 var model = modelProcessor.LoadModel(modelFilePath);
@@ -40,7 +42,7 @@ namespace ZoneFbx.Processor
                 Util.InitChildNode(obj, modelNode);
 
                 if (modelProcessor.ProcessModel(model, modelNode)) return modelNode;
-            } else if (options.mode == ZoneExporter.Mode.Collision)
+            } else
             {
                 var collisionFilePath = bgObj.CollisionAssetPath;
                 

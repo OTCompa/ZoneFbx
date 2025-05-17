@@ -14,6 +14,12 @@ namespace ZoneFbx.Processor
 
         private readonly Dictionary<string, Dictionary<string, string>> materialTextureDict = [];
 
+        public void ResetCache()
+        {
+            materialCache.Clear();
+            materialTextureDict.Clear();
+        }
+
         public IntPtr CreateMaterial(Material material)
         {
             if (!options.enableLightshaftModels && material.ShaderPack == "lightshaft.shpk") return IntPtr.Zero;

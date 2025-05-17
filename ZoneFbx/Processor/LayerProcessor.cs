@@ -31,7 +31,7 @@ namespace ZoneFbx.Processor
             }
         }
 
-        public bool ProcessLayerGroupBinaries()
+        public bool ProcessLayerGroupBinaries(bool canIgnoreBg = false)
         {
             string[] lgbs = { "bg", "planevent", "planlive", "planmap" }; //, "planner"};
 
@@ -41,7 +41,7 @@ namespace ZoneFbx.Processor
                 if (!ProcessLayerGroupBinary(path))
                 {
                     Console.WriteLine($"LGB \"{lgbName}.lgb\" skipped.");
-                    if (lgbName == "bg") return false;
+                    if (!canIgnoreBg && lgbName == "bg") return false;
                 }
             }
 
@@ -139,9 +139,11 @@ namespace ZoneFbx.Processor
             for (int i = 0; i < layers.Length; i++)
             {
                 var layer = layers[i];
-                if (!options.enableFestivals && layer.FestivalID != 0)
+
+                if (options.mode == ZoneExporter.Mode.Festival && layer.FestivalID == 0) continue;
+                if (options.mode != ZoneExporter.Mode.Festival && layer.FestivalID != 0)
                 {
-                    Console.WriteLine($"Skipping festival {layer.FestivalID}");
+                    if (!options.enableFestivals) Console.WriteLine($"Skipping festival {layer.FestivalID}");
                     continue;
                 }
 
