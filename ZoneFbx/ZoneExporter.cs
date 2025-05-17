@@ -85,6 +85,7 @@ namespace ZoneFbx
             // add complexity that i probably wouldn't be able to reasonably manage
             if (options.enableCollisions)
             {
+                Console.WriteLine("Beginning collision export...");
                 options.mode = Mode.Collision;
                 ReinitializeFbx($"{zoneCode}_collision");
                 if (!exportCollision())
@@ -97,6 +98,7 @@ namespace ZoneFbx
 
             if (options.enableFestivals)
             {
+                Console.WriteLine("Beginning festival export...");
                 options.mode = Mode.Festival;
                 ReinitializeFbx($"{zoneCode}_festival");
                 if (!exportFestivals())
@@ -104,6 +106,7 @@ namespace ZoneFbx
                     Console.WriteLine("ZoneFbx has run into an error. Please open an issue on the GitHub repo with details about this error.");
                     return;
                 }
+                Console.WriteLine("Festival export finished.");
             }
         }
 
@@ -173,7 +176,7 @@ namespace ZoneFbx
             collisionProcessor.ProcessList();
 
             Console.WriteLine("Processing lgb files...");
-            if (!layerProcessor.ProcessLayerGroupBinaries())
+            if (!layerProcessor.ProcessLayerGroupBinaries(true))
             {
                 Console.WriteLine("Failed to process bg.lgb.");
                 return false;
@@ -187,7 +190,7 @@ namespace ZoneFbx
                 return false;
             }
 
-            Console.WriteLine($"Done! Collisions exported to {outputFilePath}");
+            Console.WriteLine($"Done! Collision models exported to {outputFilePath}");
             return true;
         }
 
@@ -211,7 +214,7 @@ namespace ZoneFbx
 
             if (options.enableJsonExport || options.enableMTMap) materialProcessor.ExportJsonTextureMap();
 
-            Console.WriteLine($"Done! Festival objects exported to {outputFilePath}");
+            Console.WriteLine($"Done! Festival models exported to {outputFilePath}");
             return true;
         }
     }

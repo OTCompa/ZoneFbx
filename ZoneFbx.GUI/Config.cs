@@ -67,6 +67,13 @@ namespace ZoneFbx.GUI
             set { this["enableMTMap"] = value; }
         }
 
+        [ConfigurationProperty("enableCollision", DefaultValue = false)]
+        public bool EnableCollision
+        {
+            get => (bool)this["enableCollision"];
+            set { this["enableCollision"] = value; }
+        }
+
         [ConfigurationProperty("disableBaking", DefaultValue = false)]
         public bool DisableBaking
         {

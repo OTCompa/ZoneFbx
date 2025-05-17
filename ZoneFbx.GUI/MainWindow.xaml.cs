@@ -168,6 +168,17 @@ namespace ZoneFbx.GUI
             }
         }
 
+        public bool EnableCollision
+        {
+            get => ExportConfig.EnableCollision;
+            set
+            {
+                ExportConfig.EnableCollision = value;
+                OnPropertyChanged(nameof(EnableCollision));
+                Config.Save();
+            }
+        }
+
         public bool DisableBaking
         {
             get => ExportConfig.DisableBaking;
@@ -312,6 +323,7 @@ namespace ZoneFbx.GUI
                     EnableLighting ? "i" : "",
                     EnableBlend ? "s" : "",
                     EnableMTMap ? "m" : "",
+                    EnableCollision ? "c" : "",
                     }
                 ]);
 
@@ -343,8 +355,16 @@ namespace ZoneFbx.GUI
             ConsoleString = "";
             ConsoleString += $"ZoneFbx \"{GamePath}\" {argLevel} \"{argOutput}\\\" {extraArgs}\n";
 
-            var finalArgs = new List<string>{ GamePath, argLevel, argOutput, argFlags};
-            finalArgs.AddRange(argVars);
+            var finalArgs = new List<string>{ GamePath, argLevel, argOutput};
+
+            if (!string.IsNullOrEmpty(argFlags))
+            {
+                finalArgs.Add(argFlags);
+            }
+            if (argVars.Count > 0)
+            {
+                finalArgs.AddRange(argVars);
+            }
 
             try
             {

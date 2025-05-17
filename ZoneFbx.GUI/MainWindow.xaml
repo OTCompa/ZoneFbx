@@ -113,14 +113,15 @@
                 
                 <CheckBox IsChecked="{Binding EnableLightshaft, Mode=TwoWay}">Enable lightshaft models</CheckBox>
                 <CheckBox Grid.Column="1" IsChecked="{Binding EnableLighting, Mode=TwoWay}">Enable lighting</CheckBox>
-                <CheckBox Grid.Column="2" IsChecked="{Binding EnableFestival, Mode=TwoWay}">Enable festival models</CheckBox>
+                <CheckBox Grid.Column="2" IsChecked="{Binding EnableFestival, Mode=TwoWay}">Enable festival model exports</CheckBox>
                 
                 <CheckBox Grid.Row="1" IsChecked="{Binding DisableBaking, Mode=TwoWay}">Disable baking textures</CheckBox>
                 <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding EnableBlend, Mode=TwoWay}">Enable blended textures</CheckBox>
-                <Button Grid.Row="1" Grid.Column="2" Grid.RowSpan="2" Margin="0 0 60 0" Click="OpenConfigWindow">Additional Settings</Button>
+                <CheckBox Grid.Row="1" Grid.Column="2" IsChecked="{Binding EnableCollision, Mode=TwoWay}">Enable collision model exports</CheckBox>
                 
                 <CheckBox Grid.Row="2" IsChecked="{Binding EnableJsonExport, Mode=TwoWay}">Debug: Enable JSON export</CheckBox>
                 <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding EnableMTMap, Mode=TwoWay}">Debug: Material texture map</CheckBox>
+                <Button Grid.Row="2" Grid.Column="2" Grid.RowSpan="1" Margin="0 0 30 3" Click="OpenConfigWindow">Additional Settings</Button>
             </Grid>
             <LineBreak/>
             <LineBreak/>
