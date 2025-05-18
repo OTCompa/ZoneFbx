@@ -15,7 +15,7 @@ namespace ZoneFbx.Processor
 
         private readonly ExcelSheet<EObj> EObjSheet;
 
-        public LayerProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, InstanceObjectProcessor instanceObjectProcessor, string zone_path, string output_path) : base(data, manager, scene, options)
+        public LayerProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, InstanceObjectProcessor instanceObjectProcessor, string zone_path, string output_path) : base(data, contextManager, options)
         {
             this.instanceObjectProcessor = instanceObjectProcessor;
             this.zone_path = zone_path;
@@ -55,7 +55,7 @@ namespace ZoneFbx.Processor
             var file = data.GetFile<LgbFile>(lgbPath);
             if (file == null) return false;
 
-            var root_node = Scene.GetRootNode(scene);
+            var root_node = Scene.GetRootNode(contextManager);
 
             var ret = processLayers(file.Layers, root_node);
 
@@ -78,7 +78,7 @@ namespace ZoneFbx.Processor
                     var sharedGroupObj = (SharedGroupInstanceObject)obj.Object;
                     sgbPath = sharedGroupObj.AssetPath;
 
-                    objNode = Node.Create(scene, Path.GetFileNameWithoutExtension(sgbPath));
+                    objNode = Node.Create(contextManager, Path.GetFileNameWithoutExtension(sgbPath));
                     Util.InitChildNode(obj, objNode);
 
                     if (processSharedGroupBinary(sgbPath, objNode)) return objNode;
@@ -91,7 +91,7 @@ namespace ZoneFbx.Processor
                     sgbPath = row.SgbPath.Value.SgbPath.ToString();
                     if (!sgbPath.EndsWith("sgb")) return IntPtr.Zero;  // 1 more sanity check
 
-                    objNode = Node.Create(scene, Path.GetFileName(sgbPath));
+                    objNode = Node.Create(contextManager, Path.GetFileName(sgbPath));
                     Util.InitChildNode(obj, objNode);
 
                     if (processSharedGroupBinary(sgbPath, objNode)) return objNode;
@@ -116,7 +116,7 @@ namespace ZoneFbx.Processor
             for (int i = 0; i < sgb.LayerGroups.Length; i++)
             {
                 var layerGroup = sgb.LayerGroups[i];
-                var layerGroupNode = Node.Create(scene, $"LayerGroup{i}");  // this is probably redundant, i've only seen sgbs with 1 layer group
+                var layerGroupNode = Node.Create(contextManager, $"LayerGroup{i}");  // this is probably redundant, i've only seen sgbs with 1 layer group
 
                 if (processLayers(layerGroup.Layers, layerGroupNode))
                 {
@@ -147,7 +147,7 @@ namespace ZoneFbx.Processor
                     continue;
                 }
 
-                var layerNode = Node.Create(scene, layer.Name);
+                var layerNode = Node.Create(contextManager, layer.Name);
                 var layerHasChild = false;
 
                 for (int j = 0; j < layer.InstanceObjects.Length; j++)

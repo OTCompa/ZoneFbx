@@ -35,8 +35,6 @@ namespace ZoneFbx
         private readonly TerrainProcessor terrainProcessor;
         private readonly FbxExporter fbxExporter;
 
-        internal IntPtr manager {  get; private set; }
-        internal IntPtr scene { get; private set; }
         private IntPtr contextManager { get; set; }
 
         private readonly List<Processor.Processor> processors = [];
@@ -56,10 +54,7 @@ namespace ZoneFbx
             ContextManager.CreateManager(contextManager);
             ContextManager.CreateScene(contextManager, zoneCode);
 
-            manager = contextManager;
-            scene = contextManager;
-
-            fbxExporter = new(manager, scene);
+            fbxExporter = new(contextManager);
 
             try
             {
@@ -70,13 +65,13 @@ namespace ZoneFbx
                 throw new Exception("game path directory is not valid");
             }
 
-            collisionProcessor = new(data, manager, scene, options, zonePath);
-            textureProcessor = new(data, manager, scene, options, this.outputPath, zoneCode);
-            materialProcessor = new(data, manager, scene, options, textureProcessor, this.outputPath);
-            modelProcessor = new(data, manager, scene, options, materialProcessor);
-            instanceObjectProcessor = new(data, manager, scene, options, modelProcessor, collisionProcessor);
-            layerProcessor = new(data, manager, scene, options, instanceObjectProcessor, zonePath, this.outputPath);
-            terrainProcessor = new(data, manager, scene, options, modelProcessor, this.zonePath);
+            collisionProcessor = new(data, contextManager, options, zonePath);
+            textureProcessor = new(data, contextManager, options, this.outputPath, zoneCode);
+            materialProcessor = new(data, contextManager, options, textureProcessor, this.outputPath);
+            modelProcessor = new(data, contextManager, options, materialProcessor);
+            instanceObjectProcessor = new(data, contextManager, options, modelProcessor, collisionProcessor);
+            layerProcessor = new(data, contextManager, options, instanceObjectProcessor, zonePath, this.outputPath);
+            terrainProcessor = new(data, contextManager, options, modelProcessor, this.zonePath);
 
             // 0 idea how to structure this program atp
             processors.AddRange([collisionProcessor, textureProcessor, materialProcessor, modelProcessor, instanceObjectProcessor, layerProcessor, terrainProcessor]);
@@ -121,16 +116,11 @@ namespace ZoneFbx
         {
             ContextManager.DestroyScene(contextManager);
             ContextManager.CreateScene(contextManager, sceneName);
-            scene = contextManager;
 
             foreach (var processor in processors)
             {
-                processor.UpdateScene(scene);
-                processor.UpdateManager(manager);
                 processor.UpdateOptions(options);
             }
-            fbxExporter.UpdateScene(scene);
-            fbxExporter.UpdateManager(manager);
 
             modelProcessor.ResetCache();
             materialProcessor.ResetCache();

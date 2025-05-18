@@ -7,7 +7,7 @@ using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal class TextureProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, string outputPath, string zoneCode) : Processor(data, manager, scene, options)
+    internal class TextureProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, string outputPath, string zoneCode) : Processor(data, contextManager, options)
     {
         private readonly string outputPath = outputPath;
         private readonly string zoneCode = zoneCode;
@@ -65,7 +65,7 @@ namespace ZoneFbx.Processor
         private IntPtr initializeFileTexture(string texfilePath, string textureOutputPath, string suffix = "")
         {
             string textureObjectName = $"{Path.GetFileNameWithoutExtension(texfilePath)}{suffix}";
-            var texture = FileTexture.Create(scene, textureObjectName);
+            var texture = FileTexture.Create(contextManager, textureObjectName);
             FileTexture.SetStuff(texture, textureOutputPath);
             return texture;
         }

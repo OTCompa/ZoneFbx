@@ -4,7 +4,7 @@ using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal class ModelProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, MaterialProcessor materialProcessor) : Processor(data, manager, scene, options)
+    internal class ModelProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, MaterialProcessor materialProcessor) : Processor(data, contextManager, options)
     {
         private readonly MaterialProcessor materialProcessor = materialProcessor;
         private readonly Dictionary<string, IntPtr> meshCache = [];
@@ -39,7 +39,7 @@ namespace ZoneFbx.Processor
             for (int i = 0; i < model.Meshes.Length; i++)
             {
                 string name = $"{path}_{i}";
-                var meshNode = Node.Create(manager, name);
+                var meshNode = Node.Create(contextManager, name);
 
                 if (!meshCache.TryGetValue(name, out var mesh))
                 {
@@ -79,7 +79,7 @@ namespace ZoneFbx.Processor
             for (int i = 0; i < model.Meshes.Length; i++)
             {
                 string name = $"{path}_{i}";
-                var meshNode = Node.Create(manager, name);
+                var meshNode = Node.Create(contextManager, name);
 
                 if (!meshCache.TryGetValue(name, out var mesh))
                 {
@@ -95,7 +95,7 @@ namespace ZoneFbx.Processor
 
         private IntPtr createMesh(Lumina.Models.Models.Mesh gameMesh, string name)
         {
-            var mesh = Fbx.Mesh.Create(scene, name);
+            var mesh = Fbx.Mesh.Create(contextManager, name);
             Fbx.Mesh.Init(mesh, gameMesh.Vertices.Length);
 
             var colorElement = GeometryElement.VertexColor.Create(mesh);

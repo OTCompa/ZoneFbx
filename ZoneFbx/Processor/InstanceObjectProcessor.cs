@@ -3,7 +3,7 @@ using static Lumina.Data.Parsing.Layer.LayerCommon;
 using ZoneFbx.Fbx;
 namespace ZoneFbx.Processor
 {
-    internal class InstanceObjectProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, ModelProcessor modelProcessor, CollisionProcessor collisionProcessor) : Processor(data, manager, scene, options)
+    internal class InstanceObjectProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, ModelProcessor modelProcessor, CollisionProcessor collisionProcessor) : Processor(data, contextManager, options)
     {
         private readonly ModelProcessor modelProcessor = modelProcessor;
         private readonly CollisionProcessor collisionProcessor = collisionProcessor;
@@ -38,7 +38,7 @@ namespace ZoneFbx.Processor
                 var model = modelProcessor.LoadModel(modelFilePath);
                 if (model == null) return IntPtr.Zero;
 
-                modelNode = Node.Create(scene, Path.GetFileNameWithoutExtension(modelFilePath));
+                modelNode = Node.Create(contextManager, Path.GetFileNameWithoutExtension(modelFilePath));
                 Util.InitChildNode(obj, modelNode);
 
                 if (modelProcessor.ProcessModel(model, modelNode)) return modelNode;
@@ -46,7 +46,7 @@ namespace ZoneFbx.Processor
             {
                 var collisionFilePath = bgObj.CollisionAssetPath;
                 
-                modelNode = Node.Create(scene, Path.GetFileNameWithoutExtension(collisionFilePath));
+                modelNode = Node.Create(contextManager, Path.GetFileNameWithoutExtension(collisionFilePath));
                 Util.InitChildNode(obj, modelNode);
 
                 if (bgObj.CollisionType == ModelCollisionType.Replace && collisionProcessor.ProcessCollisionAsset(collisionFilePath, modelNode))
@@ -116,7 +116,7 @@ namespace ZoneFbx.Processor
             FbxLightObject.DiffuseColorHDRI diffuseColor = new(lightObj.DiffuseColorHDRI.Red, lightObj.DiffuseColorHDRI.Green, lightObj.DiffuseColorHDRI.Blue);
             FbxLightObject toCache = new(lightObj.DiffuseColorHDRI.Intensity, diffuseColor, lightTypeDict.GetValueOrDefault(lightObj.LightType, Light.EType.ePoint), lightDecayTypeDict.GetValueOrDefault(lightObj.Attenuation, Light.EDecayType.eNone));
 
-            var lightNode = Node.Create(scene, $"light_{obj.InstanceId}");
+            var lightNode = Node.Create(contextManager, $"light_{obj.InstanceId}");
             Util.InitChildNode(obj, lightNode);
             if (lightCache.TryGetValue(toCache.GetHashCode(), out var light))
             {
@@ -124,7 +124,7 @@ namespace ZoneFbx.Processor
                 return lightNode;
             }
 
-            light = Light.Create(scene, $"light_{obj.InstanceId}");
+            light = Light.Create(contextManager, $"light_{obj.InstanceId}");
 
 
             Light.SetIntensity(light, lightObj.DiffuseColorHDRI.Intensity * options.lightIntensityFactor);
