@@ -21,6 +21,7 @@ extern "C" {
 	}
 	FBXCSHARP_API void ContextManager_Destroy(ContextManager* contextManager) {
 		contextManager->~ContextManager();
+		delete contextManager;
 	}
 
 	FBXCSHARP_API void ContextManager_CreateManager(ContextManager* contextManager) {
