@@ -1,41 +1,42 @@
 #include "pch.h"
 #include <fbxsdk.h>
+#include "FBXCSharp.h"
 
 extern "C" {
-    __declspec(dllexport) FbxMesh* FbxMesh_Create(FbxScene* scene, const char* name) {
+    FBXCSHARP_API FbxMesh* FbxMesh_Create(FbxScene* scene, const char* name) {
         return FbxMesh::Create(scene, name);
     }
 
-    __declspec(dllexport) void FbxMesh_Init(FbxMesh* mesh, int length) {
+    FBXCSHARP_API void FbxMesh_Init(FbxMesh* mesh, int length) {
         mesh->InitControlPoints(length);
         mesh->InitNormals(length);
     }
 
-    __declspec(dllexport) void FbxMesh_InitControlPoints(FbxMesh* mesh, int length) {
+    FBXCSHARP_API void FbxMesh_InitControlPoints(FbxMesh* mesh, int length) {
         mesh->InitControlPoints(length);
     }
 
-    __declspec(dllexport) void FbxMesh_SetControlPointAtNn(FbxMesh* mesh, FbxVector4* a, int i) {
+    FBXCSHARP_API void FbxMesh_SetControlPointAtNn(FbxMesh* mesh, FbxVector4* a, int i) {
         mesh->SetControlPointAt(*a, i);
     }
 
-    __declspec(dllexport) void FbxMesh_SetControlPointAt(FbxMesh* mesh, FbxVector4* a, FbxVector4* b, int i) {
+    FBXCSHARP_API void FbxMesh_SetControlPointAt(FbxMesh* mesh, FbxVector4* a, FbxVector4* b, int i) {
         mesh->SetControlPointAt(*a, *b, i);
     }
 
-    __declspec(dllexport) void FbxMesh_BeginPolygon(FbxMesh* mesh) {
+    FBXCSHARP_API void FbxMesh_BeginPolygon(FbxMesh* mesh) {
         mesh->BeginPolygon();
     }
 
-    __declspec(dllexport) void FbxMesh_AddPolygon(FbxMesh* mesh, int i) {
+    FBXCSHARP_API void FbxMesh_AddPolygon(FbxMesh* mesh, int i) {
         mesh->AddPolygon(i);
     }
 
-    __declspec(dllexport) void FbxMesh_EndPolygon(FbxMesh* mesh) {
+    FBXCSHARP_API void FbxMesh_EndPolygon(FbxMesh* mesh) {
         mesh->EndPolygon();
     }
 
-    __declspec(dllexport) FbxLayer* FbxMesh_GetLayer(FbxMesh* mesh, int num) {
+    FBXCSHARP_API FbxLayer* FbxMesh_GetLayer(FbxMesh* mesh, int num) {
         return mesh->GetLayer(num);
     }
 }

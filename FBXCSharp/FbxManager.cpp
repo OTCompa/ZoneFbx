@@ -1,18 +1,19 @@
 #include "pch.h"
 #include <fbxsdk.h>
+#include "FBXCSharp.h"
 
 extern "C" {
-    __declspec(dllexport) FbxManager* FbxManager_Create() {
+    FBXCSHARP_API FbxManager* FbxManager_Create() {
         return FbxManager::Create();
     }
 
-    __declspec(dllexport) void FbxManager_Destroy(FbxManager* manager) {
+    FBXCSHARP_API void FbxManager_Destroy(FbxManager* manager) {
         if (manager) {
             manager->Destroy();
         }
     }
 
-    __declspec(dllexport) bool FbxManager_Initialize(FbxManager* manager) {
+    FBXCSHARP_API bool FbxManager_Initialize(FbxManager* manager) {
         if (manager) {
             FbxIOSettings* io = FbxIOSettings::Create(manager, "IOSRoot");
             manager->SetIOSettings(io);
