@@ -3,7 +3,7 @@ using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal class CollisionProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, string zonePath) : Processor(data, contextManager, options)
+    internal class CollisionProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, ContextManager ContextManager, string zonePath) : Processor(data, contextManager, options)
     {
         private readonly string zonePath = zonePath;
 
@@ -104,6 +104,7 @@ namespace ZoneFbx.Processor
             foreach (var v in resourceNode.Vertices)
             {
                 var pos = Vector4.Create(v.X, v.Y, v.Z, 0);
+                ContextManager.CppVector4ToFree.Add(pos);
                 Fbx.Mesh.SetControlPointAt(mesh, pos, meshIndex++);
             }
 

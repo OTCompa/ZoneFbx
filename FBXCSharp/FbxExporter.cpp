@@ -2,6 +2,7 @@
 #include <fbxsdk.h>
 #include "FBXCSharp.h"
 #include "ContextManager.h"
+
 extern "C" {
     FBXCSHARP_API FbxExporter* FbxExporter_Create(ContextManager* contextManager, const char* name) {
         return FbxExporter::Create(contextManager->pManager, name);

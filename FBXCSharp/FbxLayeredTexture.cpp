@@ -2,6 +2,7 @@
 #include <fbxsdk.h>
 #include "FBXCSharp.h"
 #include "ContextManager.h"
+
 extern "C" {
     //__declspec(dllexport) void FbxLayerColor_Add(FbxLayerElementArrayTemplate<FbxColor>* dArray, FbxColor* color) {
     //    dArray->Add(*color);

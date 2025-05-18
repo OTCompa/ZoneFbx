@@ -26,6 +26,7 @@ namespace ZoneFbx
         private readonly Lumina.GameData data;
         private readonly Options options;
 
+        private readonly ContextManager ContextManager;
         private readonly CollisionProcessor collisionProcessor;
         private readonly TextureProcessor textureProcessor;
         private readonly MaterialProcessor materialProcessor;
@@ -65,10 +66,12 @@ namespace ZoneFbx
                 throw new Exception("game path directory is not valid");
             }
 
-            collisionProcessor = new(data, contextManager, options, zonePath);
+            
+            ContextManager = new ContextManager();
+            collisionProcessor = new(data, contextManager, options, ContextManager, zonePath);
             textureProcessor = new(data, contextManager, options, this.outputPath, zoneCode);
             materialProcessor = new(data, contextManager, options, textureProcessor, this.outputPath);
-            modelProcessor = new(data, contextManager, options, materialProcessor);
+            modelProcessor = new(data, contextManager, options, ContextManager, materialProcessor);
             instanceObjectProcessor = new(data, contextManager, options, modelProcessor, collisionProcessor);
             layerProcessor = new(data, contextManager, options, instanceObjectProcessor, zonePath, this.outputPath);
             terrainProcessor = new(data, contextManager, options, modelProcessor, this.zonePath);
@@ -115,6 +118,8 @@ namespace ZoneFbx
         private void ReinitializeFbx(string sceneName)
         {
             ContextManager.DestroyScene(contextManager);
+            ContextManager.CppVectorCleanup();
+
             ContextManager.CreateScene(contextManager, sceneName);
 
             foreach (var processor in processors)
@@ -190,6 +195,7 @@ namespace ZoneFbx
                 ContextManager.DestroyManager(contextManager);
                 ContextManager.Destroy(contextManager);
             }
+            ContextManager.CppVectorCleanup();
         }
 
         private bool exportFestivals()
