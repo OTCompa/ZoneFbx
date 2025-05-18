@@ -92,9 +92,14 @@ namespace ZoneFbx.GUI
             {
                 var match = Levels.FirstOrDefault(i => i.DisplayValue == value);
                 if (match != null)
+                {
                     _level = match.Value;
-                else
+                    LevelComboBox.SelectedItem = null;
+                } else
+                {
                     _level = value;
+                    LevelComboBox.SelectedItem = null;
+                }
 
                 OnPropertyChanged(nameof(Level));
                 FilteredLevels.Refresh();
