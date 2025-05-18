@@ -7,7 +7,7 @@ and proper hierarchy/object grouping.
 This version of ZoneFbx is a rewrite of the original in C# with some mappings to C++ code to utilize the FBX SDK.
 A large amount of the logic is kept 1:1 with the original. In other words, I have 0 idea what I'm doing.
 
-# Features
+## Features
 - FFXIV zone export to .FBX with textures
 - Light sources
 - Extracting blended textures and mapping to materials
@@ -23,7 +23,7 @@ in Blender so I'm not sure how to handle this.
 
 For any other errors, please open an issue.
 
-## Notes
+# Notes
 In this program, there are some arbitrary constant multipliers used
 to make the preview in Blender look closer to what it does in-game
 by default. You are able to set these constants manually if you desire
