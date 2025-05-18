@@ -7,6 +7,13 @@ and proper hierarchy/object grouping.
 This version of ZoneFbx is a rewrite of the original in C# with some mappings to C++ code to utilize the FBX SDK.
 A large amount of the logic is kept 1:1 with the original. In other words, I have 0 idea what I'm doing.
 
+# Features
+- FFXIV zone export to .FBX with textures
+- Light sources
+- Extracting blended textures and mapping to materials
+- Collision model exports
+- Festival model exports
+
 # Issues
 If normal maps look weird in Blender, try setting the Normal node
 to sRGB color space, and set the Normal/Map to World Space.  
@@ -77,16 +84,17 @@ From top to bottom:
 ## CLI
 ### Flags
 - `-l`    Allows lightshafts to be included in the final export
-- `-f`    Allows festival models to be included in the final export
+- `-f`    Exports festival models in a separate export
 - `-b`    Disables texture baking
 - `-j`    Exports all relevant LGB/SGB files as JSON for debugging purposes
 - `-i`    Allows light sources to be included in the final export
 - `-m`    Exports a material map for json
+- `-c`    Exports collision map in a separate export
 
 ### Variables
-- `--specular`      Sets the specular factor. Range: [0, 1]
-- `--normal`        Sets the normal factor. Range: [0, 1]
-- `lightIntensity`  Sets the light intensity factor. Range: [0, Int32.Max]
+- `--specular`        Sets the specular factor. Range: [0, 1]
+- `--normal`          Sets the normal factor. Range: [0, 1]
+- `--lightIntensity`  Sets the light intensity factor. Range: [0, Int32.Max]
 
 https://streamable.com/tjg45n
 
@@ -112,7 +120,7 @@ In the process of writing this code, I heavily referenced other people's code fo
 I'd like to thank the people behind these projects for the amount of information that I've learned from them.
 - [Imcintyre for the original ZoneFbx](https://github.com/lmcintyre/ZoneFbx) (Deleted repository)
 - [Lumina](https://github.com/NotAdam/Lumina)
+- [Sapphire](https://github.com/SapphireServer/Sapphire) and their Discord
 - [TexTools](https://github.com/TexTools)
 - [Takhlaq](https://github.com/takhlaq/ZoneFbx)
 - [AzureRain1](https://github.com/AzureRain1/ZoneFbx)
-- Sapphire discord for giving me a lot of useful info
