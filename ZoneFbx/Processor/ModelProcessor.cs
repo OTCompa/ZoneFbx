@@ -115,48 +115,19 @@ namespace ZoneFbx.Processor
 
             for (int i = 0; i < gameMesh.Vertices.Length; i++)
             {
-                IntPtr pos = IntPtr.Zero, norm = IntPtr.Zero, tangent1 = IntPtr.Zero, tangent2 = IntPtr.Zero, color = IntPtr.Zero;
+                IntPtr pos = IntPtr.Zero;
+                IntPtr norm = IntPtr.Zero;
+                IntPtr tangent1 = IntPtr.Zero;
+                IntPtr tangent2 = IntPtr.Zero;
+                IntPtr color = IntPtr.Zero;
 
+                var vertex = gameMesh.Vertices[i];
 
-                if (gameMesh.Vertices[i].Position.HasValue)
-                {
-                    pos = Fbx.Vector4.Create(gameMesh.Vertices[i].Position!.Value.X,
-                             gameMesh.Vertices[i].Position!.Value.Y,
-                             gameMesh.Vertices[i].Position!.Value.Z,
-                             gameMesh.Vertices[i].Position!.Value.W);
-                }
-
-                if (gameMesh.Vertices[i].Normal.HasValue)
-                {
-                    norm = Fbx.Vector4.Create(gameMesh.Vertices[i].Normal!.Value.X,
-                              gameMesh.Vertices[i].Normal!.Value.Y,
-                              gameMesh.Vertices[i].Normal!.Value.Z,
-                              0);
-                }
-
-                if (gameMesh.Vertices[i].Color.HasValue)
-                {
-                    color = Fbx.Vector4.Create(gameMesh.Vertices[i].Color!.Value.X,
-                             gameMesh.Vertices[i].Color!.Value.Y,
-                             gameMesh.Vertices[i].Color!.Value.Z,
-                             gameMesh.Vertices[i].Color!.Value.W);
-                }
-
-                if (gameMesh.Vertices[i].Tangent1.HasValue)
-                {
-                    tangent1 = Fbx.Vector4.Create(gameMesh.Vertices[i].Tangent1!.Value.X,
-                              gameMesh.Vertices[i].Tangent1!.Value.Y,
-                              gameMesh.Vertices[i].Tangent1!.Value.Z,
-                              0);
-                }
-
-                if (gameMesh.Vertices[i].Tangent2.HasValue)
-                {
-                    tangent2 = Fbx.Vector4.Create(gameMesh.Vertices[i].Tangent2!.Value.X,
-                             gameMesh.Vertices[i].Tangent2!.Value.Y,
-                             gameMesh.Vertices[i].Tangent2!.Value.Z,
-                             gameMesh.Vertices[i].Tangent2!.Value.W);
-                }
+                pos = vertex.Position.HasValue ? Vector4.Create(vertex.Position.Value.X, vertex.Position.Value.Y, vertex.Position.Value.Z, vertex.Position.Value.Z) : pos;
+                norm = vertex.Normal.HasValue ? Vector4.Create(vertex.Normal.Value.X, vertex.Normal.Value.Y, vertex.Normal.Value.Z, 0) : norm;
+                color = vertex.Color.HasValue ? Vector4.Create(vertex.Color.Value.X, vertex.Color.Value.Y, vertex.Color.Value.Z, vertex.Color.Value.W) : color;
+                tangent1 = vertex.Tangent1.HasValue ? Vector4.Create(vertex.Tangent1.Value.X, vertex.Tangent1.Value.Y, vertex.Tangent1.Value.Z, vertex.Tangent1.Value.W) : tangent1;
+                tangent2 = vertex.Tangent2.HasValue ? Vector4.Create(vertex.Tangent2.Value.X, vertex.Tangent2.Value.Y, vertex.Tangent2.Value.Z, vertex.Tangent2.Value.W) : tangent1;
 
                 if (pos != IntPtr.Zero && norm != IntPtr.Zero)
                 {
@@ -166,18 +137,18 @@ namespace ZoneFbx.Processor
                 if (gameMesh.Vertices[i].UV.HasValue)
                 {
                     var uv1Array = GeometryElement.UV.GetDirectArray(uvElement1);
-                    Fbx.Layer.UV_Add(uv1Array, Fbx.Vector2.Create(gameMesh.Vertices[i].UV!.Value.X, gameMesh.Vertices[i].UV!.Value.Y * -1));
+                    Layer.UV_Add(uv1Array, Vector2.Create(gameMesh.Vertices[i].UV!.Value.X, gameMesh.Vertices[i].UV!.Value.Y * -1));
                     var uv2Array = GeometryElement.UV.GetDirectArray(uvElement2);
-                    Fbx.Layer.UV_Add(uv2Array, Fbx.Vector2.Create(gameMesh.Vertices[i].UV!.Value.Z, gameMesh.Vertices[i].UV!.Value.W * -1));
+                    Layer.UV_Add(uv2Array, Vector2.Create(gameMesh.Vertices[i].UV!.Value.Z, gameMesh.Vertices[i].UV!.Value.W * -1));
                 }
 
                 var colorArray = GeometryElement.VertexColor.GetDirectArray(colorElement);
-                Fbx.Layer.Color_Add(colorArray, color);
+                Layer.Color_Add(colorArray, color);
 
                 var tangent1Array = GeometryElement.Tangent.GetDirectArray(tangentElem1);
-                Fbx.Layer.Tangent_Add(tangent1Array, tangent1);
+                Layer.Tangent_Add(tangent1Array, tangent1);
                 var tangent2Array = GeometryElement.Tangent.GetDirectArray(tangentElem2);
-                Fbx.Layer.Tangent_Add(tangent2Array, tangent2);
+                Layer.Tangent_Add(tangent2Array, tangent2);
             }
 
             for (int i = 0; i < gameMesh.Indices.Length; i += 3)
