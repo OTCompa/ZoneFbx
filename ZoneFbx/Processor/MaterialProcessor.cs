@@ -4,7 +4,7 @@ using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal class MaterialProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, TextureProcessor textureProcessor, string outputPath) : Processor(data, manager, scene, options)
+    internal class MaterialProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, TextureProcessor textureProcessor, string outputPath) : Processor(data, contextManager, options)
     {
         private readonly TextureProcessor textureProcessor = textureProcessor;
 
@@ -29,7 +29,7 @@ namespace ZoneFbx.Processor
             if (materialCache.TryGetValue(hash, out var res)) return res;
 
             var materialInfo = options.disableBaking ? null : new MaterialInfo(material, outputPath, options);
-            var outputSurface = SurfacePhong.Create(scene, Path.GetFileNameWithoutExtension(material.MaterialPath));
+            var outputSurface = SurfacePhong.Create(contextManager, Path.GetFileNameWithoutExtension(material.MaterialPath));
             SurfacePhong.SetFactor(outputSurface, options.specularFactor, options.normalFactor);
 
             HashSet<Texture.Usage> alreadySet = new HashSet<Texture.Usage>();

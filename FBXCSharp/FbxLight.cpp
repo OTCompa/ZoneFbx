@@ -1,10 +1,11 @@
 #include "pch.h"
 #include <fbxsdk.h>
 #include "FBXCSharp.h"
+#include "ContextManager.h"
 
 extern "C" {
-    FBXCSHARP_API FbxLight* FbxLight_Create(FbxScene* scene, const char* name) {
-        return FbxLight::Create(scene, name);
+    FBXCSHARP_API FbxLight* FbxLight_Create(ContextManager* contextManager, const char* name) {
+        return FbxLight::Create(contextManager->pScene, name);
     }
 
     FBXCSHARP_API void FbxLight_SetColor(FbxLight* light, double X, double Y, double Z) {

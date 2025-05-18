@@ -11,7 +11,8 @@ namespace ZoneFbx.Fbx
     {
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxExporter_Create")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial IntPtr Create(IntPtr manager, [MarshalAs(UnmanagedType.LPStr)] string name);
+        public static partial IntPtr Create(IntPtr contextManager, [MarshalAs(UnmanagedType.LPStr)] string name);
+
         [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FbxExporter_Initialize")]
         public static extern bool Initialize(IntPtr exporter, [MarshalAs(UnmanagedType.LPStr)] string out_path, IntPtr manager);
         [DllImport("FBXCSharp.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FbxExporter_Export")]

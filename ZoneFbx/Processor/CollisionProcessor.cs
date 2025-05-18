@@ -3,7 +3,7 @@ using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal class CollisionProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, string zonePath) : Processor(data, manager, scene, options)
+    internal class CollisionProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, ContextManager ContextManager, string zonePath) : Processor(data, contextManager, options)
     {
         private readonly string zonePath = zonePath;
 
@@ -16,7 +16,7 @@ namespace ZoneFbx.Processor
             var listFile = data.GetFile<PcbListFile>(listFilePath);
             if (listFile == null || listFile.Nodes.Children == null) return;
 
-            var listNode = Node.Create(manager, "collision_list");
+            var listNode = Node.Create(contextManager, "collision_list");
 
             foreach (var node in listFile.Nodes.Children)
             {
@@ -33,12 +33,12 @@ namespace ZoneFbx.Processor
                 var pcbMesh = createCollisionMesh(collision, Path.GetFileNameWithoutExtension(objectFilename));
                 if (pcbMesh == IntPtr.Zero) continue;
 
-                var meshNode = Node.Create(manager, Path.GetFileNameWithoutExtension(objectFilename));
+                var meshNode = Node.Create(contextManager, Path.GetFileNameWithoutExtension(objectFilename));
                 Node.SetNodeAttribute(meshNode, pcbMesh);
                 Node.AddChild(listNode, meshNode);
             }
 
-            var rootNode = Scene.GetRootNode(scene);
+            var rootNode = Scene.GetRootNode(contextManager);
             Node.AddChild(rootNode, listNode);
         }
 
@@ -59,7 +59,7 @@ namespace ZoneFbx.Processor
 
         public IntPtr createCollisionMesh(PcbResourceFile collisionFile, string name)
         {
-            var mesh = Fbx.Mesh.Create(scene, name);
+            var mesh = Fbx.Mesh.Create(contextManager, name);
             var totalVertices = 0;
             //Console.WriteLine($"{collisionFile.Nodes.TotalNodes.ToString()}, {collisionFile.Nodes.TotalPolygons.ToString()}");
 
@@ -104,6 +104,7 @@ namespace ZoneFbx.Processor
             foreach (var v in resourceNode.Vertices)
             {
                 var pos = Vector4.Create(v.X, v.Y, v.Z, 0);
+                ContextManager.CppVector4ToFree.Add(pos);
                 Fbx.Mesh.SetControlPointAt(mesh, pos, meshIndex++);
             }
 

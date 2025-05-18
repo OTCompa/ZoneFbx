@@ -4,7 +4,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Fbx
 {
@@ -29,7 +28,7 @@ namespace ZoneFbx.Fbx
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxLight_Create")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial IntPtr Create(IntPtr scene, [MarshalAs(UnmanagedType.LPStr)] string name);
+        public static partial IntPtr Create(IntPtr contextManager, [MarshalAs(UnmanagedType.LPStr)] string name);
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxLight_SetColor")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]

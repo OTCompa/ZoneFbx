@@ -1,10 +1,11 @@
 #include "pch.h"
 #include <fbxsdk.h>
 #include "FBXCSharp.h"
+#include "ContextManager.h"
 
 extern "C" {
-    FBXCSHARP_API FbxNode* FbxNode_Create(FbxManager* manager, const char* name) {
-        return FbxNode::Create(manager, name);
+    FBXCSHARP_API FbxNode* FbxNode_Create(ContextManager* contextManager, const char* name) {
+        return FbxNode::Create(contextManager->pScene, name);
     }
 
     FBXCSHARP_API void FbxNode_SetLclTranslation(FbxNode* node, double pData0, double pData1, double pData2) {

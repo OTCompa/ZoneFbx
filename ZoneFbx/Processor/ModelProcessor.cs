@@ -4,7 +4,7 @@ using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal class ModelProcessor(Lumina.GameData data, IntPtr manager, IntPtr scene, ZoneExporter.Options options, MaterialProcessor materialProcessor) : Processor(data, manager, scene, options)
+    internal class ModelProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, ContextManager ContextManager, MaterialProcessor materialProcessor) : Processor(data, contextManager, options)
     {
         private readonly MaterialProcessor materialProcessor = materialProcessor;
         private readonly Dictionary<string, IntPtr> meshCache = [];
@@ -39,7 +39,7 @@ namespace ZoneFbx.Processor
             for (int i = 0; i < model.Meshes.Length; i++)
             {
                 string name = $"{path}_{i}";
-                var meshNode = Node.Create(manager, name);
+                var meshNode = Node.Create(contextManager, name);
 
                 if (!meshCache.TryGetValue(name, out var mesh))
                 {
@@ -79,7 +79,7 @@ namespace ZoneFbx.Processor
             for (int i = 0; i < model.Meshes.Length; i++)
             {
                 string name = $"{path}_{i}";
-                var meshNode = Node.Create(manager, name);
+                var meshNode = Node.Create(contextManager, name);
 
                 if (!meshCache.TryGetValue(name, out var mesh))
                 {
@@ -95,7 +95,7 @@ namespace ZoneFbx.Processor
 
         private IntPtr createMesh(Lumina.Models.Models.Mesh gameMesh, string name)
         {
-            var mesh = Fbx.Mesh.Create(scene, name);
+            var mesh = Fbx.Mesh.Create(contextManager, name);
             Fbx.Mesh.Init(mesh, gameMesh.Vertices.Length);
 
             var colorElement = GeometryElement.VertexColor.Create(mesh);
@@ -123,11 +123,35 @@ namespace ZoneFbx.Processor
 
                 var vertex = gameMesh.Vertices[i];
 
-                pos = vertex.Position.HasValue ? Vector4.Create(vertex.Position.Value.X, vertex.Position.Value.Y, vertex.Position.Value.Z, vertex.Position.Value.Z) : pos;
-                norm = vertex.Normal.HasValue ? Vector4.Create(vertex.Normal.Value.X, vertex.Normal.Value.Y, vertex.Normal.Value.Z, 0) : norm;
-                color = vertex.Color.HasValue ? Vector4.Create(vertex.Color.Value.X, vertex.Color.Value.Y, vertex.Color.Value.Z, vertex.Color.Value.W) : color;
-                tangent1 = vertex.Tangent1.HasValue ? Vector4.Create(vertex.Tangent1.Value.X, vertex.Tangent1.Value.Y, vertex.Tangent1.Value.Z, vertex.Tangent1.Value.W) : tangent1;
-                tangent2 = vertex.Tangent2.HasValue ? Vector4.Create(vertex.Tangent2.Value.X, vertex.Tangent2.Value.Y, vertex.Tangent2.Value.Z, vertex.Tangent2.Value.W) : tangent1;
+                if (vertex.Position.HasValue)
+                {
+                    pos = Vector4.Create(vertex.Position.Value.X, vertex.Position.Value.Y, vertex.Position.Value.Z, vertex.Position.Value.Z);
+                    ContextManager.CppVector4ToFree.Add(pos);
+                }
+
+                if (vertex.Normal.HasValue)
+                {
+                    norm = Vector4.Create(vertex.Normal.Value.X, vertex.Normal.Value.Y, vertex.Normal.Value.Z, 0);
+                    ContextManager.CppVector4ToFree.Add(norm);
+                }
+
+                if (vertex.Color.HasValue)
+                {
+                    color = Vector4.Create(vertex.Color.Value.X, vertex.Color.Value.Y, vertex.Color.Value.Z, vertex.Color.Value.W);
+                    ContextManager.CppVector4ToFree.Add(color);
+                }
+
+                if (vertex.Tangent1.HasValue)
+                {
+                    tangent1 = Vector4.Create(vertex.Tangent1.Value.X, vertex.Tangent1.Value.Y, vertex.Tangent1.Value.Z, vertex.Tangent1.Value.W);
+                    ContextManager.CppVector4ToFree.Add(tangent1);
+                }
+
+                if (vertex.Tangent2.HasValue)
+                {
+                    tangent2 = Vector4.Create(vertex.Tangent2.Value.X, vertex.Tangent2.Value.Y, vertex.Tangent2.Value.Z, vertex.Tangent2.Value.W);
+                    ContextManager.CppVector4ToFree.Add(tangent2);
+                }
 
                 if (pos != IntPtr.Zero && norm != IntPtr.Zero)
                 {
@@ -137,9 +161,13 @@ namespace ZoneFbx.Processor
                 if (gameMesh.Vertices[i].UV.HasValue)
                 {
                     var uv1Array = GeometryElement.UV.GetDirectArray(uvElement1);
-                    Layer.UV_Add(uv1Array, Vector2.Create(gameMesh.Vertices[i].UV!.Value.X, gameMesh.Vertices[i].UV!.Value.Y * -1));
+                    var uv1Vec = Vector2.Create(gameMesh.Vertices[i].UV!.Value.X, gameMesh.Vertices[i].UV!.Value.Y * -1);
+                    ContextManager.CppVector2ToFree.Add(uv1Vec);
+                    Layer.UV_Add(uv1Array, uv1Vec);
                     var uv2Array = GeometryElement.UV.GetDirectArray(uvElement2);
-                    Layer.UV_Add(uv2Array, Vector2.Create(gameMesh.Vertices[i].UV!.Value.Z, gameMesh.Vertices[i].UV!.Value.W * -1));
+                    var uv2Vec = Vector2.Create(gameMesh.Vertices[i].UV!.Value.Z, gameMesh.Vertices[i].UV!.Value.W * -1);
+                    ContextManager.CppVector2ToFree.Add(uv2Vec);
+                    Layer.UV_Add(uv2Array, uv2Vec);
                 }
 
                 var colorArray = GeometryElement.VertexColor.GetDirectArray(colorElement);

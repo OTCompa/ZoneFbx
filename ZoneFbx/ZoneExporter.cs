@@ -26,6 +26,7 @@ namespace ZoneFbx
         private readonly Lumina.GameData data;
         private readonly Options options;
 
+        private readonly ContextManager ContextManager;
         private readonly CollisionProcessor collisionProcessor;
         private readonly TextureProcessor textureProcessor;
         private readonly MaterialProcessor materialProcessor;
@@ -35,8 +36,8 @@ namespace ZoneFbx
         private readonly TerrainProcessor terrainProcessor;
         private readonly FbxExporter fbxExporter;
 
-        internal IntPtr manager {  get; private set; }
-        internal IntPtr scene { get; private set; }
+        private IntPtr contextManager { get; set; }
+
         private readonly List<Processor.Processor> processors = [];
 
         public ZoneExporter(string gamePath, string zonePath, string outputPath, Options options)
@@ -49,10 +50,12 @@ namespace ZoneFbx
             Directory.CreateDirectory(this.outputPath);
 
             Console.WriteLine("Initializing...");
-            manager = Manager.Create();
-            scene = InitScene(zoneCode);
 
-            fbxExporter = new(manager, scene);
+            contextManager = ContextManager.Create();
+            ContextManager.CreateManager(contextManager);
+            ContextManager.CreateScene(contextManager, zoneCode);
+
+            fbxExporter = new(contextManager);
 
             try
             {
@@ -63,13 +66,15 @@ namespace ZoneFbx
                 throw new Exception("game path directory is not valid");
             }
 
-            collisionProcessor = new(data, manager, scene, options, zonePath);
-            textureProcessor = new(data, manager, scene, options, this.outputPath, zoneCode);
-            materialProcessor = new(data, manager, scene, options, textureProcessor, this.outputPath);
-            modelProcessor = new(data, manager, scene, options, materialProcessor);
-            instanceObjectProcessor = new(data, manager, scene, options, modelProcessor, collisionProcessor);
-            layerProcessor = new(data, manager, scene, options, instanceObjectProcessor, zonePath, this.outputPath);
-            terrainProcessor = new(data, manager, scene, options, modelProcessor, this.zonePath);
+            
+            ContextManager = new ContextManager();
+            collisionProcessor = new(data, contextManager, options, ContextManager, zonePath);
+            textureProcessor = new(data, contextManager, options, this.outputPath, zoneCode);
+            materialProcessor = new(data, contextManager, options, textureProcessor, this.outputPath);
+            modelProcessor = new(data, contextManager, options, ContextManager, materialProcessor);
+            instanceObjectProcessor = new(data, contextManager, options, modelProcessor, collisionProcessor);
+            layerProcessor = new(data, contextManager, options, instanceObjectProcessor, zonePath, this.outputPath);
+            terrainProcessor = new(data, contextManager, options, modelProcessor, this.zonePath);
 
             // 0 idea how to structure this program atp
             processors.AddRange([collisionProcessor, textureProcessor, materialProcessor, modelProcessor, instanceObjectProcessor, layerProcessor, terrainProcessor]);
@@ -112,31 +117,20 @@ namespace ZoneFbx
 
         private void ReinitializeFbx(string sceneName)
         {
-            // attempting to destroy the pre-existing manager (or any object allocated through PInvoke) causes a fatal error wrt memory :(
-            // how do i fix this?
-            // Manager.Destroy(manager);
-            scene = InitScene(sceneName);
+            ContextManager.DestroyScene(contextManager);
+            ContextManager.CppVectorCleanup();
+
+            ContextManager.CreateScene(contextManager, sceneName);
 
             foreach (var processor in processors)
             {
-                processor.UpdateScene(scene);
-                processor.UpdateManager(manager);
                 processor.UpdateOptions(options);
             }
-            fbxExporter.UpdateScene(scene);
-            fbxExporter.UpdateManager(manager);
 
             modelProcessor.ResetCache();
             materialProcessor.ResetCache();
             instanceObjectProcessor.ResetCache();
 
-        }
-
-        private IntPtr InitScene(string name)
-        {
-            var scene = Scene.Create(manager, name);
-            Scene.SetSystemUnit(scene);
-            return scene;
         }
 
         private bool exportZone()
@@ -196,7 +190,12 @@ namespace ZoneFbx
 
         ~ZoneExporter()
         {
-            if (manager != IntPtr.Zero) Manager.Destroy(manager);
+            if (contextManager != IntPtr.Zero)
+            {
+                ContextManager.DestroyManager(contextManager);
+                ContextManager.Destroy(contextManager);
+            }
+            ContextManager.CppVectorCleanup();
         }
 
         private bool exportFestivals()

@@ -1,8 +1,4 @@
-﻿using Lumina.Data.Parsing.Layer;
-using ZoneFbx;
-using static Lumina.Models.Materials.Texture;
-
-namespace ZoneFbx
+﻿namespace ZoneFbx
 {
     class Program
     {
@@ -38,13 +34,6 @@ namespace ZoneFbx
             ZoneExporter.Options options = new();
 
             if (args.Length >= 4 && !ProcessArgs(args, ref options)) Environment.Exit(1);
-
-            test(args, options);
-            //var zoneExporter = new ZoneExporter(args[0], args[1], args[2], options);
-        }
-
-        static void test(string[] args, ZoneExporter.Options options)
-        {
 
             var zoneExporter = new ZoneExporter(args[0], args[1], args[2], options);
         }

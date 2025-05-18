@@ -11,7 +11,7 @@ namespace ZoneFbx.Fbx
     {
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_Create")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial IntPtr Create(IntPtr scene, [MarshalAs(UnmanagedType.LPStr)] string name);
+        public static partial IntPtr Create(IntPtr contextManager, [MarshalAs(UnmanagedType.LPStr)] string name);
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_Init")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
@@ -20,7 +20,7 @@ namespace ZoneFbx.Fbx
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial void InitControlPoints(IntPtr mesh, int length);
 
-        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_SetControlPointAtNn")]
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_SetControlPointAtNoNormals")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial void SetControlPointAt(IntPtr mesh, IntPtr a, int i);
 
