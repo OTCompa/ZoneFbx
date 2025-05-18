@@ -1,10 +1,12 @@
 #include "pch.h"
 #include <fbxsdk.h>
 #include "FBXCSharp.h"
+#include "ContextManager.h"
+
 
 extern "C" {
-    FBXCSHARP_API FbxSurfacePhong* FbxSurfacePhong_Create(FbxScene* scene, const char* name) {
-        return FbxSurfacePhong::Create(scene, name);
+    FBXCSHARP_API FbxSurfacePhong* FbxSurfacePhong_Create(ContextManager* contextManager, const char* name) {
+        return FbxSurfacePhong::Create(contextManager->pScene, name);
     }
 
     FBXCSHARP_API void FbxSurfacePhong_SetFactor(FbxSurfacePhong* surfacePhong, double specularFactor, double bumpFactor) {

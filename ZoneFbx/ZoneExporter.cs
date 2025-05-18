@@ -37,6 +37,8 @@ namespace ZoneFbx
 
         internal IntPtr manager {  get; private set; }
         internal IntPtr scene { get; private set; }
+        private IntPtr contextManager { get; set; }
+
         private readonly List<Processor.Processor> processors = [];
 
         public ZoneExporter(string gamePath, string zonePath, string outputPath, Options options)
@@ -49,8 +51,13 @@ namespace ZoneFbx
             Directory.CreateDirectory(this.outputPath);
 
             Console.WriteLine("Initializing...");
-            manager = Manager.Create();
-            scene = InitScene(zoneCode);
+
+            contextManager = ContextManager.Create();
+            ContextManager.CreateManager(contextManager);
+            ContextManager.CreateScene(contextManager, zoneCode);
+
+            manager = contextManager;
+            scene = contextManager;
 
             fbxExporter = new(manager, scene);
 
@@ -112,10 +119,9 @@ namespace ZoneFbx
 
         private void ReinitializeFbx(string sceneName)
         {
-            // attempting to destroy the pre-existing manager (or any object allocated through PInvoke) causes a fatal error wrt memory :(
-            // how do i fix this?
-            // Manager.Destroy(manager);
-            scene = InitScene(sceneName);
+            ContextManager.DestroyScene(contextManager);
+            ContextManager.CreateScene(contextManager, sceneName);
+            scene = contextManager;
 
             foreach (var processor in processors)
             {
@@ -130,13 +136,6 @@ namespace ZoneFbx
             materialProcessor.ResetCache();
             instanceObjectProcessor.ResetCache();
 
-        }
-
-        private IntPtr InitScene(string name)
-        {
-            var scene = Scene.Create(manager, name);
-            Scene.SetSystemUnit(scene);
-            return scene;
         }
 
         private bool exportZone()
@@ -196,7 +195,11 @@ namespace ZoneFbx
 
         ~ZoneExporter()
         {
-            if (manager != IntPtr.Zero) Manager.Destroy(manager);
+            if (contextManager != IntPtr.Zero)
+            {
+                ContextManager.DestroyManager(contextManager);
+                ContextManager.Destroy(contextManager);
+            }
         }
 
         private bool exportFestivals()

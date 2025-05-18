@@ -1,10 +1,11 @@
 #include "pch.h"
 #include <fbxsdk.h>
 #include "FBXCSharp.h"
+#include "ContextManager.h"
 
 extern "C" {
-    FBXCSHARP_API FbxMesh* FbxMesh_Create(FbxScene* scene, const char* name) {
-        return FbxMesh::Create(scene, name);
+    FBXCSHARP_API FbxMesh* FbxMesh_Create(ContextManager* contextManager, const char* name) {
+        return FbxMesh::Create(contextManager->pScene, name);
     }
 
     FBXCSHARP_API void FbxMesh_Init(FbxMesh* mesh, int length) {
@@ -16,7 +17,7 @@ extern "C" {
         mesh->InitControlPoints(length);
     }
 
-    FBXCSHARP_API void FbxMesh_SetControlPointAtNn(FbxMesh* mesh, FbxVector4* a, int i) {
+    FBXCSHARP_API void FbxMesh_SetControlPointAtNoNormals(FbxMesh* mesh, FbxVector4* a, int i) {
         mesh->SetControlPointAt(*a, i);
     }
 

@@ -244,11 +244,13 @@
     <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ContextManager.h" />
     <ClInclude Include="FBXCSharp.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ContextManager.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="FbxExporter.cpp" />
     <ClCompile Include="FbxFileTexture.cpp" />
@@ -256,7 +258,6 @@
     <ClCompile Include="FbxLayer.cpp" />
     <ClCompile Include="FbxLayeredTexture.cpp" />
     <ClCompile Include="FbxLight.cpp" />
-    <ClCompile Include="FbxManager.cpp" />
     <ClCompile Include="FbxMesh.cpp" />
     <ClCompile Include="FbxNode.cpp" />
     <ClCompile Include="FbxProperty.cpp" />

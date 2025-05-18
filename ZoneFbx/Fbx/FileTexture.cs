@@ -11,7 +11,7 @@ namespace ZoneFbx.Fbx
     {
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxFileTexture_Create")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial IntPtr Create(IntPtr scene, [MarshalAs(UnmanagedType.LPStr)] string name);
+        public static partial IntPtr Create(IntPtr contextManager, [MarshalAs(UnmanagedType.LPStr)] string name);
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxFileTexture_SetStuff")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
