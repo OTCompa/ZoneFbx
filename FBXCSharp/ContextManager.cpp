@@ -45,6 +45,7 @@ extern "C" {
 			}
 			else {
 				contextManager->pScene = FbxScene::Create(contextManager->pManager, name);
+				contextManager->pScene->GetGlobalSettings().SetSystemUnit(FbxSystemUnit::m);
 			}
 		}
 		else {
