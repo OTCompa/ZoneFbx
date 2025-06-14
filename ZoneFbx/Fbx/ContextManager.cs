@@ -14,7 +14,6 @@ namespace ZoneFbx.Fbx
 
         public void CppVectorCleanup()
         {
-            // there's probably some way to pass an array of pointers into c++ to do delete[] but this will do for now.
             if (CppVector4ToFree.Count > 0)
             {
                 foreach(var v in CppVector4ToFree)

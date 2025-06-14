@@ -91,7 +91,8 @@ namespace ZoneFbx.Processor
             var jsonExport = JsonConvert.SerializeObject(materialTextureDict, Formatting.Indented);
             var jsonFolder = Path.Combine(outputPath, "json");
             Directory.CreateDirectory(jsonFolder);
-            File.WriteAllText(Path.Combine(jsonFolder, "materialTextureMap.json"), jsonExport);
+            var suffix = options.mode == ZoneExporter.Mode.Default ? "" : "_festival";
+            File.WriteAllText(Path.Combine(jsonFolder, $"materialTextureMap{suffix}.json"), jsonExport);
         }
 
         private void addToMaterialTextureDict(string filename, Material material, string usage)
