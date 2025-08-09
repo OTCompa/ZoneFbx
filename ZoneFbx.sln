@@ -15,8 +15,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZoneFbx.GUI", "ZoneFbx.GUI\
 		{A3051119-C4B9-4AB8-9CAA-40B090CC132D} = {A3051119-C4B9-4AB8-9CAA-40B090CC132D}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lumina", "Lumina\src\Lumina\Lumina.csproj", "{07A7B2BE-0C32-D25D-7BBD-17148DDE8966}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,12 +39,6 @@ Global
 		{A00D44D1-8635-4C66-A9A1-B50EB059C071}.GithubRelease|x64.Build.0 = GithubRelease|x64
 		{A00D44D1-8635-4C66-A9A1-B50EB059C071}.Release|x64.ActiveCfg = Release|x64
 		{A00D44D1-8635-4C66-A9A1-B50EB059C071}.Release|x64.Build.0 = Release|x64
-		{07A7B2BE-0C32-D25D-7BBD-17148DDE8966}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{07A7B2BE-0C32-D25D-7BBD-17148DDE8966}.Debug|x64.Build.0 = Debug|Any CPU
-		{07A7B2BE-0C32-D25D-7BBD-17148DDE8966}.GithubRelease|x64.ActiveCfg = Release|Any CPU
-		{07A7B2BE-0C32-D25D-7BBD-17148DDE8966}.GithubRelease|x64.Build.0 = Release|Any CPU
-		{07A7B2BE-0C32-D25D-7BBD-17148DDE8966}.Release|x64.ActiveCfg = Release|Any CPU
-		{07A7B2BE-0C32-D25D-7BBD-17148DDE8966}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
