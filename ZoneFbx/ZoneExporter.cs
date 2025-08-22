@@ -1,20 +1,7 @@
-﻿using Lumina.Data.Files;
-using System.Drawing;
-using System.Drawing.Imaging;
-using JeremyAnsel.BcnSharp;
-using Lumina.Data.Parsing.Layer;
-using Newtonsoft.Json;
-using static Lumina.Data.Parsing.Layer.LayerCommon;
-using Lumina.Models.Materials;
-using Lumina.Extensions;
+﻿using System;
 using System.Numerics;
-using System;
-using Lumina.Excel.Sheets;
-using Lumina.Excel;
 using ZoneFbx.Fbx;
-using System.Drawing.Text;
 using ZoneFbx.Processor;
-using System.Xml.Linq;
 
 namespace ZoneFbx
 {
