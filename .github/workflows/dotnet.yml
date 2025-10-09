@@ -39,14 +39,14 @@ jobs:
         dotnet-version: 9.0.x
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore --configuration GithubRelease
+    - name: Publish
+      run: dotnet publish --no-restore --configuration GithubRelease
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration GithubRelease
     - name: Pack release archives
       run: |
         mkdir release
-        Compress-Archive -Path .\ZoneFbx.GUI\bin\x64\GithubRelease\net9.0-windows\* -DestinationPath .\release\ZoneFbx.GUI_${{ github.ref_name }}.zip -Force
+        Compress-Archive -Path .\ZoneFbx.GUI\bin\x64\GithubRelease\net9.0-windows\publish\* -DestinationPath .\release\ZoneFbx.GUI_${{ github.ref_name }}.zip -Force
     - name: Create Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -64,9 +64,9 @@ namespace ZoneFbx.GUI
         {
             Config = config;
             ExportConfig = exportConfig;
-            SpecularFactor = ExportConfig.SpecularFactor;
-            NormalFactor = ExportConfig.NormalFactor;
-            LightIntensityFactor = ExportConfig.LightIntensityFactor;
+            _specularFactor = ExportConfig.SpecularFactor;
+            _normalFactor = ExportConfig.NormalFactor;
+            _lightIntensityFactor = ExportConfig.LightIntensityFactor;
 
 
             InitializeComponent();

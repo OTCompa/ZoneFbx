@@ -4,3 +4,4 @@ Debug/
 */bin/
 */obj/
 .vscode/
+prebuilt/*
