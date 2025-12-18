@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ZoneFbx": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Program Files (x86)\\SquareEnix\\FINAL FANTASY XIV - A Realm Reborn\\game\\sqpack\" ffxiv/sea_s1/twn/s1t2/level/s1t2 \"C:\\Users\\Tyler\\Desktop\\Mods\\maps\\\\\" -jisc --specular 0.3 --normal 0.2 --lightIntensity 15000"
+    }
+  }
+}

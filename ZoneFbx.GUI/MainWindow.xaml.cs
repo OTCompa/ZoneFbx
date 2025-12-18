@@ -373,7 +373,7 @@ namespace ZoneFbx.GUI
 
             try
             {
-                var result = await Cli.Wrap("ZoneFbx")
+                var result = await Cli.Wrap("ZoneFbxCLI/ZoneFbx")
                     .WithArguments(finalArgs)
                     .WithStandardOutputPipe(PipeTarget.ToDelegate(AppendConsole))
                     .WithStandardErrorPipe(PipeTarget.ToDelegate(AppendConsole))

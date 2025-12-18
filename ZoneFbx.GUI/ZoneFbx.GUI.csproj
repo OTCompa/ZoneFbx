@@ -2,22 +2,30 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <Platforms>AnyCPU;x64</Platforms>
+    <Platforms>x64</Platforms>
     <Configurations>Debug;Release;GithubRelease</Configurations>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.9.0" />
+    <PackageReference Include="CliWrap" Version="3.10.0" />
     <PackageReference Include="Lumina" Version="6.7.0" />
     <PackageReference Include="Lumina.Excel" Version="7.3.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ZoneFbx\ZoneFbx.csproj" />
-  </ItemGroup>
+  <Target Name="CopyZoneFbx" AfterTargets="Build">
+    <ItemGroup>
+      <ZoneFbxFiles Include="$(SolutionDir)ZoneFbx\bin\$(Platform)\$(Configuration)\$(TargetFramework)\**\*.*" />
+    </ItemGroup>
+    <Message Importance="High" Text="Copying ZoneFbx output files to $(OutputPath)ZoneFbxCLI..." />
+    <Copy
+      SourceFiles="@(ZoneFbxFiles)"
+      DestinationFolder="$(OutputPath)ZoneFbxCLI\%(RecursiveDir)"
+      SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

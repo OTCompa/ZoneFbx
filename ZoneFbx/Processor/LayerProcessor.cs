@@ -13,7 +13,7 @@ namespace ZoneFbx.Processor
         private readonly string zone_path;
         private readonly string output_path;
 
-        private readonly ExcelSheet<EObj> EObjSheet;
+        private readonly ExcelSheet<EObj>? EObjSheet;
 
         public LayerProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, InstanceObjectProcessor instanceObjectProcessor, string zone_path, string output_path) : base(data, contextManager, options)
         {
@@ -23,7 +23,11 @@ namespace ZoneFbx.Processor
 
             try
             {
-                EObjSheet = data.GetExcelSheet<EObj>()!;
+                EObjSheet = data.GetExcelSheet<EObj>();
+                if (EObjSheet == null)
+                {
+                    Console.WriteLine("Error: Unable to get EObj sheet!\n");
+                }
             } catch (DirectoryNotFoundException)
             {
                 Console.WriteLine("Error: Unable to get EObj sheet!\n");
@@ -86,7 +90,8 @@ namespace ZoneFbx.Processor
                     break;
                 case LayerEntryType.EventObject:
                     var eventObj = (EventInstanceObject)obj.Object;
-                    if (!EObjSheet.TryGetRow(eventObj.ParentData.BaseId, out var row)) return IntPtr.Zero;
+                    
+                    if (EObjSheet == null || !EObjSheet.TryGetRow(eventObj.ParentData.BaseId, out var row)) return IntPtr.Zero;
                     if (row.SgbPath.ValueNullable == null) return IntPtr.Zero;
                     sgbPath = row.SgbPath.Value.SgbPath.ToString();
                     if (!sgbPath.EndsWith("sgb")) return IntPtr.Zero;  // 1 more sanity check
