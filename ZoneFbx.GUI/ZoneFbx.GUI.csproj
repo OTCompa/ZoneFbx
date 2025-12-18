@@ -13,8 +13,8 @@
 
   <ItemGroup>
     <PackageReference Include="CliWrap" Version="3.10.0" />
-    <PackageReference Include="Lumina" Version="6.7.0" />
-    <PackageReference Include="Lumina.Excel" Version="7.3.1" />
+    <PackageReference Include="Lumina" Version="7.1.0" />
+    <PackageReference Include="Lumina.Excel" Version="7.4.0" />
   </ItemGroup>
 
   <Target Name="CopyZoneFbx" AfterTargets="Build">
@@ -22,10 +22,7 @@
       <ZoneFbxFiles Include="$(SolutionDir)ZoneFbx\bin\$(Platform)\$(Configuration)\$(TargetFramework)\**\*.*" />
     </ItemGroup>
     <Message Importance="High" Text="Copying ZoneFbx output files to $(OutputPath)ZoneFbxCLI..." />
-    <Copy
-      SourceFiles="@(ZoneFbxFiles)"
-      DestinationFolder="$(OutputPath)ZoneFbxCLI\%(RecursiveDir)"
-      SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ZoneFbxFiles)" DestinationFolder="$(OutputPath)ZoneFbxCLI\%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>
