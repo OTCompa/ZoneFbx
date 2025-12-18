@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.13.35913.81
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZoneFbx", "ZoneFbx\ZoneFbx.csproj", "{A3051119-C4B9-4AB8-9CAA-40B090CC132D}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -18,25 +18,19 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
-		GithubRelease|x64 = GithubRelease|x64
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{A3051119-C4B9-4AB8-9CAA-40B090CC132D}.Debug|x64.ActiveCfg = Debug|x64
 		{A3051119-C4B9-4AB8-9CAA-40B090CC132D}.Debug|x64.Build.0 = Debug|x64
-		{A3051119-C4B9-4AB8-9CAA-40B090CC132D}.GithubRelease|x64.ActiveCfg = GithubRelease|x64
-		{A3051119-C4B9-4AB8-9CAA-40B090CC132D}.GithubRelease|x64.Build.0 = GithubRelease|x64
 		{A3051119-C4B9-4AB8-9CAA-40B090CC132D}.Release|x64.ActiveCfg = Release|x64
 		{A3051119-C4B9-4AB8-9CAA-40B090CC132D}.Release|x64.Build.0 = Release|x64
 		{77AF4EAF-D0B4-4E47-AA6B-FF20F8B7D007}.Debug|x64.ActiveCfg = Debug|x64
 		{77AF4EAF-D0B4-4E47-AA6B-FF20F8B7D007}.Debug|x64.Build.0 = Debug|x64
-		{77AF4EAF-D0B4-4E47-AA6B-FF20F8B7D007}.GithubRelease|x64.ActiveCfg = GithubRelease|x64
 		{77AF4EAF-D0B4-4E47-AA6B-FF20F8B7D007}.Release|x64.ActiveCfg = Release|x64
 		{77AF4EAF-D0B4-4E47-AA6B-FF20F8B7D007}.Release|x64.Build.0 = Release|x64
 		{A00D44D1-8635-4C66-A9A1-B50EB059C071}.Debug|x64.ActiveCfg = Debug|x64
 		{A00D44D1-8635-4C66-A9A1-B50EB059C071}.Debug|x64.Build.0 = Debug|x64
-		{A00D44D1-8635-4C66-A9A1-B50EB059C071}.GithubRelease|x64.ActiveCfg = GithubRelease|x64
-		{A00D44D1-8635-4C66-A9A1-B50EB059C071}.GithubRelease|x64.Build.0 = GithubRelease|x64
 		{A00D44D1-8635-4C66-A9A1-B50EB059C071}.Release|x64.ActiveCfg = Release|x64
 		{A00D44D1-8635-4C66-A9A1-B50EB059C071}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
