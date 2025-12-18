@@ -8,7 +8,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>AnyCPU;x64</Platforms>
-    <Version>1.0.10</Version>
+    <Version>1.0.11</Version>
     <Configurations>Debug;Release;GithubRelease</Configurations>
   </PropertyGroup>
 
