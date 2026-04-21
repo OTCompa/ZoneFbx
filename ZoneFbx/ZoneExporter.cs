@@ -29,6 +29,7 @@ namespace ZoneFbx
 
         public ZoneExporter(string gamePath, string zonePath, string outputPath, Options options)
         {
+            zonePath = zonePath.Trim();
             this.zonePath = zonePath;
             zoneCode = Path.GetFileName(zonePath);
             this.outputPath = Path.Combine(outputPath, zoneCode) + Path.DirectorySeparatorChar;
