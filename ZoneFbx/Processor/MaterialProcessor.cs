@@ -52,9 +52,11 @@ namespace ZoneFbx.Processor
                     }
                     continue;
                 }
-                alreadySet.Add(texture.TextureUsageSimple);
+                // there's an unhandled edge case here where the following fails and is supposed to be a blended texture. this hopefully shouldn't ever happen
+                // if it does happen i'll need to refactor when i have the time
                 textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out outputFilePath);
-                if (textureObject == IntPtr.Zero) return IntPtr.Zero;
+                if (textureObject == IntPtr.Zero) continue;
+                alreadySet.Add(texture.TextureUsageSimple);
 
                 addToMaterialTextureDict(Path.GetFileNameWithoutExtension(outputFilePath), material, texture.TextureUsageSimple.ToString());
                 if (texture.TextureUsageSimple == Texture.Usage.Diffuse)
