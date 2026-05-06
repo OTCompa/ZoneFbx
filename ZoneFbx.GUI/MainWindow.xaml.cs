@@ -8,9 +8,6 @@ using Lumina.Excel.Sheets;
 using CliWrap;
 using System.IO;
 using System.Configuration;
-using Action = System.Action;
-using System.Collections.Specialized;
-using System.Text;
 
 namespace ZoneFbx.GUI
 {
@@ -235,7 +232,7 @@ namespace ZoneFbx.GUI
             {
                 try
                 {
-                    data = new Lumina.GameData(GamePath);
+                    data = new Lumina.GameData(GamePath, new Lumina.LuminaOptions() { PanicOnSheetChecksumMismatch = false});
                 } catch (Exception ex)
                 {
                     ConsoleString = $"Unable to resolve game data: {ex.Message}\nYou might want to check if you correctly set the path to the sqpack folder.";

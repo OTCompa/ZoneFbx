@@ -12,9 +12,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.10.0" />
-    <PackageReference Include="Lumina" Version="7.1.0" />
-    <PackageReference Include="Lumina.Excel" Version="7.4.0" />
+    <PackageReference Include="CliWrap" Version="3.10.1" />
+    <PackageReference Include="Lumina" Version="7.4.0" />
+    <PackageReference Include="Lumina.Excel" Version="7.4.3" />
   </ItemGroup>
 
   <Target Name="CopyZoneFbx" AfterTargets="Build">

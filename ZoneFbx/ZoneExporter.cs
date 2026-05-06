@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Lumina;
+using System;
 using System.Numerics;
 using ZoneFbx.Fbx;
 using ZoneFbx.Processor;
@@ -47,7 +48,7 @@ namespace ZoneFbx
 
             try
             {
-                data = new Lumina.GameData(gamePath);
+                data = new GameData(gamePath, new LuminaOptions(){ PanicOnSheetChecksumMismatch = false });
             } catch (DirectoryNotFoundException)
             {
                 Console.WriteLine("Error: Game path directory is not valid!\n");
