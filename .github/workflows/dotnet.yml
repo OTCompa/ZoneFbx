@@ -20,9 +20,15 @@ jobs:
     # I do this because I don't want to/I don't know how to include the FBX SDK in Github Actions
     # If anyone knows how to include it painlessly, please let me know
     - name: Find prebuilt FBXCSharp.dll in releases
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases"
-        $fbxRelease = $releases | Where-Object { $_.tag_name -like "fbxcsharp-prebuilt-*" }
+        $headers = @{ Authorization = "Bearer $env:GITHUB_TOKEN" }
+        $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases" -Headers $headers
+        $fbxRelease = $releases |
+          Where-Object { $_.tag_name -like "fbxcsharp-prebuilt-*" -and -not $_.draft } |
+          Sort-Object { [datetime]$_.created_at } -Descending |
+          Select-Object -First 1
         $asset = $fbxRelease.assets | Where-Object { $_.name -eq "FBXCSharp.dll" } | Select-Object -First 1
         if (-not $asset) {
           Write-Error "FBXCSharp.dll not found in latest fbxcsharp-prebuilt-* release."
