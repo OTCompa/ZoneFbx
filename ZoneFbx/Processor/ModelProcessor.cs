@@ -125,7 +125,7 @@ namespace ZoneFbx.Processor
 
                 if (vertex.Position.HasValue)
                 {
-                    pos = Vector4.Create(vertex.Position.Value.X, vertex.Position.Value.Y, vertex.Position.Value.Z, vertex.Position.Value.Z);
+                    pos = Vector4.Create(vertex.Position.Value.X, vertex.Position.Value.Y, vertex.Position.Value.Z, vertex.Position.Value.W);
                     ContextManager.CppVector4ToFree.Add(pos);
                 }
 
