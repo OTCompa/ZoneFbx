@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "ContextManager.h"
 #include <fbxsdk.h>
-#include "FBXCSharp.h"
 
 ContextManager::ContextManager() {
 	pManager = nullptr;
@@ -20,7 +19,6 @@ extern "C" {
 		return contextManager;
 	}
 	FBXCSHARP_API void ContextManager_Destroy(ContextManager* contextManager) {
-		contextManager->~ContextManager();
 		delete contextManager;
 	}
 

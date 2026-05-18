@@ -11,3 +11,9 @@
 #include "framework.h"
 
 #endif //PCH_H
+
+#ifdef FBXCSHARP_EXPORTS
+#define FBXCSHARP_API __declspec(dllexport)
+#else
+#define FBXCSHARP_API __declspec(dllimport)
+#endif

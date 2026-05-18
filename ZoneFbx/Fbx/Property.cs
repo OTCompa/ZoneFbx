@@ -40,11 +40,6 @@ namespace ZoneFbx.Fbx
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial void CreateString(IntPtr obj, [MarshalAs(UnmanagedType.LPStr)] string name, [MarshalAs(UnmanagedType.LPStr)] string value);
 
-        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxProperty_SetString")]
-        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial void SetString(IntPtr property, [MarshalAs(UnmanagedType.LPStr)] string value);
-
-
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxProperty_ModifyFlag")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial void ModifyFlag(IntPtr property, EFlags flag, [MarshalAs(UnmanagedType.I1)] bool value);

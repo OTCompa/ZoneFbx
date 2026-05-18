@@ -1,6 +1,5 @@
 #include "pch.h"
 #include <fbxsdk.h>
-#include "FBXCSharp.h"
 
 extern "C" {
     FBXCSHARP_API FbxGeometryElementVertexColor* FbxGeometryElementVertexColor_Create(FbxMesh* mesh) {

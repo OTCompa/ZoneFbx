@@ -247,7 +247,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ContextManager.h" />
-    <ClInclude Include="FBXCSharp.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>

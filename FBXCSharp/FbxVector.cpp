@@ -1,6 +1,5 @@
 #include "pch.h"
 #include <fbxsdk.h>
-#include "FBXCSharp.h"
 
 extern "C" {
     FBXCSHARP_API FbxVector4* FbxVector4_Create(double X, double Y, double Z, double W) {

@@ -1,6 +1,5 @@
 #include "pch.h"
 #include <fbxsdk.h>
-#include "FBXCSharp.h"
 
 extern "C" {
     FBXCSHARP_API void FbxLayerColor_Add(FbxLayerElementArrayTemplate<FbxColor>* dArray, FbxColor* color) {
