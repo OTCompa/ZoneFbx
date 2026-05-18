@@ -11,18 +11,24 @@
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="CliWrap" Version="3.10.1" />
-        <PackageReference Include="Lumina" Version="7.4.0" />
-        <PackageReference Include="Lumina.Excel" Version="7.4.3" />
-    </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="CliWrap" Version="3.10.0" />
+		<PackageReference Include="Lumina" Version="7.1.0" />
+		<PackageReference Include="Lumina.Excel" Version="7.4.0" />
+		<ProjectReference Include="..\ZoneFbx\ZoneFbx.csproj"
+						  ReferenceOutputAssembly="false"
+						  Condition="'$(Configuration)' != 'GithubRelease'" />
+	</ItemGroup>
 
-        <Target Name="CopyZoneFbx" AfterTargets="Build;Publish">
-    <ItemGroup>
-        <ZoneFbxFiles Include="$(SolutionDir)ZoneFbx\bin\$(Platform)\$(Configuration)\$(TargetFramework)\publish\**\*.*" />
-    </ItemGroup>
-        <Message Importance="High" Text="Copying ZoneFbx publish output files to $(OutputPath)ZoneFbxCLI..." />
-    <Copy SourceFiles="@(ZoneFbxFiles)" DestinationFolder="$(OutputPath)ZoneFbxCLI\%(RecursiveDir)" SkipUnchangedFiles="true" />
-    </Target>
+	<Target Name="CopyZoneFbx" AfterTargets="Build" Condition="'$(Configuration)' != 'GithubRelease'">
+		<ItemGroup>
+			<ZoneFbxFiles Include="$(SolutionDir)ZoneFbx\bin\$(Platform)\$(Configuration)\$(TargetFramework)\*.*" />
+			<ZoneFbxFiles Include="$(SolutionDir)ZoneFbx\bin\$(Platform)\$(Configuration)\$(TargetFramework)\**\*.*" />
+		</ItemGroup>
+		<Message Importance="High" Text="Copying ZoneFbx output files to $(OutputPath)ZoneFbxCLI..." />
+		<Copy SourceFiles="@(ZoneFbxFiles)"
+			  DestinationFolder="$(OutputPath)ZoneFbxCLI\%(RecursiveDir)"
+			  SkipUnchangedFiles="true" />
+	</Target>
 
 </Project>

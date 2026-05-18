@@ -8,7 +8,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Platforms>AnyCPU;x64</Platforms>
-    <Version>1.0.15-alpha</Version>
+    <Version>1.0.15-beta</Version>
     <Configurations>Debug;Release;GithubRelease</Configurations>
   </PropertyGroup>
 
@@ -24,12 +24,12 @@
     <ProjectReference Include="..\Lumina\src\Lumina\Lumina.csproj" />
 	  <Content Include="$(SolutionDir)$(Platform)\$(Configuration)\FBXCSharp.dll" Condition="'$(Configuration)' != 'GithubRelease'">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		  <PublishState>Included</PublishState>
-    </Content>
-    <Content Include="$(SolutionDir)prebuilt\FBXCSharp.dll" Condition="'$(Configuration)' == 'GithubRelease'">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	    <PublishState>Included</PublishState>
-    </Content>
+		  <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
+	  <Content Include="$(SolutionDir)prebuilt\FBXCSharp.dll" Condition="'$(Configuration)' == 'GithubRelease'">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
   </ItemGroup>
 
 </Project>
