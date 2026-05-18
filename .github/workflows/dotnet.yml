@@ -39,8 +39,10 @@ jobs:
         dotnet-version: 10.0.x
     - name: Restore dependencies
       run: dotnet restore
-    - name: Publish
-      run: dotnet publish --no-restore --configuration GithubRelease
+    - name: Publish ZoneFbx CLI
+      run: dotnet publish ZoneFbx/ZoneFbx.csproj --no-restore --configuration GithubRelease
+    - name: Publish ZoneFbx.GUI
+      run: dotnet publish ZoneFbx.GUI/ZoneFbx.GUI.csproj --no-restore --configuration GithubRelease
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration GithubRelease
     - name: Pack release archives

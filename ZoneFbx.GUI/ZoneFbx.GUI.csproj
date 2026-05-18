@@ -1,28 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-    <Platforms>x64</Platforms>
-    <Configurations>Debug;Release;GithubRelease</Configurations>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UseWPF>true</UseWPF>
+        <Platforms>x64</Platforms>
+        <Configurations>Debug;Release;GithubRelease</Configurations>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.10.1" />
-    <PackageReference Include="Lumina" Version="7.4.0" />
-    <PackageReference Include="Lumina.Excel" Version="7.4.3" />
-  </ItemGroup>
-
-  <Target Name="CopyZoneFbx" AfterTargets="Build">
     <ItemGroup>
-      <ZoneFbxFiles Include="$(SolutionDir)ZoneFbx\bin\$(Platform)\$(Configuration)\$(TargetFramework)\**\*.*" />
+        <PackageReference Include="CliWrap" Version="3.10.1" />
+        <PackageReference Include="Lumina" Version="7.4.0" />
+        <PackageReference Include="Lumina.Excel" Version="7.4.3" />
     </ItemGroup>
-    <Message Importance="High" Text="Copying ZoneFbx output files to $(OutputPath)ZoneFbxCLI..." />
+
+        <Target Name="CopyZoneFbx" AfterTargets="Build;Publish">
+    <ItemGroup>
+        <ZoneFbxFiles Include="$(SolutionDir)ZoneFbx\bin\$(Platform)\$(Configuration)\$(TargetFramework)\publish\**\*.*" />
+    </ItemGroup>
+        <Message Importance="High" Text="Copying ZoneFbx publish output files to $(OutputPath)ZoneFbxCLI..." />
     <Copy SourceFiles="@(ZoneFbxFiles)" DestinationFolder="$(OutputPath)ZoneFbxCLI\%(RecursiveDir)" SkipUnchangedFiles="true" />
-  </Target>
+    </Target>
 
 </Project>
