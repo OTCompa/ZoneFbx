@@ -16,12 +16,12 @@ extern "C" {
         mesh->InitControlPoints(length);
     }
 
-    FBXCSHARP_API void FbxMesh_SetControlPointAtNoNormals(FbxMesh* mesh, FbxVector4* a, int i) {
-        mesh->SetControlPointAt(*a, i);
+    FBXCSHARP_API void FbxMesh_SetControlPointAtNoNormals(FbxMesh* mesh, double x, double y, double z, double w, int i) {
+        mesh->SetControlPointAt(FbxVector4(x, y, z, w), i);
     }
 
-    FBXCSHARP_API void FbxMesh_SetControlPointAt(FbxMesh* mesh, FbxVector4* a, FbxVector4* b, int i) {
-        mesh->SetControlPointAt(*a, *b, i);
+    FBXCSHARP_API void FbxMesh_SetControlPointAt(FbxMesh* mesh, double ax, double ay, double az, double aw, double bx, double by, double bz, double bw, int i) {
+        mesh->SetControlPointAt(FbxVector4(ax, ay, az, aw), FbxVector4(bx, by, bz, bw), i);
     }
 
     FBXCSHARP_API void FbxMesh_BeginPolygon(FbxMesh* mesh) {

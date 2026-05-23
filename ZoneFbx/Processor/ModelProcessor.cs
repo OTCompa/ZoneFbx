@@ -115,68 +115,41 @@ namespace ZoneFbx.Processor
 
             for (int i = 0; i < gameMesh.Vertices.Length; i++)
             {
-                IntPtr pos = IntPtr.Zero;
-                IntPtr norm = IntPtr.Zero;
-                IntPtr tangent1 = IntPtr.Zero;
-                IntPtr tangent2 = IntPtr.Zero;
-                IntPtr color = IntPtr.Zero;
-
                 var vertex = gameMesh.Vertices[i];
 
-                if (vertex.Position.HasValue)
+                if (vertex.Position.HasValue && vertex.Normal.HasValue)
                 {
-                    pos = Vector4.Create(vertex.Position.Value.X, vertex.Position.Value.Y, vertex.Position.Value.Z, vertex.Position.Value.W);
-                    ContextManager.CppVector4ToFree.Add(pos);
-                }
-
-                if (vertex.Normal.HasValue)
-                {
-                    norm = Vector4.Create(vertex.Normal.Value.X, vertex.Normal.Value.Y, vertex.Normal.Value.Z, 0);
-                    ContextManager.CppVector4ToFree.Add(norm);
-                }
-
-                if (vertex.Color.HasValue)
-                {
-                    color = Vector4.Create(vertex.Color.Value.X, vertex.Color.Value.Y, vertex.Color.Value.Z, vertex.Color.Value.W);
-                    ContextManager.CppVector4ToFree.Add(color);
-                }
-
-                if (vertex.Tangent1.HasValue)
-                {
-                    tangent1 = Vector4.Create(vertex.Tangent1.Value.X, vertex.Tangent1.Value.Y, vertex.Tangent1.Value.Z, vertex.Tangent1.Value.W);
-                    ContextManager.CppVector4ToFree.Add(tangent1);
-                }
-
-                if (vertex.Tangent2.HasValue)
-                {
-                    tangent2 = Vector4.Create(vertex.Tangent2.Value.X, vertex.Tangent2.Value.Y, vertex.Tangent2.Value.Z, vertex.Tangent2.Value.W);
-                    ContextManager.CppVector4ToFree.Add(tangent2);
-                }
-
-                if (pos != IntPtr.Zero && norm != IntPtr.Zero)
-                {
-                    Fbx.Mesh.SetControlPointAt(mesh, pos, norm, i);
+                    Fbx.Mesh.SetControlPointAt(mesh,
+                        vertex.Position.Value.X, vertex.Position.Value.Y, vertex.Position.Value.Z, vertex.Position.Value.W,
+                        vertex.Normal.Value.X, vertex.Normal.Value.Y, vertex.Normal.Value.Z, 0,
+                        i);
                 }
 
                 if (gameMesh.Vertices[i].UV.HasValue)
                 {
                     var uv1Array = GeometryElement.UV.GetDirectArray(uvElement1);
-                    var uv1Vec = Vector2.Create(gameMesh.Vertices[i].UV!.Value.X, gameMesh.Vertices[i].UV!.Value.Y * -1);
-                    ContextManager.CppVector2ToFree.Add(uv1Vec);
-                    Layer.UV_Add(uv1Array, uv1Vec);
+                    Layer.UV_Add(uv1Array, gameMesh.Vertices[i].UV!.Value.X, gameMesh.Vertices[i].UV!.Value.Y * -1);
                     var uv2Array = GeometryElement.UV.GetDirectArray(uvElement2);
-                    var uv2Vec = Vector2.Create(gameMesh.Vertices[i].UV!.Value.Z, gameMesh.Vertices[i].UV!.Value.W * -1);
-                    ContextManager.CppVector2ToFree.Add(uv2Vec);
-                    Layer.UV_Add(uv2Array, uv2Vec);
+                    Layer.UV_Add(uv2Array, gameMesh.Vertices[i].UV!.Value.Z, gameMesh.Vertices[i].UV!.Value.W * -1);
                 }
 
                 var colorArray = GeometryElement.VertexColor.GetDirectArray(colorElement);
-                Layer.Color_Add(colorArray, color);
+                if (vertex.Color.HasValue)
+                    Layer.Color_Add(colorArray, vertex.Color.Value.X, vertex.Color.Value.Y, vertex.Color.Value.Z, vertex.Color.Value.W);
+                else
+                    Layer.Color_Add(colorArray, 0, 0, 0, 0);
 
                 var tangent1Array = GeometryElement.Tangent.GetDirectArray(tangentElem1);
-                Layer.Tangent_Add(tangent1Array, tangent1);
+                if (vertex.Tangent1.HasValue)
+                    Layer.Tangent_Add(tangent1Array, vertex.Tangent1.Value.X, vertex.Tangent1.Value.Y, vertex.Tangent1.Value.Z, vertex.Tangent1.Value.W);
+                else
+                    Layer.Tangent_Add(tangent1Array, 0, 0, 0, 0);
+
                 var tangent2Array = GeometryElement.Tangent.GetDirectArray(tangentElem2);
-                Layer.Tangent_Add(tangent2Array, tangent2);
+                if (vertex.Tangent2.HasValue)
+                    Layer.Tangent_Add(tangent2Array, vertex.Tangent2.Value.X, vertex.Tangent2.Value.Y, vertex.Tangent2.Value.Z, vertex.Tangent2.Value.W);
+                else
+                    Layer.Tangent_Add(tangent2Array, 0, 0, 0, 0);
             }
 
             for (int i = 0; i < gameMesh.Indices.Length; i += 3)

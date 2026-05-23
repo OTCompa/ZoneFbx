@@ -22,11 +22,11 @@ namespace ZoneFbx.Fbx
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_SetControlPointAtNoNormals")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial void SetControlPointAt(IntPtr mesh, IntPtr a, int i);
+        public static partial void SetControlPointAt(IntPtr mesh, double ax, double ay, double az, double aw, int i);
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_SetControlPointAt")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial void SetControlPointAt(IntPtr mesh, IntPtr a, IntPtr b, int i);
+        public static partial void SetControlPointAt(IntPtr mesh, double ax, double ay, double az, double aw, double bx, double by, double bz, double bw, int i);
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_BeginPolygon")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]

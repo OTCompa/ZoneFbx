@@ -103,9 +103,7 @@ namespace ZoneFbx.Processor
             var baseIndex = meshIndex;
             foreach (var v in resourceNode.Vertices)
             {
-                var pos = Vector4.Create(v.X, v.Y, v.Z, 0);
-                ContextManager.CppVector4ToFree.Add(pos);
-                Fbx.Mesh.SetControlPointAt(mesh, pos, meshIndex++);
+                Fbx.Mesh.SetControlPointAt(mesh, v.X, v.Y, v.Z, 0, meshIndex++);
             }
 
             foreach (var p in resourceNode.Polygons)

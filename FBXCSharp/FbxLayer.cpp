@@ -2,15 +2,15 @@
 #include <fbxsdk.h>
 
 extern "C" {
-    FBXCSHARP_API void FbxLayerColor_Add(FbxLayerElementArrayTemplate<FbxColor>* dArray, FbxColor* color) {
-        dArray->Add(*color);
+    FBXCSHARP_API void FbxLayerColor_Add(FbxLayerElementArrayTemplate<FbxColor>* dArray, double r, double g, double b, double a) {
+        dArray->Add(FbxColor(r, g, b, a));
     }
-    FBXCSHARP_API void FbxLayerUV_Add(FbxLayerElementArrayTemplate<FbxVector2>* dArray, FbxVector2* vector) {
-        dArray->Add(*vector);
+    FBXCSHARP_API void FbxLayerUV_Add(FbxLayerElementArrayTemplate<FbxVector2>* dArray, double x, double y) {
+        dArray->Add(FbxVector2(x, y));
     }
 
-    FBXCSHARP_API void FbxLayerTangent_Add(FbxLayerElementArrayTemplate<FbxVector4>* dArray, FbxVector4* vector) {
-        dArray->Add(*vector);
+    FBXCSHARP_API void FbxLayerTangent_Add(FbxLayerElementArrayTemplate<FbxVector4>* dArray, double x, double y, double z, double w) {
+        dArray->Add(FbxVector4(x, y, z, w));
     }
 
     FBXCSHARP_API void FbxLayerMaterial_Add(FbxLayerElementArrayTemplate<int>* dArray, int num) {

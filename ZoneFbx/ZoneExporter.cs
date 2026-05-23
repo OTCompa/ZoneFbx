@@ -107,7 +107,6 @@ namespace ZoneFbx
         private void ReinitializeFbx(string sceneName)
         {
             ContextManager.DestroyScene(contextManager);
-            ContextManager.CppVectorCleanup();
 
             ContextManager.CreateScene(contextManager, sceneName);
 
@@ -184,7 +183,6 @@ namespace ZoneFbx
                 ContextManager.DestroyManager(contextManager);
                 ContextManager.Destroy(contextManager);
             }
-            ContextManager.CppVectorCleanup();
         }
 
         private bool exportFestivals()

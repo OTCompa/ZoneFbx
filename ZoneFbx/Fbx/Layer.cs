@@ -11,15 +11,15 @@ namespace ZoneFbx.Fbx
     {
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxLayerColor_Add")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial void Color_Add(IntPtr directArray, IntPtr color);
+        public static partial void Color_Add(IntPtr directArray, double r, double g, double b, double a);
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxLayerUV_Add")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial void UV_Add(IntPtr directArray, IntPtr vector);
+        public static partial void UV_Add(IntPtr directArray, double x, double y);
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxLayerTangent_Add")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial void Tangent_Add(IntPtr directArray, IntPtr vector);
+        public static partial void Tangent_Add(IntPtr directArray, double x, double y, double z, double w);
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxLayerMaterial_Add")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]

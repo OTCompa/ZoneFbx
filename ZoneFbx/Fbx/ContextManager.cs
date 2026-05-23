@@ -9,30 +9,6 @@ namespace ZoneFbx.Fbx
 {
     internal partial class ContextManager
     {
-        public List<IntPtr> CppVector4ToFree = [];
-        public List<IntPtr> CppVector2ToFree = [];
-
-        public void CppVectorCleanup()
-        {
-            if (CppVector4ToFree.Count > 0)
-            {
-                foreach(var v in CppVector4ToFree)
-                {
-                    Vector4.Destroy(v);
-                }
-                CppVector4ToFree.Clear();
-            }
-
-            if (CppVector2ToFree.Count > 0)
-            {
-                foreach(var v in CppVector2ToFree)
-                {
-                    Vector2.Destroy(v);
-                }
-                CppVector2ToFree.Clear();
-            }
-        }
-
         [LibraryImport("FBXCSharp.dll", EntryPoint = "ContextManager_Create")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial IntPtr Create();
