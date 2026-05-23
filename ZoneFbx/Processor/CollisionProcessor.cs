@@ -1,5 +1,9 @@
-﻿using Lumina.Data.Files.Pcb;
+﻿using Lumina.Data.Files;
+using Lumina.Data.Files.Pcb;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using ZoneFbx.Fbx;
+using static Lumina.Models.Models.Model;
 
 namespace ZoneFbx.Processor
 {
@@ -45,7 +49,6 @@ namespace ZoneFbx.Processor
         public bool ProcessCollisionAsset(string collisionAssetPath, IntPtr node)
         {
             if (string.IsNullOrEmpty(collisionAssetPath)) return false;
-
             var collision = data.GetFile<PcbResourceFile>(collisionAssetPath);
             if (collision == null) return false;
 
@@ -53,8 +56,57 @@ namespace ZoneFbx.Processor
             if (mesh == IntPtr.Zero) return false;
 
             Node.SetNodeAttribute(node, mesh);
+
+            var variant = GetVariantIndex(collisionAssetPath);
+            if (variant != -1)
+            {
+                while (true)
+                {
+                    var variantAssetPath = GetVariant(collisionAssetPath, ++variant);
+                    if (String.IsNullOrEmpty(variantAssetPath)) break;
+                    var collisionVariant = data.GetFile<PcbResourceFile>(variantAssetPath);
+                    if (collisionVariant == null) break;
+                    var variantMesh = createCollisionMesh(collisionVariant, Path.GetFileNameWithoutExtension(variantAssetPath));
+                    if (variantMesh == IntPtr.Zero) break;
+
+                    var variantNode = Node.Create(contextManager, Path.GetFileNameWithoutExtension(variantAssetPath));
+                    Node.SetNodeAttribute(variantNode, variantMesh);
+                    Node.AddChild(node, variantNode);
+                }
+            }
+
             return true;
             
+        }
+
+        public int GetVariantIndex(string collisionAssetPath)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(collisionAssetPath);
+            var regex = new Regex(@"\d+$");
+            var match = Regex.Match(fileName, @"\d+$");
+
+            if (match.Success)
+            {
+                if (int.TryParse(match.Value, out int result))
+                {
+                    return result;
+                }
+            }
+
+            return -1;
+        }
+
+        public string GetVariant(string collisionAssetPath, int variant)
+        {
+            string directory = Path.GetDirectoryName(collisionAssetPath);
+            string fileName = Path.GetFileNameWithoutExtension(collisionAssetPath);
+            string extension = Path.GetExtension(collisionAssetPath);
+            var regex = new Regex(@"\d+$");
+            if (!regex.IsMatch(fileName)) return "";
+
+            fileName = regex.Replace(fileName, variant.ToString()) + ".pcb";
+            string modifiedPath = Path.Combine(directory ?? "", fileName).Replace("\\", "/");
+            return modifiedPath;
         }
 
         public IntPtr createCollisionMesh(PcbResourceFile collisionFile, string name)
