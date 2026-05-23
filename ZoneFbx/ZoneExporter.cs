@@ -68,12 +68,15 @@ namespace ZoneFbx
             // 0 idea how to structure this program atp
             processors.AddRange([collisionProcessor, textureProcessor, materialProcessor, modelProcessor, instanceObjectProcessor, layerProcessor, terrainProcessor]);
 
-            if (!exportZone())
+            if (options.enableMainMap)
             {
-                Console.WriteLine("ZoneFbx has run into an error. Please open an issue on the GitHub repo with details about this error.");
-                return;
+                if (!exportZone())
+                {
+                    Console.WriteLine("ZoneFbx has run into an error. Please open an issue on the GitHub repo with details about this error.");
+                    return;
+                }
+                Console.WriteLine("Zone export finished.");
             }
-            Console.WriteLine("Zone export finished.");
 
             // starting different modes from scratch because keeping track of all 3 at the same time would
             // add complexity that i probably wouldn't be able to reasonably manage

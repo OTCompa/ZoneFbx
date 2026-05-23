@@ -10,6 +10,7 @@
 
         public class Options
         {
+            public bool enableMainMap = true;
             public bool enableLightshaftModels = false;
             public bool enableLighting = false;
             public bool enableFestivals = false;

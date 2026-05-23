@@ -104,6 +104,17 @@ namespace ZoneFbx.GUI
         }
 
         // flags
+        public bool EnableMainMap
+        {
+            get => ExportConfig.EnableMainMap;
+            set
+            {
+                ExportConfig.EnableMainMap = value;
+                OnPropertyChanged(nameof(EnableMainMap));
+                Config.Save();
+            }
+        }
+
         public bool EnableLightshaft
         {
             get => ExportConfig.EnableLightshaft;
@@ -326,6 +337,7 @@ namespace ZoneFbx.GUI
                     EnableBlend ? "s" : "",
                     EnableMTMap ? "m" : "",
                     EnableCollision ? "c" : "",
+                    !EnableMainMap ? "n" : "",
                     }
                 ]);
 

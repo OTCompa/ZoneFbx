@@ -25,6 +25,13 @@ namespace ZoneFbx.GUI
         }
 
 
+        [ConfigurationProperty("enableMainMap", DefaultValue = true)]
+        public bool EnableMainMap
+        {
+            get => (bool)this["enableMainMap"];
+            set { this["enableMainMap"] = value; }
+        }
+
         [ConfigurationProperty("enableLightshaft", DefaultValue = false)]
         public bool EnableLightshaft
         {
