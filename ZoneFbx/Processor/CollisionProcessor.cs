@@ -113,18 +113,21 @@ namespace ZoneFbx.Processor
 
         public IntPtr createCollisionMesh(PcbResourceFile collisionFile, string name)
         {
-            var mesh = Fbx.Mesh.Create(contextManager, name);
+            var mesh = Mesh.Create(contextManager, name);
             var totalVertices = 0;
             //Console.WriteLine($"{collisionFile.Nodes.TotalNodes.ToString()}, {collisionFile.Nodes.TotalPolygons.ToString()}");
 
             //return IntPtr.Zero;
-            if (collisionFile == null) return IntPtr.Zero;
+            if (collisionFile == null) {
+                Mesh.Delete(mesh);
+                return IntPtr.Zero;
+            }
             foreach (var resourceNode in collisionFile.Nodes.Children)
             {
                 totalVertices += recursiveGetTotalVertices(resourceNode);
             }
 
-            Fbx.Mesh.InitControlPoints(mesh, totalVertices);
+            Mesh.InitControlPoints(mesh, totalVertices);
 
             int meshIndex = 0;
             foreach (var resourceNode in collisionFile.Nodes.Children)

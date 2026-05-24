@@ -12,6 +12,9 @@ namespace ZoneFbx.Fbx
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_Create")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial IntPtr Create(IntPtr contextManager, [MarshalAs(UnmanagedType.LPStr)] string name);
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_Delete")]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        public static partial void Delete(IntPtr mesh);
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxMesh_Init")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]

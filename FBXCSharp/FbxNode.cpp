@@ -7,6 +7,10 @@ extern "C" {
         return FbxNode::Create(contextManager->pScene, name);
     }
 
+    FBXCSHARP_API void FbxNode_Delete(FbxNode* node) {
+        node->Destroy();
+    }
+
     FBXCSHARP_API void FbxNode_SetLclTranslation(FbxNode* node, double pData0, double pData1, double pData2) {
         node->LclTranslation.Set(FbxVectorTemplate3<double>(pData0, pData1, pData2));
     }

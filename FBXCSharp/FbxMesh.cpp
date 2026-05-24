@@ -7,6 +7,10 @@ extern "C" {
         return FbxMesh::Create(contextManager->pScene, name);
     }
 
+    FBXCSHARP_API void FbxMesh_Delete(FbxMesh* mesh) {
+        mesh->Destroy();
+    }
+
     FBXCSHARP_API void FbxMesh_Init(FbxMesh* mesh, int length) {
         mesh->InitControlPoints(length);
         mesh->InitNormals(length);

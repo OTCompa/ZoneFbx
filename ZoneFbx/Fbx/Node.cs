@@ -57,6 +57,11 @@ namespace ZoneFbx.Fbx
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial IntPtr Create(IntPtr contextManager, [MarshalAs(UnmanagedType.LPStr)] string name);
 
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxNode_Delete")]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        public static partial void Delete(IntPtr node);
+
+
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxNode_SetLclTranslation")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial void SetLclTranslation(IntPtr node, double pData0, double pData1, double pData2);

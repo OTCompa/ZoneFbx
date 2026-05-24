@@ -57,7 +57,11 @@ namespace ZoneFbx.Processor
                 }
 
                 IntPtr material = materialProcessor.CreateMaterial(model.Meshes[i].Material);
-                if (material == IntPtr.Zero) continue;
+                if (material == IntPtr.Zero)
+                {
+                    Node.Delete(meshNode);
+                    continue;
+                }
 
                 Node.AddMaterial(meshNode, material);
 

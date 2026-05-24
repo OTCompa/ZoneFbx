@@ -60,8 +60,16 @@ namespace ZoneFbx.Processor
             if (file == null) return false;
 
             var root_node = Scene.GetRootNode(contextManager);
+            var child = Node.Create(contextManager, Path.GetFileNameWithoutExtension(lgbPath));
+            var ret = processLayers(file.Layers, child);
 
-            var ret = processLayers(file.Layers, root_node);
+            if (ret)
+            {
+                Node.AddChild(root_node, child);
+            } else
+            {
+                Node.Delete(child);
+            }
 
             if (options.enableJsonExport)
             {
@@ -74,7 +82,7 @@ namespace ZoneFbx.Processor
         private IntPtr processInstanceObject(LayerCommon.InstanceObject obj)
         {
             string sgbPath;
-            IntPtr objNode;
+            IntPtr objNode = IntPtr.Zero;
 
             switch (obj.AssetType)
             {
@@ -109,6 +117,12 @@ namespace ZoneFbx.Processor
                 case LayerEntryType.BG:
                     return instanceObjectProcessor.ProcessInstanceObjectBG(obj);
             }
+
+            if (objNode != IntPtr.Zero)
+            {
+                Node.Delete(objNode);
+            }
+
             return IntPtr.Zero;
         }
 
@@ -121,12 +135,15 @@ namespace ZoneFbx.Processor
             for (int i = 0; i < sgb.LayerGroups.Length; i++)
             {
                 var layerGroup = sgb.LayerGroups[i];
-                var layerGroupNode = Node.Create(contextManager, $"LayerGroup{i}");  // this is probably redundant, i've only seen sgbs with 1 layer group
+                var layerGroupNode = Node.Create(contextManager, $"{Path.GetFileNameWithoutExtension(sgbPath)} {i}");  // this is probably redundant, i've only seen sgbs with 1 layer group
 
                 if (processLayers(layerGroup.Layers, layerGroupNode))
                 {
                     Node.AddChild(parentNode, layerGroupNode);
                     hasChild = true;
+                } else
+                {
+                    Node.Delete(layerGroupNode);
                 }
 
                 if (options.enableJsonExport)
@@ -169,6 +186,9 @@ namespace ZoneFbx.Processor
                 {
                     Node.AddChild(parentNode, layerNode);
                     groupHasChild = true;
+                } else
+                {
+                    Node.Delete(layerNode);
                 }
             }
             return groupHasChild;

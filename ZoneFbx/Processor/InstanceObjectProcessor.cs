@@ -38,7 +38,7 @@ namespace ZoneFbx.Processor
                 var model = modelProcessor.LoadModel(modelFilePath);
                 if (model == null) return IntPtr.Zero;
 
-                modelNode = Node.Create(contextManager, Path.GetFileNameWithoutExtension(modelFilePath));
+                modelNode = Node.Create(contextManager, $"{Path.GetFileNameWithoutExtension(modelFilePath)} ({obj.InstanceId})");
                 Util.InitChildNode(obj, modelNode);
 
                 if (modelProcessor.ProcessModel(model, modelNode)) return modelNode;
@@ -46,7 +46,7 @@ namespace ZoneFbx.Processor
             {
                 var collisionFilePath = bgObj.CollisionAssetPath;
                 
-                modelNode = Node.Create(contextManager, Path.GetFileNameWithoutExtension(collisionFilePath));
+                modelNode = Node.Create(contextManager, $"{Path.GetFileNameWithoutExtension(collisionFilePath)} ({obj.InstanceId})");
                 Util.InitChildNode(obj, modelNode);
 
                 if (bgObj.CollisionType == ModelCollisionType.Replace && collisionProcessor.ProcessCollisionAsset(collisionFilePath, modelNode))
@@ -59,11 +59,15 @@ namespace ZoneFbx.Processor
                     // would rather be slightly inaccurate out of bounds than in bounds
                     var objectFilePath = bgObj.AssetPath;
                     var model = modelProcessor.LoadModel(objectFilePath);
-                    if (model == null) return IntPtr.Zero;
+                    if (model == null) {
+                        Node.Delete(modelNode);
+                        return IntPtr.Zero;
+                    }
                     if (modelProcessor.ProcessModelWithoutTexture(model, modelNode)) return modelNode;
                 }
             }
 
+            Node.Delete(modelNode);
             return IntPtr.Zero;
         }
 
