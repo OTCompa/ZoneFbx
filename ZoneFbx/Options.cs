@@ -18,6 +18,7 @@
             public bool enableBlend = false;
             public bool enableMTMap = false;
             public bool enableCollisions = false;
+            public bool enableCollisionVariants = true;
 
             public bool disableBaking = false;
 

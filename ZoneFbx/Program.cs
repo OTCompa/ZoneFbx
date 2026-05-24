@@ -21,6 +21,7 @@
         -s    Texture blending; Extracts secondary textures and adds the filename a custom property in each material. Actual blending happens after importing through your own means. More info in the repo's README
         -m    Adds a material to texture map for processing in case custom properties aren't supported.
         -n    Disables the main map export (useful when only exporting collisions or festivals)
+        -v    Disables collision variant exports
 
         Available variables:
         --specular          Number; Sets the specular factor (Default: 0.3)
@@ -144,6 +145,8 @@
                         options.enableCollisions = true; break;
                     case 'n':
                         options.enableMainMap = false; break;
+                    case 'v':
+                        options.enableCollisionVariants = false; break;
                     default:
                         ColorMessage($"Unknown flag \"{flag}\", ignoring...", ConsoleColor.Yellow);
                         Console.WriteLine(usage);

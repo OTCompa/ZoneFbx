@@ -81,6 +81,13 @@ namespace ZoneFbx.GUI
             set { this["enableCollision"] = value; }
         }
 
+        [ConfigurationProperty("enableCollisionVariants", DefaultValue = true)]
+        public bool EnableCollisionVariants
+        {
+            get => (bool)this["enableCollisionVariants"];
+            set { this["enableCollisionVariants"] = value; }
+        }
+
         [ConfigurationProperty("disableBaking", DefaultValue = false)]
         public bool DisableBaking
         {

@@ -192,6 +192,17 @@ namespace ZoneFbx.GUI
             }
         }
 
+        public bool EnableCollisionVariants
+        {
+            get => ExportConfig.EnableCollisionVariants;
+            set
+            {
+                ExportConfig.EnableCollisionVariants = value;
+                OnPropertyChanged(nameof(EnableCollisionVariants));
+                Config.Save();
+            }
+        }
+
         public bool DisableBaking
         {
             get => ExportConfig.DisableBaking;
@@ -338,6 +349,7 @@ namespace ZoneFbx.GUI
                     EnableMTMap ? "m" : "",
                     EnableCollision ? "c" : "",
                     !EnableMainMap ? "n" : "",
+                    !EnableCollisionVariants ? "v" : "",
                     }
                 ]);
 

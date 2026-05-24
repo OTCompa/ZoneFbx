@@ -57,21 +57,24 @@ namespace ZoneFbx.Processor
 
             Node.SetNodeAttribute(node, mesh);
 
-            var variant = GetVariantIndex(collisionAssetPath);
-            if (variant != -1)
+            if (options.enableCollisionVariants)
             {
-                while (true)
+                var variant = GetVariantIndex(collisionAssetPath);
+                if (variant != -1)
                 {
-                    var variantAssetPath = GetVariant(collisionAssetPath, ++variant);
-                    if (String.IsNullOrEmpty(variantAssetPath)) break;
-                    var collisionVariant = data.GetFile<PcbResourceFile>(variantAssetPath);
-                    if (collisionVariant == null) break;
-                    var variantMesh = createCollisionMesh(collisionVariant, Path.GetFileNameWithoutExtension(variantAssetPath));
-                    if (variantMesh == IntPtr.Zero) break;
+                    while (true)
+                    {
+                        var variantAssetPath = GetVariant(collisionAssetPath, ++variant);
+                        if (string.IsNullOrEmpty(variantAssetPath)) break;
+                        var collisionVariant = data.GetFile<PcbResourceFile>(variantAssetPath);
+                        if (collisionVariant == null) break;
+                        var variantMesh = createCollisionMesh(collisionVariant, Path.GetFileNameWithoutExtension(variantAssetPath));
+                        if (variantMesh == IntPtr.Zero) break;
 
-                    var variantNode = Node.Create(contextManager, Path.GetFileNameWithoutExtension(variantAssetPath));
-                    Node.SetNodeAttribute(variantNode, variantMesh);
-                    Node.AddChild(node, variantNode);
+                        var variantNode = Node.Create(contextManager, Path.GetFileNameWithoutExtension(variantAssetPath));
+                        Node.SetNodeAttribute(variantNode, variantMesh);
+                        Node.AddChild(node, variantNode);
+                    }
                 }
             }
 
