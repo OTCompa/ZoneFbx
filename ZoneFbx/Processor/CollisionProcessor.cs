@@ -85,7 +85,6 @@ namespace ZoneFbx.Processor
         public int GetVariantIndex(string collisionAssetPath)
         {
             var fileName = Path.GetFileNameWithoutExtension(collisionAssetPath);
-            var regex = new Regex(@"\d+$");
             var match = Regex.Match(fileName, @"\d+$");
 
             if (match.Success)
@@ -108,8 +107,8 @@ namespace ZoneFbx.Processor
             if (!regex.IsMatch(fileName)) return "";
 
             fileName = regex.Replace(fileName, variant.ToString()) + ".pcb";
-            string modifiedPath = Path.Combine(directory ?? "", fileName).Replace("\\", "/");
-            return modifiedPath;
+            return Path.Combine(directory ?? "", fileName).Replace("\\", "/");
+            
         }
 
         public IntPtr createCollisionMesh(PcbResourceFile collisionFile, string name)

@@ -103,6 +103,13 @@ namespace ZoneFbx.Processor
             {
                 return HashCode.Combine(Intensity, DiffuseColor, LightType, DecayType);
             }
+
+            public override bool Equals(object? obj)
+            {
+                if (obj is not FbxLightObject) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                return GetHashCode() == obj.GetHashCode();
+            }
         }
 
         public IntPtr ProcessInstanceObjectLayLight(LayerCommon.InstanceObject obj)

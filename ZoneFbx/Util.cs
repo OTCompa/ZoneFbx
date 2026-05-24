@@ -22,7 +22,7 @@ namespace ZoneFbx
             return resPath;
         }
 
-        public static string GetTextureFolder(string out_path, string zone_code)
+        public static string GetTextureFolder(string out_path)
         {
             return out_path + "textures" + Path.DirectorySeparatorChar;
         }
@@ -39,7 +39,7 @@ namespace ZoneFbx
                 tex_abs_path = $"{Path.GetFileName(material_path)}_{Path.GetFileNameWithoutExtension(texture_path)}{suffix}.png";
             }
 
-            tex_abs_path = GetTextureFolder(out_path, zone_code) + tex_abs_path;
+            tex_abs_path = GetTextureFolder(out_path) + tex_abs_path;
             return tex_abs_path;
         }
 

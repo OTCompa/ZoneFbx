@@ -6,7 +6,7 @@ using ZoneFbx.Processor;
 
 namespace ZoneFbx
 {
-    internal partial class ZoneExporter
+    internal partial class ZoneExporter : IDisposable
     {
         private readonly string zonePath;
         private readonly string outputPath;
@@ -30,9 +30,8 @@ namespace ZoneFbx
 
         public ZoneExporter(string gamePath, string zonePath, string outputPath, Options options)
         {
-            zonePath = zonePath.Trim();
-            this.zonePath = zonePath;
-            zoneCode = Path.GetFileName(zonePath);
+            this.zonePath = zonePath.Trim();
+            zoneCode = Path.GetFileName(this.zonePath);
             this.outputPath = Path.Combine(outputPath, zoneCode) + Path.DirectorySeparatorChar;
             this.options = options;
 
@@ -57,17 +56,31 @@ namespace ZoneFbx
 
             
             ContextManager = new ContextManager();
-            collisionProcessor = new(data, contextManager, options, ContextManager, zonePath);
+            collisionProcessor = new(data, contextManager, options, ContextManager, this.zonePath);
             textureProcessor = new(data, contextManager, options, this.outputPath, zoneCode);
             materialProcessor = new(data, contextManager, options, textureProcessor, this.outputPath);
             modelProcessor = new(data, contextManager, options, ContextManager, materialProcessor);
             instanceObjectProcessor = new(data, contextManager, options, modelProcessor, collisionProcessor);
-            layerProcessor = new(data, contextManager, options, instanceObjectProcessor, zonePath, this.outputPath);
+            layerProcessor = new(data, contextManager, options, instanceObjectProcessor, this.zonePath, this.outputPath);
             terrainProcessor = new(data, contextManager, options, modelProcessor, this.zonePath);
 
             // 0 idea how to structure this program atp
             processors.AddRange([collisionProcessor, textureProcessor, materialProcessor, modelProcessor, instanceObjectProcessor, layerProcessor, terrainProcessor]);
 
+            Export();
+        }
+
+        public void Dispose()
+        {
+            if (contextManager != IntPtr.Zero)
+            {
+                ContextManager.DestroyManager(contextManager);
+                ContextManager.Destroy(contextManager);
+            }
+        }
+
+        private void Export()
+        {
             if (options.enableMainMap)
             {
                 if (!exportZone())
@@ -106,17 +119,11 @@ namespace ZoneFbx
                 Console.WriteLine("Festival export finished.");
             }
         }
-
         private void ReinitializeFbx(string sceneName)
         {
             ContextManager.DestroyScene(contextManager);
 
             ContextManager.CreateScene(contextManager, sceneName);
-
-            foreach (var processor in processors)
-            {
-                processor.UpdateOptions(options);
-            }
 
             modelProcessor.ResetCache();
             materialProcessor.ResetCache();
@@ -179,19 +186,14 @@ namespace ZoneFbx
             return true;
         }
 
-        ~ZoneExporter()
-        {
-            if (contextManager != IntPtr.Zero)
-            {
-                ContextManager.DestroyManager(contextManager);
-                ContextManager.Destroy(contextManager);
-            }
-        }
-
         private bool exportFestivals()
         {
             Console.WriteLine("Processing lgb files...");
-            layerProcessor.ProcessLayerGroupBinaries(true);
+            if (!layerProcessor.ProcessLayerGroupBinaries(true))
+            {
+                Console.WriteLine("Failed to process lgbs for festivals.");
+                return false;
+            }
 
             Console.WriteLine("Saving scene...");
             var outputFilePath = $"{this.outputPath}{zoneCode}_festival.fbx";

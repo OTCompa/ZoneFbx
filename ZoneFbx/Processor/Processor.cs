@@ -8,10 +8,5 @@ namespace ZoneFbx.Processor
         internal IntPtr contextManager { get; private set; } = contextManager;
 
         internal ZoneExporter.Options options { get; private set; } = options;
-
-        public void UpdateOptions(ZoneExporter.Options options)
-        {
-            this.options = options;
-        }
     }
 }

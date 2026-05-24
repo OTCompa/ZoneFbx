@@ -96,7 +96,7 @@ namespace ZoneFbx.Processor
                     sgbPath = row.SgbPath.Value.SgbPath.ToString();
                     if (!sgbPath.EndsWith("sgb")) return IntPtr.Zero;  // 1 more sanity check
 
-                    objNode = Node.Create(contextManager, Path.GetFileName(sgbPath));
+                    objNode = Node.Create(contextManager, Path.GetFileNameWithoutExtension(sgbPath));
                     Util.InitChildNode(obj, objNode);
 
                     if (processSharedGroupBinary(sgbPath, objNode)) return objNode;

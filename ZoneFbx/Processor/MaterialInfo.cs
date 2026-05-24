@@ -44,9 +44,6 @@ namespace ZoneFbx.Processor
 
             readConstants(material);
 
-            if (diffuseOffset == -1 && specularOffset == -1 && emissiveOffset == -1 && blendDiffuseOffset == -1)
-                return;
-
             var br = material.File.Reader;
             long baseOffset = getMaterialConstantBaseOffset(br);
 

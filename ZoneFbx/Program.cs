@@ -185,9 +185,9 @@
                     options.lightIntensityFactor = doubleValue;
                     break;
                 default:
-                    ColorMessage($"Unknown argument \"{arg}\", ignoring...", ConsoleColor.Yellow);
+                    ColorMessage($"Unknown argument \"{arg}\"", ConsoleColor.Yellow);
                     Console.WriteLine(usage);
-                    break;
+                    return false;
 
             }
             return true;
