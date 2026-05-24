@@ -33,4 +33,21 @@
 		</Content>
 	</ItemGroup>
 
+	<Target Name="CopyToGuiOutput" AfterTargets="Build" Condition="'$(Configuration)' != 'GithubRelease'">
+		<PropertyGroup>
+			<_GuiOutputDir>$(MSBuildThisFileDirectory)..\ZoneFbx.GUI\bin\$(Platform)\$(Configuration)\$(TargetFramework)\ZoneFbxCLI\</_GuiOutputDir>
+			<_GuiBinExists>$([System.IO.Directory]::Exists('$(MSBuildThisFileDirectory)..\ZoneFbx.GUI\bin\$(Platform)\$(Configuration)\$(TargetFramework)\'))</_GuiBinExists>
+		</PropertyGroup>
+		<ItemGroup Condition="'$(_GuiBinExists)' == 'True'">
+			<_ZoneFbxOutput Include="$(OutputPath)*.*" />
+			<_ZoneFbxOutput Include="$(OutputPath)**\*.*" />
+		</ItemGroup>
+		<Copy Condition="'$(_GuiBinExists)' == 'True'"
+			  SourceFiles="@(_ZoneFbxOutput)"
+			  DestinationFolder="$(_GuiOutputDir)%(RecursiveDir)"
+			  SkipUnchangedFiles="true" />
+		<Message Condition="'$(_GuiBinExists)' == 'True'" Importance="High"
+				 Text="Synced ZoneFbx → ZoneFbx.GUI\ZoneFbxCLI\" />
+	</Target>
+
 </Project>
