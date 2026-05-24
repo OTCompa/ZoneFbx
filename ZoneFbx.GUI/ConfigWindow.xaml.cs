@@ -24,7 +24,7 @@ namespace ZoneFbx.GUI
         private Configuration Config;
         private Config ExportConfig;
 
-        public string _specularFactor;
+        private string _specularFactor;
         public string SpecularFactor
         {
             get => _specularFactor;
@@ -35,7 +35,7 @@ namespace ZoneFbx.GUI
             }
         }
 
-        public string _normalFactor;
+        private string _normalFactor;
         public string NormalFactor
         {
             get => _normalFactor;
@@ -45,7 +45,7 @@ namespace ZoneFbx.GUI
                 OnPropertyChanged(nameof(NormalFactor));
             }
         }
-        public string _lightIntensityFactor;
+        private string _lightIntensityFactor;
         public string LightIntensityFactor
         {
             get => _lightIntensityFactor;

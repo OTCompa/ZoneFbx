@@ -112,15 +112,8 @@ namespace ZoneFbx.Processor
             }
             if (!subdict.TryAdd(usage, filename))
             {
-                incrementAndTryAdd(subdict, $"Unused{usage}", filename);
-            }
-        }
-
-        private void incrementAndTryAdd(Dictionary<string, string> dict, string usage, string filename, int num = 0)
-        {
-            if (!dict.TryAdd($"{usage}{num}", filename))
-            {
-                incrementAndTryAdd(dict, usage, filename, num + 1);
+                int num = 0;
+                while (!subdict.TryAdd($"Unused{usage}{num}", filename)) num++;
             }
         }
 

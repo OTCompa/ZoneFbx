@@ -20,6 +20,7 @@
         -i    Allows light sources to be included in the final export
         -s    Texture blending; Extracts secondary textures and adds the filename a custom property in each material. Actual blending happens after importing through your own means. More info in the repo's README
         -m    Adds a material to texture map for processing in case custom properties aren't supported.
+        -c    Exports collision models in a separate FBX
         -n    Disables the main map export (useful when only exporting collisions or festivals)
         -v    Disables collision variant exports
 
@@ -37,7 +38,8 @@
 
             if (args.Length >= 4 && !ProcessArgs(args, ref options)) Environment.Exit(1);
 
-            var zoneExporter = new ZoneExporter(args[0], args[1], args[2], options);
+            using var zoneExporter = new ZoneExporter(args[0], args[1], args[2], options);
+            zoneExporter.Export();
         }
 
         private static bool SanitizeInput(string[] args)
@@ -76,7 +78,7 @@
                 return false;
             }
 
-            if (!args[2].EndsWith("\\"))
+            if (!args[2].EndsWith('\\') && !args[2].EndsWith('/'))
             {
                 ColorMessage("Error: Export folder must have a trailing slash.\n");
                 Console.WriteLine(usage);
@@ -157,38 +159,35 @@
 
         private static bool ProcessVariableArgs(string arg, string value, ref ZoneExporter.Options options)
         {
-            double doubleValue;
             switch (arg.Substring(2).ToLower())
             {
                 case "specular":
-                    if (!double.TryParse(value, out doubleValue))
-                    {
-                        ColorMessage($"Invalid value for {arg}: {value}");
-                        return false;
-                    }
-                    options.specularFactor = doubleValue;
+                    if (!TryParseFactor(arg, value, out var specular)) return false;
+                    options.specularFactor = specular;
                     break;
                 case "normal":
-                    if (!double.TryParse(value, out doubleValue))
-                    {
-                        ColorMessage($"Invalid value for {arg}: {value}");
-                        return false;
-                    }
-                    options.normalFactor = doubleValue;
+                    if (!TryParseFactor(arg, value, out var normal)) return false;
+                    options.normalFactor = normal;
                     break;
                 case "lightintensity":
-                    if (!double.TryParse(value, out doubleValue))
-                    {
-                        ColorMessage($"Invalid value for {arg}: {value}");
-                        return false;
-                    }
-                    options.lightIntensityFactor = doubleValue;
+                    if (!TryParseFactor(arg, value, out var lightIntensity)) return false;
+                    options.lightIntensityFactor = lightIntensity;
                     break;
                 default:
                     ColorMessage($"Unknown argument \"{arg}\"", ConsoleColor.Yellow);
                     Console.WriteLine(usage);
                     return false;
 
+            }
+            return true;
+        }
+
+        private static bool TryParseFactor(string arg, string value, out double result)
+        {
+            if (!double.TryParse(value, out result))
+            {
+                ColorMessage($"Invalid value for {arg}: {value}");
+                return false;
             }
             return true;
         }

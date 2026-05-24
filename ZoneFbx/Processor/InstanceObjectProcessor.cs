@@ -8,7 +8,7 @@ namespace ZoneFbx.Processor
         private readonly ModelProcessor modelProcessor = modelProcessor;
         private readonly CollisionProcessor collisionProcessor = collisionProcessor;
 
-        private Dictionary<int, IntPtr> lightCache = new();
+        private Dictionary<FbxLightObject, IntPtr> lightCache = new();
 
         private Dictionary<LightType, Light.EType> lightTypeDict = new()
         {
@@ -67,50 +67,9 @@ namespace ZoneFbx.Processor
             return IntPtr.Zero;
         }
 
-        private class FbxLightObject
-        {
-            internal class DiffuseColorHDRI
-            {
-                public double Red;
-                public double Green;
-                public double Blue;
-                public DiffuseColorHDRI(double red, double green, double blue)
-                {
-                    Red = red;
-                    Green = green;
-                    Blue = blue;
-                }
-
-                public override int GetHashCode()
-                {
-                    return HashCode.Combine(Red, Green, Blue);
-                }
-            }
-            public float Intensity;
-            public DiffuseColorHDRI DiffuseColor;
-            public Light.EType LightType;
-            public Light.EDecayType DecayType;
-
-            public FbxLightObject(float intensity, DiffuseColorHDRI diffuseColor, Light.EType lightType, Light.EDecayType decayType)
-            {
-                Intensity = intensity;
-                DiffuseColor = diffuseColor;
-                LightType = lightType;
-                DecayType = decayType;
-            }
-
-            public override int GetHashCode()
-            {
-                return HashCode.Combine(Intensity, DiffuseColor, LightType, DecayType);
-            }
-
-            public override bool Equals(object? obj)
-            {
-                if (obj is not FbxLightObject) return false;
-                if (ReferenceEquals(this, obj)) return true;
-                return GetHashCode() == obj.GetHashCode();
-            }
-        }
+        // Records get structural Equals/GetHashCode for free, which is what we want for the cache key.
+        private record DiffuseColorHDRI(double Red, double Green, double Blue);
+        private record FbxLightObject(float Intensity, DiffuseColorHDRI DiffuseColor, Light.EType LightType, Light.EDecayType DecayType);
 
         public IntPtr ProcessInstanceObjectLayLight(LayerCommon.InstanceObject obj)
         {
@@ -120,12 +79,12 @@ namespace ZoneFbx.Processor
             var lightObj = (LightInstanceObject)obj.Object;
             if (lightObj.DiffuseColorHDRI.Intensity == 0.0) return IntPtr.Zero;
 
-            FbxLightObject.DiffuseColorHDRI diffuseColor = new(lightObj.DiffuseColorHDRI.Red, lightObj.DiffuseColorHDRI.Green, lightObj.DiffuseColorHDRI.Blue);
+            DiffuseColorHDRI diffuseColor = new(lightObj.DiffuseColorHDRI.Red, lightObj.DiffuseColorHDRI.Green, lightObj.DiffuseColorHDRI.Blue);
             FbxLightObject toCache = new(lightObj.DiffuseColorHDRI.Intensity, diffuseColor, lightTypeDict.GetValueOrDefault(lightObj.LightType, Light.EType.ePoint), lightDecayTypeDict.GetValueOrDefault(lightObj.Attenuation, Light.EDecayType.eNone));
 
             var lightNode = Node.Create(contextManager, $"light_{obj.InstanceId}");
             Util.InitChildNode(obj, lightNode);
-            if (lightCache.TryGetValue(toCache.GetHashCode(), out var light))
+            if (lightCache.TryGetValue(toCache, out var light))
             {
                 Node.SetNodeAttribute(lightNode, light);
                 return lightNode;
@@ -147,7 +106,7 @@ namespace ZoneFbx.Processor
             }
 
             Node.SetNodeAttribute(lightNode, light);
-            lightCache.Add(toCache.GetHashCode(), light);
+            lightCache.Add(toCache, light);
             return lightNode;
         }
     }

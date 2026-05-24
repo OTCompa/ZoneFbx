@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
@@ -8,6 +8,7 @@ using Lumina.Excel.Sheets;
 using CliWrap;
 using System.IO;
 using System.Configuration;
+using System.Runtime.CompilerServices;
 
 namespace ZoneFbx.GUI
 {
@@ -35,23 +36,13 @@ namespace ZoneFbx.GUI
         public string GamePath
         {
             get => ExportConfig.GamePath;
-            set
-            {
-                ExportConfig.GamePath = value;
-                OnPropertyChanged(nameof(GamePath));
-                Config.Save();
-            }
+            set => SetConfig(() => ExportConfig.GamePath = value);
         }
 
         public string OutputPath
         {
             get => ExportConfig.OutputPath;
-            set
-            {
-                ExportConfig.OutputPath = value;
-                OnPropertyChanged(nameof(OutputPath));
-                Config.Save();
-            }
+            set => SetConfig(() => ExportConfig.OutputPath = value);
         }
 
         private bool _execInProgress = false;
@@ -68,7 +59,7 @@ namespace ZoneFbx.GUI
         // levels
         public class ComboBoxItem
         {
-            public string Value { get; set; } 
+            public string Value { get; set; }
             public string DisplayValue { get; set; }
             public ComboBoxItem(string value, string displayValue)
             {
@@ -88,15 +79,8 @@ namespace ZoneFbx.GUI
             set
             {
                 var match = Levels.FirstOrDefault(i => i.DisplayValue == value);
-                if (match != null)
-                {
-                    _level = match.Value;
-                    LevelComboBox.SelectedItem = null;
-                } else
-                {
-                    _level = value;
-                    LevelComboBox.SelectedItem = null;
-                }
+                _level = match?.Value ?? value;
+                LevelComboBox.SelectedItem = null;
 
                 OnPropertyChanged(nameof(Level));
                 FilteredLevels.Refresh();
@@ -107,116 +91,75 @@ namespace ZoneFbx.GUI
         public bool EnableMainMap
         {
             get => ExportConfig.EnableMainMap;
-            set
-            {
-                ExportConfig.EnableMainMap = value;
-                OnPropertyChanged(nameof(EnableMainMap));
-                Config.Save();
-            }
+            set => SetConfig(() => ExportConfig.EnableMainMap = value);
         }
 
         public bool EnableLightshaft
         {
             get => ExportConfig.EnableLightshaft;
-            set
-            {
-                ExportConfig.EnableLightshaft = value;
-                OnPropertyChanged(nameof(EnableLightshaft));
-                Config.Save();
-            }
+            set => SetConfig(() => ExportConfig.EnableLightshaft = value);
         }
 
         public bool EnableLighting
         {
             get => ExportConfig.EnableLighting;
-            set
-            {
-                ExportConfig.EnableLighting = value;
-                OnPropertyChanged(nameof(EnableLighting));
-                Config.Save();
-            }
+            set => SetConfig(() => ExportConfig.EnableLighting = value);
         }
 
         public bool EnableFestival
         {
             get => ExportConfig.EnableFestival;
-            set
-            {
-                ExportConfig.EnableFestival = value;
-                OnPropertyChanged(nameof(EnableFestival));
-                Config.Save();
-            }
+            set => SetConfig(() => ExportConfig.EnableFestival = value);
         }
 
         public bool EnableJsonExport
         {
             get => ExportConfig.EnableJsonExport;
-            set
-            {
-                ExportConfig.EnableJsonExport = value;
-                OnPropertyChanged(nameof(EnableJsonExport));
-                Config.Save();
-            }
+            set => SetConfig(() => ExportConfig.EnableJsonExport = value);
         }
 
         public bool EnableBlend
         {
             get => ExportConfig.EnableBlend;
-            set
-            {
-                ExportConfig.EnableBlend = value;
-                OnPropertyChanged(nameof(EnableBlend));
-                Config.Save();
-            }
+            set => SetConfig(() => ExportConfig.EnableBlend = value);
         }
 
         public bool EnableMTMap
         {
             get => ExportConfig.EnableMTMap;
-            set
-            {
-                ExportConfig.EnableMTMap = value;
-                OnPropertyChanged(nameof(EnableMTMap));
-                Config.Save();
-            }
+            set => SetConfig(() => ExportConfig.EnableMTMap = value);
         }
 
         public bool EnableCollision
         {
             get => ExportConfig.EnableCollision;
-            set
-            {
-                ExportConfig.EnableCollision = value;
-                OnPropertyChanged(nameof(EnableCollision));
-                Config.Save();
-            }
+            set => SetConfig(() => ExportConfig.EnableCollision = value);
         }
 
         public bool EnableCollisionVariants
         {
             get => ExportConfig.EnableCollisionVariants;
-            set
-            {
-                ExportConfig.EnableCollisionVariants = value;
-                OnPropertyChanged(nameof(EnableCollisionVariants));
-                Config.Save();
-            }
+            set => SetConfig(() => ExportConfig.EnableCollisionVariants = value);
         }
 
         public bool DisableBaking
         {
             get => ExportConfig.DisableBaking;
-            set
-            {
-                ExportConfig.DisableBaking = value;
-                OnPropertyChanged(nameof(DisableBaking));
-                Config.Save();
-            }
+            set => SetConfig(() => ExportConfig.DisableBaking = value);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        // Apply a setter against ExportConfig, raise change notification, persist. CallerMemberName
+        // lets each property delegate here with a single lambda instead of repeating the boilerplate.
+        private void SetConfig(System.Action setter, [CallerMemberName] string propertyName = "")
+        {
+            setter();
+            OnPropertyChanged(propertyName);
+            Config.Save();
+        }
 
         private ConfigWindow configWindow = null!;
 
@@ -250,37 +193,52 @@ namespace ZoneFbx.GUI
 
         private async void TryResolvingLumina()
         {
+            List<ComboBoxItem>? items = null;
+            string? errorMessage = null;
+
             await Task.Run(() =>
             {
                 try
                 {
-                    data = new Lumina.GameData(GamePath, new Lumina.LuminaOptions() { PanicOnSheetChecksumMismatch = false});
-                } catch (Exception ex)
+                    data = new Lumina.GameData(GamePath, new Lumina.LuminaOptions() { PanicOnSheetChecksumMismatch = false });
+                }
+                catch (Exception ex)
                 {
-                    ConsoleString = $"Unable to resolve game data: {ex.Message}\nYou might want to check if you correctly set the path to the sqpack folder.";
+                    errorMessage = $"Unable to resolve game data: {ex.Message}\nYou might want to check if you correctly set the path to the sqpack folder.";
                     return;
                 }
 
-                ConsoleString = "";
-                Dispatcher.BeginInvoke(Levels.Clear);
                 var territoryType = data.GetExcelSheet<TerritoryType>();
-                if (territoryType == null) {
-                    ConsoleString = $"Unable to get excel datasheet.";
+                if (territoryType == null)
+                {
+                    errorMessage = "Unable to get excel datasheet.";
                     return;
                 }
-                foreach (var row in territoryType.Where(territory => !String.IsNullOrEmpty(territory.PlaceName.ValueNullable?.Name.ExtractText())))
-                {
-                    Dispatcher.BeginInvoke(() =>
-                    {
-                        Levels.Add(new ComboBoxItem(row.Bg.ToString(), $"{row.PlaceNameZone.Value.Name} {row.PlaceName.Value.Name} ({row.Bg})"));
-                    });
-                }
-                Dispatcher.BeginInvoke(() =>
-                {
-                    Level = "";
-                });
+
+                // Build the entire list off-thread, then push to the UI in one go to avoid flooding
+                // the dispatcher with one item-add per row (which made the GUI freeze on large sheets).
+                items = territoryType
+                    .Where(t => !string.IsNullOrEmpty(t.PlaceName.ValueNullable?.Name.ExtractText()))
+                    .Select(t => new ComboBoxItem(
+                        t.Bg.ToString(),
+                        $"{t.PlaceNameZone.ValueNullable?.Name.ExtractText() ?? ""} {t.PlaceName.Value.Name.ExtractText()} ({t.Bg})"))
+                    .ToList();
             });
 
+            // We're back on the UI thread here.
+            if (errorMessage != null)
+            {
+                ConsoleString = errorMessage;
+                return;
+            }
+
+            ConsoleString = "";
+            Levels.Clear();
+            if (items != null)
+            {
+                foreach (var item in items) Levels.Add(item);
+            }
+            Level = "";
         }
 
         private bool LevelFilter(object item)
@@ -357,7 +315,7 @@ namespace ZoneFbx.GUI
 
             // there's probably a better way to do this...
             var argVars = new List<string>();
-            
+
             if (!string.IsNullOrEmpty(ExportConfig.SpecularFactor))
             {
                 argVars.Add("--specular");

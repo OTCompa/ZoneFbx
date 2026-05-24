@@ -107,14 +107,14 @@ namespace ZoneFbx.GUI
         public string NormalFactor
         {
             get => (string)this["normalFactor"];
-            set { this["normalFactor"] = value.ToString(); }
+            set { this["normalFactor"] = value; }
         }
 
         [ConfigurationProperty("lightIntensityFactor", DefaultValue = "10000")]
         public string LightIntensityFactor
         {
             get => (string)this["lightIntensityFactor"];
-            set { this["lightIntensityFactor"] = value.ToString(); }
+            set { this["lightIntensityFactor"] = value; }
         }
     }
 }

@@ -7,7 +7,7 @@ using static Lumina.Models.Models.Model;
 
 namespace ZoneFbx.Processor
 {
-    internal class CollisionProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, ContextManager ContextManager, string zonePath) : Processor(data, contextManager, options)
+    internal class CollisionProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, string zonePath) : Processor(data, contextManager, options)
     {
         private readonly string zonePath = zonePath;
 
@@ -30,7 +30,7 @@ namespace ZoneFbx.Processor
                 var collision = data.GetFile<PcbResourceFile>(objectFilepath);
                 if (collision == null)
                 {
-                    Console.WriteLine("sadge");
+                    Console.WriteLine($"Missing collision file {objectFilepath}");
                     continue;
                 }
 

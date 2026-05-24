@@ -1,4 +1,4 @@
-﻿using Lumina;
+using Lumina;
 using System;
 using System.Numerics;
 using ZoneFbx.Fbx;
@@ -14,7 +14,6 @@ namespace ZoneFbx
         private readonly Lumina.GameData data;
         private readonly Options options;
 
-        private readonly ContextManager ContextManager;
         private readonly CollisionProcessor collisionProcessor;
         private readonly TextureProcessor textureProcessor;
         private readonly MaterialProcessor materialProcessor;
@@ -24,9 +23,7 @@ namespace ZoneFbx
         private readonly TerrainProcessor terrainProcessor;
         private readonly FbxExporter fbxExporter;
 
-        private IntPtr contextManager { get; set; }
-
-        private readonly List<Processor.Processor> processors = [];
+        private IntPtr contextManager;
 
         public ZoneExporter(string gamePath, string zonePath, string outputPath, Options options)
         {
@@ -39,35 +36,38 @@ namespace ZoneFbx
 
             Console.WriteLine("Initializing...");
 
-            contextManager = ContextManager.Create();
-            ContextManager.CreateManager(contextManager);
-            ContextManager.CreateScene(contextManager, zoneCode);
-
-            fbxExporter = new(contextManager);
-
+            // Construct GameData BEFORE allocating native resources so a failure here doesn't leak the context manager.
             try
             {
-                data = new GameData(gamePath, new LuminaOptions(){ PanicOnSheetChecksumMismatch = false });
-            } catch (DirectoryNotFoundException)
+                data = new GameData(gamePath, new LuminaOptions() { PanicOnSheetChecksumMismatch = false });
+            }
+            catch (DirectoryNotFoundException)
             {
                 Console.WriteLine("Error: Game path directory is not valid!\n");
                 throw new Exception("game path directory is not valid");
             }
 
-            
-            ContextManager = new ContextManager();
-            collisionProcessor = new(data, contextManager, options, ContextManager, this.zonePath);
-            textureProcessor = new(data, contextManager, options, this.outputPath, zoneCode);
-            materialProcessor = new(data, contextManager, options, textureProcessor, this.outputPath);
-            modelProcessor = new(data, contextManager, options, ContextManager, materialProcessor);
-            instanceObjectProcessor = new(data, contextManager, options, modelProcessor, collisionProcessor);
-            layerProcessor = new(data, contextManager, options, instanceObjectProcessor, this.zonePath, this.outputPath);
-            terrainProcessor = new(data, contextManager, options, modelProcessor, this.zonePath);
+            contextManager = ContextManager.Create();
+            try
+            {
+                ContextManager.CreateManager(contextManager);
+                ContextManager.CreateScene(contextManager, zoneCode);
 
-            // 0 idea how to structure this program atp
-            processors.AddRange([collisionProcessor, textureProcessor, materialProcessor, modelProcessor, instanceObjectProcessor, layerProcessor, terrainProcessor]);
+                fbxExporter = new(contextManager);
 
-            Export();
+                collisionProcessor = new(data, contextManager, options, this.zonePath);
+                textureProcessor = new(data, contextManager, options, this.outputPath, zoneCode);
+                materialProcessor = new(data, contextManager, options, textureProcessor, this.outputPath);
+                modelProcessor = new(data, contextManager, options, materialProcessor);
+                instanceObjectProcessor = new(data, contextManager, options, modelProcessor, collisionProcessor);
+                layerProcessor = new(data, contextManager, options, instanceObjectProcessor, this.zonePath, this.outputPath);
+                terrainProcessor = new(data, contextManager, options, modelProcessor, this.zonePath);
+            }
+            catch
+            {
+                Dispose();
+                throw;
+            }
         }
 
         public void Dispose()
@@ -76,59 +76,47 @@ namespace ZoneFbx
             {
                 ContextManager.DestroyManager(contextManager);
                 ContextManager.Destroy(contextManager);
+                contextManager = IntPtr.Zero;
             }
         }
 
-        private void Export()
+        public void Export()
         {
-            if (options.enableMainMap)
-            {
-                if (!exportZone())
-                {
-                    Console.WriteLine("ZoneFbx has run into an error. Please open an issue on the GitHub repo with details about this error.");
-                    return;
-                }
-                Console.WriteLine("Zone export finished.");
-            }
-
-            // starting different modes from scratch because keeping track of all 3 at the same time would
-            // add complexity that i probably wouldn't be able to reasonably manage
-            if (options.enableCollisions)
-            {
-                Console.WriteLine("Beginning collision export...");
-                options.mode = Mode.Collision;
-                ReinitializeFbx($"{zoneCode}_collision");
-                if (!exportCollision())
-                {
-                    Console.WriteLine("ZoneFbx has run into an error. Please open an issue on the GitHub repo with details about this error.");
-                    return;
-                }
-                Console.WriteLine("Collision export finished.");
-            }
-
-            if (options.enableFestivals)
-            {
-                Console.WriteLine("Beginning festival export...");
-                options.mode = Mode.Festival;
-                ReinitializeFbx($"{zoneCode}_festival");
-                if (!exportFestivals())
-                {
-                    Console.WriteLine("ZoneFbx has run into an error. Please open an issue on the GitHub repo with details about this error.");
-                    return;
-                }
-                Console.WriteLine("Festival export finished.");
-            }
+            if (options.enableMainMap && !RunPass("Zone", null, null, exportZone)) return;
+            if (options.enableCollisions && !RunPass("Collision", Mode.Collision, $"{zoneCode}_collision", exportCollision)) return;
+            if (options.enableFestivals && !RunPass("Festival", Mode.Festival, $"{zoneCode}_festival", exportFestivals)) return;
         }
+
+        // Drives one export pass. For the initial zone pass, mode/sceneName are null and the scene
+        // doesn't need to be re-initialized. Subsequent passes start fresh by resetting caches and
+        // replacing the FBX scene so we don't have to track three exports' worth of state at once.
+        private bool RunPass(string passName, Mode? mode, string? sceneName, Func<bool> work)
+        {
+            if (mode.HasValue)
+            {
+                Console.WriteLine($"Beginning {passName.ToLower()} export...");
+                options.mode = mode.Value;
+                ReinitializeFbx(sceneName!);
+            }
+
+            if (!work())
+            {
+                Console.WriteLine("ZoneFbx has run into an error. Please open an issue on the GitHub repo with details about this error.");
+                return false;
+            }
+
+            Console.WriteLine($"{passName} export finished.");
+            return true;
+        }
+
         private void ReinitializeFbx(string sceneName)
         {
             ContextManager.DestroyScene(contextManager);
-
             ContextManager.CreateScene(contextManager, sceneName);
 
             modelProcessor.ResetCache();
             materialProcessor.ResetCache();
             instanceObjectProcessor.ResetCache();
-
         }
 
         private bool exportZone()

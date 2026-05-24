@@ -1,5 +1,3 @@
-﻿using Lumina.Data;
-using Lumina.Extensions;
 using Lumina.Models.Materials;
 using System.Numerics;
 using System.Text;
@@ -44,17 +42,15 @@ namespace ZoneFbx.Processor
 
             readConstants(material);
 
-            var br = material.File.Reader;
-            long baseOffset = getMaterialConstantBaseOffset(br);
-
-            readColorConstants(br, baseOffset);
+            // ShaderValues is the already-parsed float buffer — no need to seek the reader ourselves.
+            readColorConstants(material.File.ShaderValues);
 
             if (!DiffuseBlendEnabled)
             {
                 BlendDiffuseFactor = null;
             }
 
-            if (options.enableJsonExport) exportShaderConstants(material, outputPath, br, baseOffset);
+            if (options.enableJsonExport) exportShaderConstants(material, outputPath);
         }
 
         private void readConstants(Material material)
@@ -119,70 +115,34 @@ namespace ZoneFbx.Processor
             }
         }
 
-        private long getMaterialConstantBaseOffset(LuminaBinaryReader br)
+        private void readColorConstants(float[] values)
         {
-            int colorsetBlockSize;
-            int stringBlockSize;
-            int additionalDataSize;
-
-            // get string block size
-            br.Seek(6);
-            colorsetBlockSize = br.ReadUInt16();
-            stringBlockSize = br.ReadUInt16();
-
-            // get tex/map/colorset numbers to figure out where string block is
-            br.Seek(12);
-            var numStrings = 0;
-            for (int i = 0; i < 3; i++)
-            {
-                numStrings += br.ReadByte();
-            }
-
-            additionalDataSize = br.ReadByte();
-
-            long cursor = 16;
-            // put cursor at beginning of shader area
-            cursor += numStrings * 4 + additionalDataSize + stringBlockSize + colorsetBlockSize + 2;  // skip shader constants data size
-            br.Seek(cursor);
-
-            var numShaderKeys = br.ReadUInt16();
-            var numShaderConstants = br.ReadUInt16();
-            var numTextureSampler = br.ReadUInt16();
-            br.Seek(br.Position + 4 + numShaderKeys * 8);  // position at the start of shader constants ids/offsets/sizes
-            cursor = br.Position + numShaderConstants * 8 + numTextureSampler * 12;
-
-            return cursor;
-        }
-
-        private void readColorConstants(LuminaBinaryReader br, long baseOffset)
-        {
-            // get all the relevant information
             if (diffuseOffset.HasValue)
             {
-                DiffuseFactor = readVector3Constant(br, baseOffset + diffuseOffset.Value, false, true);
+                DiffuseFactor = readVector3Constant(values, diffuseOffset.Value, filterOne: true);
             }
 
             if (blendDiffuseOffset.HasValue)
             {
-                BlendDiffuseFactor = readVector3Constant(br, baseOffset + blendDiffuseOffset.Value, true, true);
+                BlendDiffuseFactor = readVector3Constant(values, blendDiffuseOffset.Value, filterZero: true, filterOne: true);
             }
             if (specularOffset.HasValue)
             {
-                SpecularFactor = readVector3Constant(br, baseOffset + specularOffset.Value, false, true);
+                SpecularFactor = readVector3Constant(values, specularOffset.Value, filterOne: true);
             }
             if (emissiveOffset.HasValue)
             {
-                EmissiveFactor = readVector3Constant(br, baseOffset + emissiveOffset.Value, false, false);
+                EmissiveFactor = readVector3Constant(values, emissiveOffset.Value);
             }
             if (normalOffset.HasValue)
             {
-                NormalFactor = readVector3Constant(br, baseOffset + normalOffset.Value, false, false);
+                NormalFactor = readVector3Constant(values, normalOffset.Value);
             }
 
             // for notes on this: see the comment around where this is set
             if (backupDiffuseOffset.HasValue)
             {
-                var temp = readVector3Constant(br, baseOffset + backupDiffuseOffset.Value, true, true);
+                var temp = readVector3Constant(values, backupDiffuseOffset.Value, filterZero: true, filterOne: true);
                 if (DiffuseFactor == null)
                 {
                     DiffuseFactor = temp;
@@ -201,33 +161,34 @@ namespace ZoneFbx.Processor
                     BlendDiffuseFactor = temp;
                 }
             }
-
         }
 
-        private Vector3? readVector3Constant(LuminaBinaryReader br, long offset, bool filterZero = false, bool filterOne = false)
+        private static Vector3? readVector3Constant(float[] values, ushort byteOffset, bool filterZero = false, bool filterOne = false)
         {
-            br.Seek(offset);
-            var v = new Vector3(br.ReadSingle(), br.ReadSingle(), br.ReadSingle());
+            int idx = byteOffset / 4;
+            if (idx + 2 >= values.Length) return null;
+            var v = new Vector3(values[idx], values[idx + 1], values[idx + 2]);
 
             if (filterZero && v == Vector3.Zero || filterOne && v == Vector3.One) return null;
 
             return v;
         }
 
-        private void exportShaderConstants(Material material, string outputPath, LuminaBinaryReader br, long baseOffset)
+        private static void exportShaderConstants(Material material, string outputPath)
         {
+            var values = material.File!.ShaderValues;
             var sb = new StringBuilder();
             sb.Append("ConstantId,0,1,2,3\n");
-            foreach (var constant in material.File!.Constants)
+            foreach (var constant in material.File.Constants)
             {
-                br.Seek(baseOffset + constant.ValueOffset);
-                var shaderConstantValues = br.ReadSingleArray(constant.ValueSize / 4);
+                int idx = constant.ValueOffset / 4;
+                int count = constant.ValueSize / 4;
                 sb.Append($"{constant.ConstantId:X}");
-                foreach (var value in shaderConstantValues)
+                for (int i = 0; i < count; i++)
                 {
-                    sb.Append($",{value.ToString()}");
+                    sb.Append($",{values[idx + i]}");
                 }
-                for (int i = 0; i < 4 - shaderConstantValues.Length; i++)
+                for (int i = 0; i < 4 - count; i++)
                 {
                     sb.Append(",");
                 }
@@ -236,7 +197,6 @@ namespace ZoneFbx.Processor
             var folder = Path.Combine(outputPath, "constants");
             Directory.CreateDirectory(folder);
             File.WriteAllText(Path.Combine(folder, $"{Path.GetFileNameWithoutExtension(material.MaterialPath)}.csv"), sb.ToString());
-
         }
     }
 }

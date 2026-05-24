@@ -13,16 +13,20 @@ namespace ZoneFbx
         public bool Export(string outputPathWithFilename)
         {
             var exporter = Exporter.Create(contextManager, "exporter");
-            var out_fbx = $"{outputPathWithFilename}{(outputPathWithFilename.EndsWith(".fbx") ? "" : ".fbx")}";
-
-            if (!Exporter.Initialize(exporter, out_fbx, contextManager))
+            try
             {
-                return false;
-            }
-            var result = Exporter.Export(exporter, contextManager);
+                var out_fbx = $"{outputPathWithFilename}{(outputPathWithFilename.EndsWith(".fbx") ? "" : ".fbx")}";
 
-            Exporter.Destroy(exporter);
-            return result;
+                if (!Exporter.Initialize(exporter, out_fbx, contextManager))
+                {
+                    return false;
+                }
+                return Exporter.Export(exporter, contextManager);
+            }
+            finally
+            {
+                Exporter.Destroy(exporter);
+            }
         }
     }
 }

@@ -4,7 +4,7 @@ using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal class ModelProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, ContextManager ContextManager, MaterialProcessor materialProcessor) : Processor(data, contextManager, options)
+    internal class ModelProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, MaterialProcessor materialProcessor) : Processor(data, contextManager, options)
     {
         private readonly MaterialProcessor materialProcessor = materialProcessor;
         private readonly Dictionary<string, IntPtr> meshCache = [];
