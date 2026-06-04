@@ -13,6 +13,10 @@ namespace ZoneFbx.Processor
         public Vector3? EmissiveFactor { get; set; } = null;
         //public Vector3? Emissive2Color { get; set; } = null;
         public Vector3? NormalFactor { get; set; } = null;
+
+        private float? Unk1 { get; set; } = null;
+        private float? Unk2 { get; set; } = null;
+
         public bool DiffuseBlendEnabled { get; set; } = false;
 
         private ushort? diffuseOffset = null;
@@ -23,6 +27,8 @@ namespace ZoneFbx.Processor
         private ushort? emissiveOffset = null;
         //private ushort? emissive2Offset = null;
         private ushort? normalOffset = null;
+        private ushort? unk1Offset = null;  // emmissive scale?
+        private ushort? unk2Offset = null;  // version?
 
 
         public MaterialInfo(Material material, string outputPath, ZoneExporter.Options options)
@@ -109,6 +115,22 @@ namespace ZoneFbx.Processor
                         }
                         normalOffset = constant.ValueOffset;
                         break;
+                    case 0x8F8B0070:
+                        if (constant.ValueSize != 4)
+                        {
+                            Console.WriteLine("Unexpected size for unk1Offset. May cause unexpected results.");
+                        }
+                        unk1Offset = constant.ValueOffset;
+                        // emissive?
+                        break;
+                    case 0x8981D4D9:
+                        if (constant.ValueSize != 4)
+                        {
+                            Console.WriteLine("Unexpected size for unk2Offset. May cause unexpected results.");
+                        }
+                        unk2Offset = constant.ValueOffset;
+                        // version?
+                        break;
                     //case 0x793AC5A3:
                     // normal blend?
                 }
@@ -136,7 +158,15 @@ namespace ZoneFbx.Processor
             }
             if (normalOffset.HasValue)
             {
-                NormalFactor = readVector3Constant(values, normalOffset.Value);
+                //NormalFactor = readVector3Constant(values, normalOffset.Value);
+            }
+            if (unk1Offset.HasValue)
+            {
+                Unk1 = readFloatConstant(values, unk1Offset.Value);
+            }
+            if (unk2Offset.HasValue)
+            {
+                Unk2 = readFloatConstant(values, unk2Offset.Value);
             }
 
             // for notes on this: see the comment around where this is set
@@ -161,6 +191,11 @@ namespace ZoneFbx.Processor
                     BlendDiffuseFactor = temp;
                 }
             }
+
+            if (Unk2 == 7f)
+            {
+                EmissiveFactor = Vector3.Zero;
+            }
         }
 
         private static Vector3? readVector3Constant(float[] values, ushort byteOffset, bool filterZero = false, bool filterOne = false)
@@ -172,6 +207,13 @@ namespace ZoneFbx.Processor
             if (filterZero && v == Vector3.Zero || filterOne && v == Vector3.One) return null;
 
             return v;
+        }
+
+        private static float? readFloatConstant(float[] values, ushort byteOffset)
+        {
+            int idx = byteOffset / 4;
+            if (idx >= values.Length) return null;
+            return values[idx];
         }
 
         private static void exportShaderConstants(Material material, string outputPath)

@@ -39,6 +39,9 @@ namespace ZoneFbx.Processor
                 var texture = material.Textures[i];
                 IntPtr textureObject;
                 if (texture == null || texture.TexturePath.Contains("dummy")) continue;
+
+                // blending logic
+                // for bgUvScroll this might be reversed where the second texture is displayed by default
                 if (alreadySet.Contains(texture.TextureUsageSimple))
                 {
                     if (options.enableBlend && (options.disableBaking || (materialInfo != null && materialInfo.DiffuseBlendEnabled)))

@@ -40,9 +40,9 @@ namespace ZoneFbx.Processor
                 case Texture.Usage.Specular:
                     color = materialInfo?.SpecularFactor; break;
             }
-
             filename = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, color, suffix);
-            extractTexture(tex, color, filename);
+
+            extractTexture(tex, color, filename, tex.TextureUsageSimple == Texture.Usage.Normal);
 
             if (!string.IsNullOrEmpty(suffix) && !suffix.Equals("_e")) return IntPtr.Zero;
             return initializeFileTexture(tex.TexturePath, filename, suffix);
@@ -68,7 +68,7 @@ namespace ZoneFbx.Processor
             return texture;
         }
 
-        private void extractTexture(Texture tex, Vector3? color, string outputPath)
+        private void extractTexture(Texture tex, Vector3? color, string outputPath, bool isNormal = false)
         {
             if (File.Exists(outputPath)) return;
 
@@ -79,7 +79,13 @@ namespace ZoneFbx.Processor
             {
                 byte[] imageDataCopy = new byte[texfile.ImageData.Length];
                 texfile.ImageData.CopyTo(imageDataCopy, 0);
-                Util.SaveAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height, color);
+                if (!isNormal)
+                {
+                    Util.SaveAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height, color);
+                } else
+                {
+                    Util.SaveNormalAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height);
+                }
             } catch (NotSupportedException)
             {
                 Console.WriteLine($"Format {texfile.Header.Format} not supported: {texfile.FilePath}");

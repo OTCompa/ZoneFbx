@@ -73,6 +73,26 @@ namespace ZoneFbx
             }
         }
 
+        public static void SaveNormalAsBitmap(string tex_path, byte[] data, int width, int height)
+        {
+            for (int i = 0; i < data.Length; i += 4)
+            {
+                data[i] = Convert.ToByte(255);
+            }
+
+            unsafe
+            {
+                fixed (byte* p = data)
+                {
+                    IntPtr imageData = (IntPtr)p;
+                    var texture = new Bitmap(width, height, width * 4, PixelFormat.Format32bppArgb, imageData);
+
+                    Directory.CreateDirectory(Path.GetDirectoryName(tex_path)!);
+                    texture.Save(tex_path, ImageFormat.Png);
+                }
+            }
+        }
+
         public static void SaveJson(string filename, LayerCommon.Layer[] layers, string output_path)
         {
             var jsonFolder = Path.Combine(output_path, "json");
