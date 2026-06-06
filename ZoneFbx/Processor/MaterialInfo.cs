@@ -11,7 +11,7 @@ namespace ZoneFbx.Processor
         public Vector3? SpecularFactor { get; set; } = null;
         //public Vector3? BlendSpecularFactor { get; set; } = null;
         public Vector3? EmissiveFactor { get; set; } = null;
-        //public Vector3? Emissive2Color { get; set; } = null;
+        public Vector3? BlendEmissiveFactor { get; set; } = null;
         public Vector3? NormalFactor { get; set; } = null;
 
         private float? Unk1 { get; set; } = null;
@@ -21,7 +21,7 @@ namespace ZoneFbx.Processor
 
         private ushort? diffuseOffset = null;
         private ushort? blendDiffuseOffset = null;
-        private ushort? backupDiffuseOffset = null;
+        private ushort? blendEmissiveOffset = null;
         private ushort? specularOffset = null;
         //private ushort? specular2Offset = null;
         private ushort? emissiveOffset = null;
@@ -87,7 +87,7 @@ namespace ZoneFbx.Processor
                         }
                         emissiveOffset = constant.ValueOffset;
                         break;
-                    case 0xAA676D0F:
+                    case 0x3F8AC211:
                         // diffuse blend color
                         if (constant.ValueSize != 12)
                         {
@@ -95,17 +95,13 @@ namespace ZoneFbx.Processor
                         }
                         blendDiffuseOffset = constant.ValueOffset;
                         break;
-                    case 0x3F8AC211:
-                        // secondary entry for diffuses?
-                        // if both primary and blend diffuses exist,
-                        // whichever component is larger among this and the primary vector is the value for the final DiffuseColor vector
-                        // if the blend diffuse doesn't exist, then this seems to be used as the blend diffuse
-                        // see: n4g8 (E8S) crystals, n4gw (FRU) crystals, x6r7 (M8S) P1/P2 floor
+                    case 0xAA676D0F:
+                        // emissive blend color
                         if (constant.ValueSize != 12)
                         {
                             Console.WriteLine("Unexpected size for diffuse color. May cause unexpected results.");
                         }
-                        backupDiffuseOffset = constant.ValueOffset;
+                        blendEmissiveOffset = constant.ValueOffset;
                         break;
                     case 0xB5545FBB:
                         // TODO: actually implement this
@@ -160,6 +156,10 @@ namespace ZoneFbx.Processor
             {
                 //NormalFactor = readVector3Constant(values, normalOffset.Value);
             }
+            if (blendEmissiveOffset.HasValue)
+            {
+                BlendEmissiveFactor = readVector3Constant(values, blendEmissiveOffset.Value);
+            }
             if (unk1Offset.HasValue)
             {
                 Unk1 = readFloatConstant(values, unk1Offset.Value);
@@ -169,28 +169,6 @@ namespace ZoneFbx.Processor
                 Unk2 = readFloatConstant(values, unk2Offset.Value);
             }
 
-            // for notes on this: see the comment around where this is set
-            if (backupDiffuseOffset.HasValue)
-            {
-                var temp = readVector3Constant(values, backupDiffuseOffset.Value, filterZero: true, filterOne: true);
-                if (DiffuseFactor == null)
-                {
-                    DiffuseFactor = temp;
-                } else if (BlendDiffuseFactor != null)
-                {
-                    if (temp != null)
-                    {
-                        DiffuseFactor = new Vector3(
-                            Math.Max(temp.Value.X, DiffuseFactor.Value.X),
-                            Math.Max(temp.Value.Y, DiffuseFactor.Value.Y),
-                            Math.Max(temp.Value.Z, DiffuseFactor.Value.Z)
-                        );
-                    }
-                } else
-                {
-                    BlendDiffuseFactor = temp;
-                }
-            }
 
             if (Unk2 == 7f)
             {
