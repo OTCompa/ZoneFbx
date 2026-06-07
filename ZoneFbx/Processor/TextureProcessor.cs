@@ -83,7 +83,6 @@ namespace ZoneFbx.Processor
         public IntPtr PrepareLightshaftEmission(Material material, Texture tex, MaterialInfo? materialInfo, out string filename)
         {
             filename = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, Vector3.One, "_e");
-            
             extractTexture(tex, materialInfo?.LightshaftFactor, filename, TextureMode.Default);
             return initializeFileTexture(tex.TexturePath, filename, "_e");
         }

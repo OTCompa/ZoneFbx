@@ -17,17 +17,25 @@ extern "C" {
         surfacePhong->ShadingModel.Set("Phong");
     }
 
-    FBXCSHARP_API void FbxSurfacePhong_ConnectSrcObject(FbxSurfacePhong* outsurface, FbxFileTexture* texture, int branch) {
-        switch (branch) {
-        case 0:
-            outsurface->Diffuse.ConnectSrcObject(texture); break;
-        case 1:
-            outsurface->Specular.ConnectSrcObject(texture); break;
-        case 2:
-            outsurface->NormalMap.ConnectSrcObject(texture); break;
-        case 3:
-            outsurface->Emissive.ConnectSrcObject(texture); break;
-        }
+    FBXCSHARP_API void FbxSurfacePhong_ConnectDiffuse(FbxSurfacePhong* outsurface, FbxFileTexture* texture) {
+        outsurface->Diffuse.ConnectSrcObject(texture);
+    }
+
+    FBXCSHARP_API void FbxSurfacePhong_ConnectSpecular(FbxSurfacePhong* outsurface, FbxFileTexture* texture) {
+        outsurface->Specular.ConnectSrcObject(texture);
+    }
+
+    FBXCSHARP_API void FbxSurfacePhong_ConnectNormalMap(FbxSurfacePhong* outsurface, FbxFileTexture* texture) {
+        outsurface->NormalMap.ConnectSrcObject(texture);
+    }
+
+    FBXCSHARP_API void FbxSurfacePhong_ConnectEmissive(FbxSurfacePhong* outsurface, FbxFileTexture* texture) {
+        outsurface->Emissive.ConnectSrcObject(texture);
+    }
+
+    FBXCSHARP_API void FbxSurfacePhong_ConnectTransparency(FbxSurfacePhong* outsurface, FbxFileTexture* texture) {
+        outsurface->TransparentColor.ConnectSrcObject(texture);
+        outsurface->TransparencyFactor.Set(1.0);
     }
 
     FBXCSHARP_API bool FbxSurfacePhong_PropertyExists(FbxSurfacePhong* outsurface, const char* propertyName) {

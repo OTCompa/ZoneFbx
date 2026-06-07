@@ -17,9 +17,25 @@ namespace ZoneFbx.Fbx
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
         public static partial void SetFactor(IntPtr surfacePhong, double specularFactor, double normalFactor);
 
-        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxSurfacePhong_ConnectSrcObject")]
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxSurfacePhong_ConnectDiffuse")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
-        public static partial void ConnectSrcObject(IntPtr outsurface, IntPtr texture, int branch);
+        public static partial void ConnectDiffuse(IntPtr outsurface, IntPtr texture);
+
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxSurfacePhong_ConnectSpecular")]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        public static partial void ConnectSpecular(IntPtr outsurface, IntPtr texture);
+
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxSurfacePhong_ConnectNormalMap")]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        public static partial void ConnectNormalMap(IntPtr outsurface, IntPtr texture);
+
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxSurfacePhong_ConnectEmissive")]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        public static partial void ConnectEmissive(IntPtr outsurface, IntPtr texture);
+
+        [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxSurfacePhong_ConnectTransparency")]
+        [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]
+        public static partial void ConnectTransparency(IntPtr outsurface, IntPtr texture);
 
         [LibraryImport("FBXCSharp.dll", EntryPoint = "FbxSurfacePhong_PropertyExists")]
         [UnmanagedCallConv(CallConvs = [typeof(System.Runtime.CompilerServices.CallConvCdecl)])]

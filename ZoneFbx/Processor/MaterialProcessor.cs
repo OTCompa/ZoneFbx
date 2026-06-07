@@ -74,7 +74,7 @@ namespace ZoneFbx.Processor
                     var emissiveObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissiveFilename, "_e");
                     if (emissiveObject != IntPtr.Zero)
                     {
-                        SurfacePhong.ConnectSrcObject(outputSurface, emissiveObject, 3);
+                        SurfacePhong.ConnectEmissive(outputSurface, emissiveObject);
                         addToMaterialTextureDict(Path.GetFileNameWithoutExtension(emissiveFilename), material, "Emissive");
 
                         // for materials that blend textures, if they contain an emissive, create a dummy texture for the emissive to blend with
@@ -116,11 +116,11 @@ namespace ZoneFbx.Processor
                 var texture = material.Textures[i];
                 var textureObject = textureProcessor.PrepareTexture(material, texture, null, out outputFilePath);
                 if (textureObject == IntPtr.Zero) continue;
-                SurfacePhong.ConnectSrcObject(outputSurface, textureObject, 0);
+                SurfacePhong.ConnectDiffuse(outputSurface, textureObject);
 
                 var emissiveObject = textureProcessor.PrepareLightshaftEmission(material, texture, materialInfo, out _);
                 if (emissiveObject != IntPtr.Zero)
-                    SurfacePhong.ConnectSrcObject(outputSurface, emissiveObject, 3);
+                    SurfacePhong.ConnectEmissive(outputSurface, emissiveObject);
 
                 // TODO: add blend for lightshaft
                 break;
@@ -164,13 +164,13 @@ namespace ZoneFbx.Processor
             switch (type)
             {
                 case Texture.Usage.Diffuse:
-                    SurfacePhong.ConnectSrcObject(outputSurface, texture, 0);
+                    SurfacePhong.ConnectDiffuse(outputSurface, texture);
                     break;
                 case Texture.Usage.Specular:
-                    SurfacePhong.ConnectSrcObject(outputSurface, texture, 1);
+                    SurfacePhong.ConnectSpecular(outputSurface, texture);
                     break;
                 case Texture.Usage.Normal:
-                    SurfacePhong.ConnectSrcObject(outputSurface, texture, 2);
+                    SurfacePhong.ConnectNormalMap(outputSurface, texture);
                     break;
             }
         }
