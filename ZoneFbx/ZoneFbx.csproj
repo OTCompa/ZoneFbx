@@ -20,7 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\FBXCSharp\FBXCSharp.vcxproj" Condition="'$(Configuration)' != 'GithubRelease'" />
+		<ProjectReference Include="..\FBXCSharp\FBXCSharp.vcxproj" Condition="'$(Configuration)' != 'GithubRelease' AND '$(MSBuildRuntimeType)' != 'Core'" />
 		<ProjectReference Include="..\Lumina\src\Lumina\Lumina.csproj" />
 		<Content Include="$(SolutionDir)$(Platform)\$(Configuration)\FBXCSharp.dll" Condition="'$(Configuration)' != 'GithubRelease'">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
