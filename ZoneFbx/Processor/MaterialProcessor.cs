@@ -22,7 +22,13 @@ namespace ZoneFbx.Processor
 
         public IntPtr CreateMaterial(Material material)
         {
-            if (!options.enableLightshaftModels && material.ShaderPack == "lightshaft.shpk") return IntPtr.Zero;
+            if (material.ShaderPack == "lightshaft.shpk")
+            {
+                if (!options.enableLightshaftModels) return IntPtr.Zero;
+                return handleLightshaft(material);
+            }
+            // the above isn't pretty but I don't really wannt touch anything below this block 
+            // until I get around to cleaning this up
 
             if (material.File == null) return IntPtr.Zero;
             var hash = material.File.FilePath.IndexHash;
@@ -32,6 +38,7 @@ namespace ZoneFbx.Processor
             var outputSurface = SurfacePhong.Create(contextManager, Path.GetFileNameWithoutExtension(material.MaterialPath));
             SurfacePhong.SetFactor(outputSurface, options.specularFactor, options.normalFactor);
 
+            // TODO: clean this up
             HashSet<Texture.Usage> alreadySet = new HashSet<Texture.Usage>();
             string outputFilePath;
             for (int i = 0; i < material.Textures.Length; i++)
@@ -85,6 +92,38 @@ namespace ZoneFbx.Processor
                 }
 
                 connectSrcObjects(texture.TextureUsageSimple, outputSurface, textureObject);
+            }
+
+            materialCache.Add(hash, outputSurface);
+            return outputSurface;
+        }
+
+        private IntPtr handleLightshaft(Material material)
+        {
+            if (!options.enableLightshaftModels) return IntPtr.Zero;
+            if (material.File == null) return IntPtr.Zero;
+            var hash = material.File.FilePath.IndexHash;
+            if (materialCache.TryGetValue(hash, out var res)) return res;
+
+            var materialInfo = options.disableBaking ? null : new MaterialInfo(material, outputPath, options);
+
+            var outputSurface = SurfacePhong.Create(contextManager, Path.GetFileNameWithoutExtension(material.MaterialPath));
+            SurfacePhong.SetFactor(outputSurface, options.specularFactor, options.normalFactor);
+
+            string outputFilePath;
+            for (int i = 0; i < material.Textures.Length; i++)
+            {
+                var texture = material.Textures[i];
+                var textureObject = textureProcessor.PrepareTexture(material, texture, null, out outputFilePath);
+                if (textureObject == IntPtr.Zero) continue;
+                SurfacePhong.ConnectSrcObject(outputSurface, textureObject, 0);
+
+                var emissiveObject = textureProcessor.PrepareLightshaftEmission(material, texture, materialInfo, out _);
+                if (emissiveObject != IntPtr.Zero)
+                    SurfacePhong.ConnectSrcObject(outputSurface, emissiveObject, 3);
+
+                // TODO: add blend for lightshaft
+                break;
             }
 
             materialCache.Add(hash, outputSurface);

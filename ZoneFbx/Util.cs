@@ -73,6 +73,43 @@ namespace ZoneFbx
             }
         }
 
+        public static void SaveLightshaftAsBitmap(string tex_path, byte[] data, int width, int height)
+        {
+            for (int i = 0; i < data.Length; i += 4)
+            {
+                float b = data[i];
+                float g = data[i + 1];
+                float r = data[i + 2];
+
+                float alpha = (r + g + b) / 3.0f;
+                data[i + 3] = (byte)Math.Clamp(alpha, 0, 255);
+
+                if (alpha > 0)
+                {
+                    data[i] = (byte)Math.Clamp(b * 255.0f / alpha, 0, 255);
+                    data[i + 1] = (byte)Math.Clamp(g * 255.0f / alpha, 0, 255);
+                    data[i + 2] = (byte)Math.Clamp(r * 255.0f / alpha, 0, 255);
+                }
+                else
+                {
+                    data[i] = 0;
+                    data[i + 1] = 0;
+                    data[i + 2] = 0;
+                }
+            }
+
+            unsafe
+            {
+                fixed (byte* p = data)
+                {
+                    IntPtr imageData = (IntPtr)p;
+                    var texture = new Bitmap(width, height, width * 4, PixelFormat.Format32bppArgb, imageData);
+                    Directory.CreateDirectory(Path.GetDirectoryName(tex_path)!);
+                    texture.Save(tex_path, ImageFormat.Png);
+                }
+            }
+        }
+
         public static void SaveNormalAsBitmap(string tex_path, byte[] data, int width, int height)
         {
             for (int i = 0; i < data.Length; i += 4)

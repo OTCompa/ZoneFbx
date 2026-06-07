@@ -1,4 +1,4 @@
-using Lumina.Models.Materials;
+﻿using Lumina.Models.Materials;
 using System.Numerics;
 using System.Text;
 
@@ -13,6 +13,7 @@ namespace ZoneFbx.Processor
         public Vector3? EmissiveFactor { get; set; } = null;
         public Vector3? BlendEmissiveFactor { get; set; } = null;
         public Vector3? NormalFactor { get; set; } = null;
+        public Vector3? LightshaftFactor { get; set; } = null;
 
         private float? Unk1 { get; set; } = null;
         private float? Unk2 { get; set; } = null;
@@ -27,6 +28,7 @@ namespace ZoneFbx.Processor
         private ushort? emissiveOffset = null;
         //private ushort? emissive2Offset = null;
         private ushort? normalOffset = null;
+        private ushort? lightshaftOffset = null;
         private ushort? unk1Offset = null;  // emmissive scale?
         private ushort? unk2Offset = null;  // version?
 
@@ -127,6 +129,14 @@ namespace ZoneFbx.Processor
                         unk2Offset = constant.ValueOffset;
                         // version?
                         break;
+                    case 0xD27C58B9:
+                        // this might be a vector 4 with size 16, textools only has it as 3 floats though
+                        if (constant.ValueSize != 12)
+                        {
+                            Console.WriteLine($"Unexpected size for lightshaftOffset ({constant.ValueSize}). May cause unexpected results.");
+                        }
+                        lightshaftOffset = constant.ValueOffset;
+                        break;
                     //case 0x793AC5A3:
                     // normal blend?
                 }
@@ -167,6 +177,10 @@ namespace ZoneFbx.Processor
             if (unk2Offset.HasValue)
             {
                 Unk2 = readFloatConstant(values, unk2Offset.Value);
+            }
+            if (lightshaftOffset.HasValue)
+            {
+                LightshaftFactor = readVector3Constant(values, lightshaftOffset.Value);
             }
 
 

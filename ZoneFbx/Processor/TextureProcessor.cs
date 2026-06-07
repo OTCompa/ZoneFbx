@@ -5,6 +5,8 @@ using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
+    internal enum TextureMode { Default, Normal, Lightshaft }
+
     internal class TextureProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, string outputPath, string zoneCode) : Processor(data, contextManager, options)
     {
         private readonly string outputPath = outputPath;
@@ -42,10 +44,28 @@ namespace ZoneFbx.Processor
             }
             filename = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, color, suffix);
 
-            extractTexture(tex, color, filename, tex.TextureUsageSimple == Texture.Usage.Normal);
+            var mode = material.ShaderPack == "lightshaft.shpk" ? TextureMode.Lightshaft
+                     : tex.TextureUsageSimple == Texture.Usage.Normal ? TextureMode.Normal
+                     : TextureMode.Default;
+            extractTexture(tex, color, filename, mode);
 
             if (!string.IsNullOrEmpty(suffix) && !suffix.Equals("_e")) return IntPtr.Zero;
             return initializeFileTexture(tex.TexturePath, filename, suffix);
+        }
+
+        public IntPtr CreateDiffuseDummy()
+        {
+            var filename = "diffuse_dummy.png";
+            var fileOutputPath = Path.Combine(this.outputPath, "textures", filename);
+            if (!File.Exists(fileOutputPath))
+            {
+                byte[] dummyData = [0, 0, 0, 0];
+                Util.SaveAsBitmap(fileOutputPath, dummyData, 1, 1);
+            }
+
+            var texture = FileTexture.Create(contextManager, "diffuse_dummy");
+            FileTexture.SetStuff(texture, fileOutputPath);
+            return texture;
         }
 
         public string CreateEmissiveDummy()
@@ -60,6 +80,14 @@ namespace ZoneFbx.Processor
             return fileOutputPath;
         }
 
+        public IntPtr PrepareLightshaftEmission(Material material, Texture tex, MaterialInfo? materialInfo, out string filename)
+        {
+            filename = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, Vector3.One, "_e");
+            
+            extractTexture(tex, materialInfo?.LightshaftFactor, filename, TextureMode.Default);
+            return initializeFileTexture(tex.TexturePath, filename, "_e");
+        }
+
         private IntPtr initializeFileTexture(string texfilePath, string textureOutputPath, string suffix = "")
         {
             string textureObjectName = $"{Path.GetFileNameWithoutExtension(texfilePath)}{suffix}";
@@ -68,7 +96,7 @@ namespace ZoneFbx.Processor
             return texture;
         }
 
-        private void extractTexture(Texture tex, Vector3? color, string outputPath, bool isNormal = false)
+        private void extractTexture(Texture tex, Vector3? color, string outputPath, TextureMode mode = TextureMode.Default)
         {
             if (File.Exists(outputPath)) return;
 
@@ -79,12 +107,17 @@ namespace ZoneFbx.Processor
             {
                 byte[] imageDataCopy = new byte[texfile.ImageData.Length];
                 texfile.ImageData.CopyTo(imageDataCopy, 0);
-                if (!isNormal)
+                switch (mode)
                 {
-                    Util.SaveAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height, color);
-                } else
-                {
-                    Util.SaveNormalAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height);
+                    case TextureMode.Lightshaft:
+                        Util.SaveLightshaftAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height);
+                        break;
+                    case TextureMode.Normal:
+                        Util.SaveNormalAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height);
+                        break;
+                    default:
+                        Util.SaveAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height, color);
+                        break;
                 }
             } catch (NotSupportedException)
             {
