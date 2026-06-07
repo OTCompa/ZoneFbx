@@ -15,42 +15,38 @@ namespace ZoneFbx.Processor
         public IntPtr PrepareTexture(Material material, Texture tex, MaterialInfo? materialInfo, out string filename, string suffix = "")
         {
             filename = "";
+            bool isBlend = tex.TextureUsageRaw.ToString()[^1] == '1';
+
             Vector3? color = null;
             switch (tex.TextureUsageSimple)
             {
                 case Texture.Usage.Diffuse:
-                    // if actually diffuse
-                    if (string.IsNullOrEmpty(suffix))
-                    {
-                        color = materialInfo?.DiffuseFactor;
-                        break;
-                    }
-
-                    // if processing emissives instead
-                    if (suffix.Equals("_e"))
+                    if (suffix == "_e")
                     {
                         color = materialInfo?.EmissiveFactor;
                         if (color == null) return IntPtr.Zero;
                     }
-                    if (suffix.Equals("_blend"))
+                    else
                     {
-                        color = materialInfo?.BlendDiffuseFactor;
-                        //if (materialInfo?.DiffuseColor != null && materialInfo?.DiffuseColor != Vector3.Zero) color *= materialInfo.DiffuseColor;
-                        //if (color == null) return IntPtr.Zero;
+                        color = isBlend ? materialInfo?.BlendDiffuseFactor : materialInfo?.DiffuseFactor;
+                        //if (isBlend && materialInfo?.DiffuseColor != null && materialInfo?.DiffuseColor != Vector3.Zero) color *= materialInfo.DiffuseColor;
                     }
                     break;
                 case Texture.Usage.Specular:
-                    color = materialInfo?.SpecularFactor; break;
+                    color = materialInfo?.SpecularFactor;
+                    break;
             }
-            filename = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, color, suffix);
+
+            var fileSuffix = suffix == "_e" ? "_e" : (isBlend ? "_blend" : "");
+            filename = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, color, fileSuffix);
 
             var mode = material.ShaderPack == "lightshaft.shpk" ? TextureMode.LightshaftAlpha
                      : tex.TextureUsageSimple == Texture.Usage.Normal ? TextureMode.Normal
                      : TextureMode.Default;
             extractTexture(tex, color, filename, mode);
 
-            if (!string.IsNullOrEmpty(suffix) && !suffix.Equals("_e")) return IntPtr.Zero;
-            return initializeFileTexture(tex.TexturePath, filename, suffix);
+            if (isBlend) return IntPtr.Zero;
+            return initializeFileTexture(tex.TexturePath, filename, fileSuffix);
         }
 
         public IntPtr CreateDiffuseDummy()

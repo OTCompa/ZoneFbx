@@ -25,10 +25,8 @@ namespace ZoneFbx.Processor
             if (material.ShaderPack == "lightshaft.shpk")
             {
                 if (!options.enableLightshaftModels) return IntPtr.Zero;
-                return handleLightshaft(material);
+                return HandleLightshaft(material);
             }
-            // the above isn't pretty but I don't really wannt touch anything below this block 
-            // until I get around to cleaning this up
 
             if (material.File == null) return IntPtr.Zero;
             var hash = material.File.FilePath.IndexHash;
@@ -38,92 +36,98 @@ namespace ZoneFbx.Processor
             var outputSurface = SurfacePhong.Create(contextManager, Path.GetFileNameWithoutExtension(material.MaterialPath));
             SurfacePhong.SetFactor(outputSurface, options.specularFactor, options.normalFactor);
 
-            // TODO: clean this up
-            HashSet<Texture.Usage> alreadySet = new HashSet<Texture.Usage>();
-            string outputFilePath;
-            for (int i = 0; i < material.Textures.Length; i++)
+            var primaryAssigned = new HashSet<Texture.Usage>();
+            foreach (var texture in material.Textures)
             {
-                var texture = material.Textures[i];
-                IntPtr textureObject;
                 if (texture == null || texture.TexturePath.Contains("dummy")) continue;
 
-                // blending logic
-                // for bgUvScroll this might be reversed where the second texture is displayed by default
-                if (alreadySet.Contains(texture.TextureUsageSimple))
+                if (!IsBlendSlot(texture))
                 {
-                    if (options.enableBlend && (options.disableBaking || (materialInfo != null && materialInfo.DiffuseBlendEnabled)))
-                    {
-                        textureProcessor.PrepareTexture(material, texture, materialInfo, out outputFilePath, "_blend");
-                        if (!string.IsNullOrEmpty(outputFilePath) && !SurfacePhong.PropertyExists(outputSurface, $"Blend{texture.TextureUsageSimple}"))
-                        {
-                            Property.CreateString(outputSurface, $"Blend{texture.TextureUsageSimple}", Path.GetFileName(outputFilePath));
-                        }
-                        addToMaterialTextureDict(Path.GetFileNameWithoutExtension(outputFilePath), material, $"Blend{texture.TextureUsageSimple}");
-                    }
-                    continue;
+                    ApplyPrimaryTexture(material, texture, materialInfo, outputSurface, primaryAssigned);
                 }
-                // there's an unhandled edge case here where the following fails and is supposed to be a blended texture. this hopefully shouldn't ever happen
-                // if it does happen i'll need to refactor when i have the time
-                textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out outputFilePath);
-                if (textureObject == IntPtr.Zero) continue;
-                alreadySet.Add(texture.TextureUsageSimple);
-
-                addToMaterialTextureDict(Path.GetFileNameWithoutExtension(outputFilePath), material, texture.TextureUsageSimple.ToString());
-                if (texture.TextureUsageSimple == Texture.Usage.Diffuse)
+                else
                 {
-                    var emissiveObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissiveFilename, "_e");
-                    if (emissiveObject != IntPtr.Zero)
-                    {
-                        SurfacePhong.ConnectEmissive(outputSurface, emissiveObject);
-                        addToMaterialTextureDict(Path.GetFileNameWithoutExtension(emissiveFilename), material, "Emissive");
-
-                        // for materials that blend textures, if they contain an emissive, create a dummy texture for the emissive to blend with
-                        // this may need to be researched more but it produces what looks to be the correct result for the maps i've tested so far?
-                        if (options.enableBlend && materialInfo != null && materialInfo.DiffuseBlendEnabled)
-                        {
-                            var emissiveDummyPath = textureProcessor.CreateEmissiveDummy();
-                            if (!string.IsNullOrEmpty(emissiveDummyPath) && !SurfacePhong.PropertyExists(outputSurface, "BlendEmissive"))
-                            {
-                                Property.CreateString(outputSurface, "BlendEmissive", Path.GetFileName(emissiveDummyPath));
-                                addToMaterialTextureDict(Path.GetFileNameWithoutExtension(emissiveDummyPath), material, "BlendEmissive");
-                            }
-                        }
-                    }
+                    ApplyBlendTexture(material, texture, materialInfo, outputSurface);
                 }
-
-                connectSrcObjects(texture.TextureUsageSimple, outputSurface, textureObject);
             }
 
             materialCache.Add(hash, outputSurface);
             return outputSurface;
         }
 
-        private IntPtr handleLightshaft(Material material)
+        private static bool IsBlendSlot(Texture texture) =>
+            texture.TextureUsageRaw.ToString()[^1] == '1';
+
+        private void ApplyPrimaryTexture(Material material, Texture texture, MaterialInfo? materialInfo, IntPtr outputSurface, HashSet<Texture.Usage> primaryAssigned)
         {
-            if (!options.enableLightshaftModels) return IntPtr.Zero;
+            var usage = texture.TextureUsageSimple;
+
+            if (primaryAssigned.Contains(usage))
+                Console.WriteLine($"[MaterialProcessor] Warning: overwriting primary {usage} for {material.MaterialPath} ({texture.TextureUsageRaw})");
+
+            var textureObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out var filePath);
+            if (textureObject == IntPtr.Zero) return;
+
+            primaryAssigned.Add(usage);
+            addToMaterialTextureDict(Path.GetFileNameWithoutExtension(filePath), material, usage.ToString());
+            connectSrcObjects(usage, outputSurface, textureObject);
+
+            if (usage == Texture.Usage.Diffuse)
+                ApplyDiffuseExtras(material, texture, materialInfo, outputSurface);
+        }
+
+        private void ApplyBlendTexture(Material material, Texture texture, MaterialInfo? materialInfo, IntPtr outputSurface)
+        {
+            if (!options.enableBlend) return;
+            if (!options.disableBaking && (materialInfo == null || !materialInfo.DiffuseBlendEnabled)) return;
+
+            var usage = texture.TextureUsageSimple;
+            textureProcessor.PrepareTexture(material, texture, materialInfo, out var filePath);
+            if (string.IsNullOrEmpty(filePath)) return;
+
+            if (!SurfacePhong.PropertyExists(outputSurface, $"Blend{usage}"))
+                Property.CreateString(outputSurface, $"Blend{usage}", Path.GetFileName(filePath));
+            addToMaterialTextureDict(Path.GetFileNameWithoutExtension(filePath), material, $"Blend{usage}");
+        }
+
+        private void ApplyDiffuseExtras(Material material, Texture texture, MaterialInfo? materialInfo, IntPtr outputSurface)
+        {
+            var emissiveObject = textureProcessor.PrepareTexture(material, texture, materialInfo, out var emissiveFilePath, "_e");
+            if (emissiveObject == IntPtr.Zero) return;
+
+            SurfacePhong.ConnectEmissive(outputSurface, emissiveObject);
+            addToMaterialTextureDict(Path.GetFileNameWithoutExtension(emissiveFilePath), material, "Emissive");
+
+            if (!options.enableBlend || materialInfo == null || !materialInfo.DiffuseBlendEnabled) return;
+
+            var dummyPath = textureProcessor.CreateEmissiveDummy();
+            if (!string.IsNullOrEmpty(dummyPath) && !SurfacePhong.PropertyExists(outputSurface, "BlendEmissive"))
+            {
+                Property.CreateString(outputSurface, "BlendEmissive", Path.GetFileName(dummyPath));
+                addToMaterialTextureDict(Path.GetFileNameWithoutExtension(dummyPath), material, "BlendEmissive");
+            }
+        }
+
+        private IntPtr HandleLightshaft(Material material)
+        {
             if (material.File == null) return IntPtr.Zero;
             var hash = material.File.FilePath.IndexHash;
             if (materialCache.TryGetValue(hash, out var res)) return res;
 
             var materialInfo = options.disableBaking ? null : new MaterialInfo(material, outputPath, options);
-
             var outputSurface = SurfacePhong.Create(contextManager, Path.GetFileNameWithoutExtension(material.MaterialPath));
             SurfacePhong.SetFactor(outputSurface, options.specularFactor, options.normalFactor);
 
-            string outputFilePath;
-            for (int i = 0; i < material.Textures.Length; i++)
+            var primaryTexture = material.Textures.FirstOrDefault(t => !IsBlendSlot(t));
+            if (primaryTexture != null)
             {
-                var texture = material.Textures[i];
-                var textureObject = textureProcessor.PrepareTexture(material, texture, null, out outputFilePath);
-                if (textureObject == IntPtr.Zero) continue;
-                SurfacePhong.ConnectDiffuse(outputSurface, textureObject);
+                var textureObject = textureProcessor.PrepareTexture(material, primaryTexture, null, out _);
+                if (textureObject != IntPtr.Zero)
+                    SurfacePhong.ConnectDiffuse(outputSurface, textureObject);
 
-                var emissiveObject = textureProcessor.PrepareLightshaftEmission(material, texture, materialInfo, out _);
+                var emissiveObject = textureProcessor.PrepareLightshaftEmission(material, primaryTexture, materialInfo, out _);
                 if (emissiveObject != IntPtr.Zero)
                     SurfacePhong.ConnectEmissive(outputSurface, emissiveObject);
-
-                // TODO: add blend for lightshaft
-                break;
             }
 
             materialCache.Add(hash, outputSurface);
