@@ -5,7 +5,7 @@ using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
 {
-    internal enum TextureMode { Default, Normal, Lightshaft }
+    internal enum TextureMode { Default, Normal, LightshaftAlpha, LightshaftEmission }
 
     internal class TextureProcessor(Lumina.GameData data, IntPtr contextManager, ZoneExporter.Options options, string outputPath, string zoneCode) : Processor(data, contextManager, options)
     {
@@ -44,7 +44,7 @@ namespace ZoneFbx.Processor
             }
             filename = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, color, suffix);
 
-            var mode = material.ShaderPack == "lightshaft.shpk" ? TextureMode.Lightshaft
+            var mode = material.ShaderPack == "lightshaft.shpk" ? TextureMode.LightshaftAlpha
                      : tex.TextureUsageSimple == Texture.Usage.Normal ? TextureMode.Normal
                      : TextureMode.Default;
             extractTexture(tex, color, filename, mode);
@@ -83,7 +83,7 @@ namespace ZoneFbx.Processor
         public IntPtr PrepareLightshaftEmission(Material material, Texture tex, MaterialInfo? materialInfo, out string filename)
         {
             filename = Util.GetTexturePath(outputPath, zoneCode, tex.TexturePath, material.MaterialPath, Vector3.One, "_e");
-            extractTexture(tex, materialInfo?.LightshaftFactor, filename, TextureMode.Default);
+            extractTexture(tex, materialInfo?.LightshaftFactor, filename, TextureMode.LightshaftEmission);
             return initializeFileTexture(tex.TexturePath, filename, "_e");
         }
 
@@ -108,8 +108,11 @@ namespace ZoneFbx.Processor
                 texfile.ImageData.CopyTo(imageDataCopy, 0);
                 switch (mode)
                 {
-                    case TextureMode.Lightshaft:
-                        Util.SaveLightshaftAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height);
+                    case TextureMode.LightshaftAlpha:
+                        Util.SaveLightshaftAlphaAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height);
+                        break;
+                    case TextureMode.LightshaftEmission:
+                        Util.SaveLightshaftEmissionAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height, color);
                         break;
                     case TextureMode.Normal:
                         Util.SaveNormalAsBitmap(outputPath, imageDataCopy, texfile.Header.Width, texfile.Header.Height);

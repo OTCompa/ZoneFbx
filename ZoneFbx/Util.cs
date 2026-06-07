@@ -73,28 +73,40 @@ namespace ZoneFbx
             }
         }
 
-        public static void SaveLightshaftAsBitmap(string tex_path, byte[] data, int width, int height)
+        public static void SaveLightshaftAlphaAsBitmap(string tex_path, byte[] data, int width, int height)
         {
             for (int i = 0; i < data.Length; i += 4)
             {
-                float b = data[i];
-                float g = data[i + 1];
-                float r = data[i + 2];
-
-                float alpha = (r + g + b) / 3.0f;
+                float alpha = (data[i] + data[i + 1] + data[i + 2]) / 3.0f;
+                data[i]     = 0;
+                data[i + 1] = 0;
+                data[i + 2] = 0;
                 data[i + 3] = (byte)Math.Clamp(alpha, 0, 255);
+            }
 
-                if (alpha > 0)
+            unsafe
+            {
+                fixed (byte* p = data)
                 {
-                    data[i] = (byte)Math.Clamp(b * 255.0f / alpha, 0, 255);
-                    data[i + 1] = (byte)Math.Clamp(g * 255.0f / alpha, 0, 255);
-                    data[i + 2] = (byte)Math.Clamp(r * 255.0f / alpha, 0, 255);
+                    IntPtr imageData = (IntPtr)p;
+                    var texture = new Bitmap(width, height, width * 4, PixelFormat.Format32bppArgb, imageData);
+                    Directory.CreateDirectory(Path.GetDirectoryName(tex_path)!);
+                    texture.Save(tex_path, ImageFormat.Png);
                 }
-                else
+            }
+        }
+
+        public static void SaveLightshaftEmissionAsBitmap(string tex_path, byte[] data, int width, int height, Vector3? multiplier = null)
+        {
+            if (multiplier != null)
+            {
+                for (int i = 0; i < data.Length; i += 4)
                 {
-                    data[i] = 0;
-                    data[i + 1] = 0;
-                    data[i + 2] = 0;
+                    var alpha = (data[i] + data[i + 1] + data[i + 2]) / 3 / 255;
+                    if (alpha == 0) alpha = 1;
+                    data[i] = Convert.ToByte(Math.Clamp(data[i] * multiplier.Value.Z / alpha, 0, 255));         // b
+                    data[i + 1] = Convert.ToByte(Math.Clamp(data[i + 1] * multiplier.Value.Y / alpha, 0, 255)); // g
+                    data[i + 2] = Convert.ToByte(Math.Clamp(data[i + 2] * multiplier.Value.X / alpha, 0, 255)); // r
                 }
             }
 
