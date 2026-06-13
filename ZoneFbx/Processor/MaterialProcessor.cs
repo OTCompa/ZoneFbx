@@ -20,7 +20,7 @@ namespace ZoneFbx.Processor
             materialTextureDict.Clear();
         }
 
-        public IntPtr CreateMaterial(Material material)
+        public IntPtr CreateMaterial(Material material, MaterialInfo? materialInfo)
         {
             if (material.ShaderPack == "lightshaft.shpk")
             {
@@ -32,7 +32,6 @@ namespace ZoneFbx.Processor
             var hash = material.File.FilePath.IndexHash;
             if (materialCache.TryGetValue(hash, out var res)) return res;
 
-            var materialInfo = options.disableBaking ? null : new MaterialInfo(material, outputPath, options);
             var outputSurface = SurfacePhong.Create(contextManager, Path.GetFileNameWithoutExtension(material.MaterialPath));
             SurfacePhong.SetFactor(outputSurface, options.specularFactor, options.normalFactor);
 

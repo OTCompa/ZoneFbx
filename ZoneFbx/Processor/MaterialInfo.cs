@@ -1,4 +1,5 @@
-﻿using Lumina.Models.Materials;
+﻿using Lumina.Data.Parsing;
+using Lumina.Models.Materials;
 using System.Numerics;
 using System.Text;
 
@@ -15,6 +16,8 @@ namespace ZoneFbx.Processor
         public Vector3? NormalFactor { get; set; } = null;
         public Vector3? LightshaftFactor { get; set; } = null;
 
+        public Vector4? UvScale { get; set; } = null;
+
         private float? Unk1 { get; set; } = null;
         private float? Unk2 { get; set; } = null;
 
@@ -29,6 +32,7 @@ namespace ZoneFbx.Processor
         //private ushort? emissive2Offset = null;
         private ushort? normalOffset = null;
         private ushort? lightshaftOffset = null;
+        private ushort? uvScaleOffset = null;
         private ushort? unk1Offset = null;  // emmissive scale?
         private ushort? unk2Offset = null;  // version?
 
@@ -129,6 +133,14 @@ namespace ZoneFbx.Processor
                         unk2Offset = constant.ValueOffset;
                         // version?
                         break;
+                    case 0xBB99CF76:
+                        // normal UV scale
+                        if (constant.ValueSize != 16)
+                        {
+                            Console.WriteLine($"Unexpected size for UV scale ({constant.ValueSize}). May cause unexpected results.");
+                        }
+                        uvScaleOffset = constant.ValueOffset;
+                        break;
                     case 0xD27C58B9:
                         // this might be a vector 4 with size 16, textools only has it as 3 floats though
                         if (constant.ValueSize != 12)
@@ -170,6 +182,10 @@ namespace ZoneFbx.Processor
             {
                 BlendEmissiveFactor = readVector3Constant(values, blendEmissiveOffset.Value);
             }
+            if (uvScaleOffset.HasValue)
+            {
+                UvScale = readVector4Constant(values, uvScaleOffset.Value);
+            }
             if (unk1Offset.HasValue)
             {
                 Unk1 = readFloatConstant(values, unk1Offset.Value);
@@ -197,6 +213,17 @@ namespace ZoneFbx.Processor
             var v = new Vector3(values[idx], values[idx + 1], values[idx + 2]);
 
             if (filterZero && v == Vector3.Zero || filterOne && v == Vector3.One) return null;
+
+            return v;
+        }
+
+        private static Vector4? readVector4Constant(float[] values, ushort byteOffset, bool filterZero = false, bool filterOne = false)
+        {
+            int idx = byteOffset / 4;
+            if (idx + 3 >= values.Length) return null;
+            var v = new Vector4(values[idx], values[idx + 1], values[idx + 2], values[idx + 3]);
+
+            if (filterZero && v == Vector4.Zero || filterOne && v == Vector4.One) return null;
 
             return v;
         }

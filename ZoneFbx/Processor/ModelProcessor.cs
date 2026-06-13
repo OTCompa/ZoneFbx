@@ -1,5 +1,6 @@
 ﻿using Lumina.Data.Files;
 using Lumina.Models.Models;
+using System.Numerics;
 using ZoneFbx.Fbx;
 
 namespace ZoneFbx.Processor
@@ -41,9 +42,20 @@ namespace ZoneFbx.Processor
                 string name = $"{path}_{i}";
                 var meshNode = Node.Create(contextManager, name);
 
-                if (!meshCache.TryGetValue(name, out var mesh))
+                var materialInfo = options.disableBaking ? null : new MaterialInfo(model.Meshes[i].Material, "", options);
+                IntPtr material = materialProcessor.CreateMaterial(model.Meshes[i].Material, materialInfo);
+
+                if (material == IntPtr.Zero)
                 {
-                    mesh = createMesh(model.Meshes[i], name);
+                    Node.Delete(meshNode);
+                    continue;
+                }
+
+                var uvScale = materialInfo != null && materialInfo.UvScale.HasValue ? materialInfo.UvScale : Vector4.One;
+                var cacheKey = uvScale == Vector4.One ? name : $"{name}_uvs{uvScale}";
+                if (!meshCache.TryGetValue(cacheKey, out var mesh))
+                {
+                    mesh = createMesh(model.Meshes[i], name, uvScale);
 
                     var layer = Fbx.Mesh.GetLayer(mesh, 0);
                     var layerElementMaterial = Layer.ElementMaterial.Create(mesh, "elementMaterial");
@@ -53,18 +65,10 @@ namespace ZoneFbx.Processor
                     var layerMaterialIndexArray = Layer.ElementMaterial.GetIndexArray(layerElementMaterial);
                     Layer.Material_Add(layerMaterialIndexArray, 0);
 
-                    meshCache[name] = mesh;
-                }
-
-                IntPtr material = materialProcessor.CreateMaterial(model.Meshes[i].Material);
-                if (material == IntPtr.Zero)
-                {
-                    Node.Delete(meshNode);
-                    continue;
+                    meshCache[cacheKey] = mesh;
                 }
 
                 Node.AddMaterial(meshNode, material);
-
 
                 Node.SetNodeAttribute(meshNode, mesh);
                 Node.AddChild(node, meshNode);
@@ -97,8 +101,9 @@ namespace ZoneFbx.Processor
             return hasChildren;
         }
 
-        private IntPtr createMesh(Lumina.Models.Models.Mesh gameMesh, string name)
+        private IntPtr createMesh(Lumina.Models.Models.Mesh gameMesh, string name, Vector4? uvScale = null)
         {
+            if (uvScale == null) { uvScale = Vector4.One; }
             var mesh = Fbx.Mesh.Create(contextManager, name);
             Fbx.Mesh.Init(mesh, gameMesh.Vertices.Length);
 
@@ -131,10 +136,11 @@ namespace ZoneFbx.Processor
 
                 if (gameMesh.Vertices[i].UV.HasValue)
                 {
+                    var uv = gameMesh.Vertices[i].UV!.Value;
                     var uv1Array = GeometryElement.UV.GetDirectArray(uvElement1);
-                    Layer.UV_Add(uv1Array, gameMesh.Vertices[i].UV!.Value.X, gameMesh.Vertices[i].UV!.Value.Y * -1);
+                    Layer.UV_Add(uv1Array, uv.X * uvScale.Value.X, uv.Y * -1 * uvScale.Value.Y);
                     var uv2Array = GeometryElement.UV.GetDirectArray(uvElement2);
-                    Layer.UV_Add(uv2Array, gameMesh.Vertices[i].UV!.Value.Z, gameMesh.Vertices[i].UV!.Value.W * -1);
+                    Layer.UV_Add(uv2Array, uv.Z, uv.W * -1);
                 }
 
                 var colorArray = GeometryElement.VertexColor.GetDirectArray(colorElement);
