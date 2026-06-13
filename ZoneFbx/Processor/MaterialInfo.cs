@@ -21,8 +21,6 @@ namespace ZoneFbx.Processor
         private float? Unk1 { get; set; } = null;
         private float? Unk2 { get; set; } = null;
 
-        public bool DiffuseBlendEnabled { get; set; } = false;
-
         private ushort? diffuseOffset = null;
         private ushort? blendDiffuseOffset = null;
         private ushort? blendEmissiveOffset = null;
@@ -41,26 +39,8 @@ namespace ZoneFbx.Processor
         {
             if (material.File == null) return;
 
-            foreach (var key in material.File.ShaderKeys)
-            {
-                // texture mode == blend?
-                // every material with 2 different textures or 2 different diffuse factors has this keyval combo
-                // removing this keyval combo also disables blending so this should be correct
-                if (key.Category == 0xB616DC5A && key.Value == 0x1DF2985C)
-                {
-                    DiffuseBlendEnabled = true;
-                }
-            }
-
             readConstants(material);
-
-            // ShaderValues is the already-parsed float buffer — no need to seek the reader ourselves.
             readColorConstants(material.File.ShaderValues);
-
-            if (!DiffuseBlendEnabled)
-            {
-                BlendDiffuseFactor = null;
-            }
 
             if (options.enableJsonExport) exportShaderConstants(material, outputPath);
         }
@@ -164,7 +144,7 @@ namespace ZoneFbx.Processor
 
             if (blendDiffuseOffset.HasValue)
             {
-                BlendDiffuseFactor = readVector3Constant(values, blendDiffuseOffset.Value, filterZero: true, filterOne: true);
+                BlendDiffuseFactor = readVector3Constant(values, blendDiffuseOffset.Value);
             }
             if (specularOffset.HasValue)
             {

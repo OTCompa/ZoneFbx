@@ -78,7 +78,8 @@ namespace ZoneFbx.Processor
         private void ApplyBlendTexture(Material material, Texture texture, MaterialInfo? materialInfo, IntPtr outputSurface)
         {
             if (!options.enableBlend) return;
-            if (!options.disableBaking && (materialInfo == null || !materialInfo.DiffuseBlendEnabled)) return;
+            if (options.disableBaking) return;
+            if (materialInfo == null) return;
 
             var usage = texture.TextureUsageSimple;
             textureProcessor.PrepareTexture(material, texture, materialInfo, out var filePath);
@@ -97,7 +98,7 @@ namespace ZoneFbx.Processor
             SurfacePhong.ConnectEmissive(outputSurface, emissiveObject);
             addToMaterialTextureDict(Path.GetFileNameWithoutExtension(emissiveFilePath), material, "Emissive");
 
-            if (!options.enableBlend || materialInfo == null || !materialInfo.DiffuseBlendEnabled) return;
+            if (!options.enableBlend) return;
 
             var dummyPath = textureProcessor.CreateEmissiveDummy();
             if (!string.IsNullOrEmpty(dummyPath) && !SurfacePhong.PropertyExists(outputSurface, "BlendEmissive"))
