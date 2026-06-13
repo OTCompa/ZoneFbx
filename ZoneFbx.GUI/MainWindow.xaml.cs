@@ -222,6 +222,7 @@ namespace ZoneFbx.GUI
                     .Select(t => new ComboBoxItem(
                         t.Bg.ToString(),
                         $"{t.PlaceNameZone.ValueNullable?.Name.ExtractText() ?? ""} {t.PlaceName.Value.Name.ExtractText()} ({t.Bg})"))
+                    .DistinctBy(item => item.DisplayValue)
                     .ToList();
             });
 
